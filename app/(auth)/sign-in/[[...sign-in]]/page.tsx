@@ -56,7 +56,6 @@ const SignIn = () => {
   };
 
   const onSubmit = async (data: FieldValues) => {
-    console.log(data);
     if (!isLoaded) {
       return;
     }
