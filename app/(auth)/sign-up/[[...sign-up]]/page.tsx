@@ -142,7 +142,7 @@ const SignUp = () => {
           </div>
           <button
             disabled={loadingVerification ? true : false}
-            className="flex items-center justify-center w-full gap-2 p-2 mt-2 font-semibold rounded-md cursor-pointer active:hover:bg-primary-hover bg-primary text-primary-foreground shadow-button disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center justify-center w-full gap-2 p-2 mt-2 font-semibold rounded-md cursor-pointer enabled:hover:bg-primary-hover bg-primary text-primary-foreground shadow-button disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {loadingVerification && (
               <LuLoader2 className="animate-spin" size={"1.25rem"} />
