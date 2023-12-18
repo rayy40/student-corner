@@ -9,16 +9,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        input: "hsl(var(--input))",
-        label: "hsl(var(--label))",
-        input_hover: "hsl(var(--input-hover))",
-        border: "hsl(var(--border))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        border: "hsl(var(--border))",
+        label: "hsl(var(--label))",
+        input: "hsl(var(--input))",
+        input_hover: "hsl(var(--input-hover))",
+        error: "hsl(var(--error))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
+          hover: "hsl(var(--primary-hover))",
           foreground: "hsl(var(--primary-foreground))",
-          hover: "hsl(var(--primary-hover))"
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -26,6 +27,7 @@ const config: Config = {
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
+          hover: "hsl(var(--accent-hover))",
           foreground: "hsl(var(--accent-foreground))",
         },
       },
@@ -39,6 +41,7 @@ const config: Config = {
         button:
           "0 5px 10px rgba(154,160,185,.05), 0 15px 40px rgba(166,173,201,.2)",
         light: " 0px 1px 2px rgba(15, 15, 15, 0.05)",
+        medium: " 0px 0px 5px rgba(15, 15, 15, 0.2)",
       },
     },
   },
