@@ -190,7 +190,7 @@ const SignUp = () => {
           </div>
           <button
             disabled={loading.signUp ? true : false}
-            className="flex items-center justify-center w-full gap-2 p-2 mt-2 font-semibold rounded-md cursor-pointer active:hover:bg-primary-hover bg-primary text-primary-foreground shadow-button disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center justify-center w-full gap-2 p-2 mt-2 font-semibold transition-colors rounded-md cursor-pointer active:hover:bg-primary-hover bg-primary text-primary-foreground shadow-button disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {loading.signUp && (
               <LuLoader2 className="animate-spin" size={"1.25rem"} />
@@ -203,7 +203,7 @@ const SignUp = () => {
         <button
           disabled={loading.google ? true : false}
           onClick={() => signUpWith("oauth_google")}
-          className="flex items-center justify-center w-full gap-2 p-2 border rounded-md cursor-pointer shadow-light hover:bg-input border-border"
+          className="flex items-center justify-center w-full gap-2 p-2 transition-colors border rounded-md cursor-pointer  shadow-light hover:bg-input border-border"
         >
           {loading.google ? (
             <LuLoader2 className="animate-spin" size={"1.25rem"} />
@@ -214,7 +214,7 @@ const SignUp = () => {
         </button>
         <button
           onClick={() => signUpWith("oauth_github")}
-          className="flex items-center justify-center w-full gap-2 p-2 border rounded-md cursor-pointer shadow-light hover:bg-input border-border"
+          className="flex items-center justify-center w-full gap-2 p-2 transition-colors border rounded-md cursor-pointer  shadow-light hover:bg-input border-border"
         >
           {loading.github ? (
             <LuLoader2 className="animate-spin" size={"1.25rem"} />
