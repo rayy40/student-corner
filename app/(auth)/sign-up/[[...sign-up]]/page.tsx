@@ -18,6 +18,7 @@ type signUpSchema = z.infer<typeof signUpSchema>;
 const SignUp = () => {
   const [code, setCode] = useState("");
   const [pendingVerification, setPendingVerification] = useState(false);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState({
     verification: false,
     signUp: false,
@@ -58,7 +59,6 @@ const SignUp = () => {
   };
 
   const onSubmit = async (data: FieldValues) => {
-    console.log(data);
     if (!isLoaded) {
       return;
     }
@@ -75,9 +75,10 @@ const SignUp = () => {
 
       setPendingVerification(true);
     } catch (err: any) {
+      setError(err.errors?.[0].longMessage);
       console.error(JSON.stringify(err, null, 2));
     } finally {
-      setLoading((prev) => ({ ...prev, verification: true }));
+      setLoading((prev) => ({ ...prev, verification: false }));
     }
   };
 
@@ -103,6 +104,7 @@ const SignUp = () => {
         router.push("/");
       }
     } catch (err: any) {
+      setError(err.errors?.[0].longMessage);
       console.error(JSON.stringify(err, null, 2));
     } finally {
       setLoading((prev) => ({ ...prev, signUp: false }));
@@ -156,6 +158,7 @@ const SignUp = () => {
               </p>
             )}
           </div>
+          {error && <p className="text-center text-error">{error}</p>}
           <button
             disabled={loading.verification ? true : false}
             className="flex items-center justify-center w-full gap-2 p-2 mt-2 font-semibold rounded-md cursor-pointer enabled:hover:bg-primary-hover bg-primary text-primary-foreground shadow-button disabled:opacity-40 disabled:cursor-not-allowed"
@@ -187,6 +190,7 @@ const SignUp = () => {
               value={code}
               onChange={(e) => setCode(e.target.value)}
             />
+            {error && <p className="text-center text-error">{error}</p>}
           </div>
           <button
             disabled={loading.signUp ? true : false}
@@ -203,7 +207,7 @@ const SignUp = () => {
         <button
           disabled={loading.google ? true : false}
           onClick={() => signUpWith("oauth_google")}
-          className="flex items-center justify-center w-full gap-2 p-2 transition-colors border rounded-md cursor-pointer  shadow-light hover:bg-input border-border"
+          className="flex items-center justify-center w-full gap-2 p-2 transition-colors border rounded-md cursor-pointer shadow-light hover:bg-input border-border"
         >
           {loading.google ? (
             <LuLoader2 className="animate-spin" size={"1.25rem"} />
@@ -214,7 +218,7 @@ const SignUp = () => {
         </button>
         <button
           onClick={() => signUpWith("oauth_github")}
-          className="flex items-center justify-center w-full gap-2 p-2 transition-colors border rounded-md cursor-pointer  shadow-light hover:bg-input border-border"
+          className="flex items-center justify-center w-full gap-2 p-2 transition-colors border rounded-md cursor-pointer shadow-light hover:bg-input border-border"
         >
           {loading.github ? (
             <LuLoader2 className="animate-spin" size={"1.25rem"} />
