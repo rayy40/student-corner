@@ -1,24 +1,29 @@
 "use client";
 
-import { z } from "zod";
-import React, { FormEvent, useState } from "react";
-import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
-import { LuLoader2 } from "react-icons/lu";
-import { OAuthStrategy } from "@clerk/types";
-import { useSignUp } from "@clerk/clerk-react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, FieldValues } from "react-hook-form";
-import { signUpSchema } from "@/schema/authentication_schema";
 import { useRouter } from "next/navigation";
+import React, { FormEvent, useState } from "react";
+import { FieldValues, useForm } from "react-hook-form";
+import { FaGithub } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
+import { LuLoader2 } from "react-icons/lu";
+import { z } from "zod";
+
+import { signUpSchema } from "@/schema/authentication_schema";
+import { useSignUp } from "@clerk/clerk-react";
+import { OAuthStrategy } from "@clerk/types";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type signUpSchema = z.infer<typeof signUpSchema>;
 
 const SignUp = () => {
   const [code, setCode] = useState("");
   const [pendingVerification, setPendingVerification] = useState(false);
-  const [loadingVerification, setLoadingVerification] = useState(false);
-  const [loadingSignUp, setLoadingSignUp] = useState(false);
+  const [loading, setLoading] = useState({
+    verification: false,
+    signUp: false,
+    google: false,
+    github: false,
+  });
   const { isLoaded, signUp, setActive } = useSignUp();
   const {
     register,
@@ -31,6 +36,11 @@ const SignUp = () => {
 
   const signUpWith = async (strategy: OAuthStrategy) => {
     try {
+      setLoading((prev) => ({
+        ...prev,
+        [strategy === "oauth_google" ? "google" : "github"]: true,
+      }));
+
       await signUp?.authenticateWithRedirect({
         strategy,
         redirectUrl: "/sso-callback",
@@ -38,6 +48,12 @@ const SignUp = () => {
       });
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading((prev) => ({
+        ...prev,
+        google: strategy !== "oauth_google" ? false : prev.google,
+        github: strategy === "oauth_google" ? false : prev.github,
+      }));
     }
   };
 
@@ -47,7 +63,7 @@ const SignUp = () => {
       return;
     }
 
-    setLoadingVerification(true);
+    setLoading((prev) => ({ ...prev, verification: true }));
 
     try {
       await signUp.create({
@@ -61,7 +77,7 @@ const SignUp = () => {
     } catch (err: any) {
       console.error(JSON.stringify(err, null, 2));
     } finally {
-      setLoadingVerification(false);
+      setLoading((prev) => ({ ...prev, verification: true }));
     }
   };
 
@@ -71,7 +87,7 @@ const SignUp = () => {
       return;
     }
 
-    setLoadingSignUp(true);
+    setLoading((prev) => ({ ...prev, signUp: true }));
 
     try {
       const completeSignUp = await signUp.attemptEmailAddressVerification({
@@ -89,13 +105,13 @@ const SignUp = () => {
     } catch (err: any) {
       console.error(JSON.stringify(err, null, 2));
     } finally {
-      setLoadingSignUp(false);
+      setLoading((prev) => ({ ...prev, signUp: false }));
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full gap-2 text-foreground">
-      <h1 className="mb-4 text-5xl">Sign Up</h1>
+      <h1 className="mb-4 text-5xl font-semibold">Sign Up</h1>
       {!pendingVerification && (
         <form
           className="w-[350px] flex flex-col gap-4 border-b border-border py-8"
@@ -141,10 +157,10 @@ const SignUp = () => {
             )}
           </div>
           <button
-            disabled={loadingVerification ? true : false}
+            disabled={loading.verification ? true : false}
             className="flex items-center justify-center w-full gap-2 p-2 mt-2 font-semibold rounded-md cursor-pointer enabled:hover:bg-primary-hover bg-primary text-primary-foreground shadow-button disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {loadingVerification && (
+            {loading.verification && (
               <LuLoader2 className="animate-spin" size={"1.25rem"} />
             )}
             Get Code
@@ -173,10 +189,10 @@ const SignUp = () => {
             />
           </div>
           <button
-            disabled={loadingSignUp ? true : false}
+            disabled={loading.signUp ? true : false}
             className="flex items-center justify-center w-full gap-2 p-2 mt-2 font-semibold rounded-md cursor-pointer active:hover:bg-primary-hover bg-primary text-primary-foreground shadow-button disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {loadingSignUp && (
+            {loading.signUp && (
               <LuLoader2 className="animate-spin" size={"1.25rem"} />
             )}
             Sign Up
@@ -185,17 +201,26 @@ const SignUp = () => {
       )}
       <div className="mt-6 w-[350px] flex flex-col gap-4">
         <button
+          disabled={loading.google ? true : false}
           onClick={() => signUpWith("oauth_google")}
           className="flex items-center justify-center w-full gap-2 p-2 border rounded-md cursor-pointer shadow-light hover:bg-input border-border"
         >
-          <FcGoogle size={"1.5rem"} />
+          {loading.google ? (
+            <LuLoader2 className="animate-spin" size={"1.25rem"} />
+          ) : (
+            <FcGoogle size={"1.5rem"} />
+          )}
           Continue with Google
         </button>
         <button
           onClick={() => signUpWith("oauth_github")}
           className="flex items-center justify-center w-full gap-2 p-2 border rounded-md cursor-pointer shadow-light hover:bg-input border-border"
         >
-          <FaGithub size={"1.5rem"} />
+          {loading.github ? (
+            <LuLoader2 className="animate-spin" size={"1.25rem"} />
+          ) : (
+            <FaGithub size={"1.5rem"} />
+          )}
           Continue with Github
         </button>
       </div>

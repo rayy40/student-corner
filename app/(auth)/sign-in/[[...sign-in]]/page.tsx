@@ -1,22 +1,27 @@
 "use client";
 
-import { z } from "zod";
-import React, { useState } from "react";
-import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, FieldValues } from "react-hook-form";
-import { signInSchema } from "@/schema/authentication_schema";
-import { OAuthStrategy } from "@clerk/types";
-import { useSignIn } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { FieldValues, useForm } from "react-hook-form";
+import { FaGithub } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import { LuLoader2 } from "react-icons/lu";
+import { z } from "zod";
+
+import { signInSchema } from "@/schema/authentication_schema";
+import { useSignIn } from "@clerk/clerk-react";
+import { OAuthStrategy } from "@clerk/types";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type signInSchema = z.infer<typeof signInSchema>;
 
 const SignIn = () => {
   const { isLoaded, signIn, setActive } = useSignIn();
-  const [loadingSignIn, setLoadingSignIn] = useState(false);
+  const [loading, setLoading] = useState({
+    signIn: false,
+    google: false,
+    github: false,
+  });
   const [error, setError] = useState("");
   const {
     register,
@@ -29,6 +34,11 @@ const SignIn = () => {
 
   const signInWith = async (strategy: OAuthStrategy) => {
     try {
+      setLoading((prev) => ({
+        ...prev,
+        [strategy === "oauth_google" ? "google" : "github"]: true,
+      }));
+
       await signIn?.authenticateWithRedirect({
         strategy,
         redirectUrl: "/sso-callback",
@@ -36,6 +46,12 @@ const SignIn = () => {
       });
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading((prev) => ({
+        ...prev,
+        google: strategy !== "oauth_google" ? false : prev.google,
+        github: strategy === "oauth_google" ? false : prev.github,
+      }));
     }
   };
 
@@ -45,7 +61,7 @@ const SignIn = () => {
       return;
     }
 
-    setLoadingSignIn(true);
+    setLoading((prev) => ({ ...prev, signIn: true }));
 
     try {
       const result = await signIn.create({
@@ -54,24 +70,22 @@ const SignIn = () => {
       });
 
       if (result.status === "complete") {
-        console.log(result);
         await setActive({ session: result.createdSessionId });
         router.push("/");
       } else {
-        /*Investigate why the login hasn't completed */
         console.log(result);
       }
     } catch (err: any) {
       console.error("error", err.errors[0].longMessage);
       setError(err.errors[0].longMessage);
     } finally {
-      setLoadingSignIn(false);
+      setLoading((prev) => ({ ...prev, signIn: false }));
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full gap-2 text-foreground">
-      <h1 className="mb-4 text-5xl">Sign In</h1>
+      <h1 className="mb-4 text-5xl font-semibold">Sign In</h1>
       <form
         noValidate
         className="w-[350px] flex flex-col gap-4 border-b border-border py-8"
@@ -89,6 +103,11 @@ const SignIn = () => {
             placeholder="Enter your email"
             {...register("email")}
           />
+          {errors.email && (
+            <p className="mt-1 text-center text-error">
+              {errors.email?.message}
+            </p>
+          )}
         </div>
         <div className="flex flex-col gap-1">
           <label
@@ -104,13 +123,18 @@ const SignIn = () => {
             placeholder="Enter your password"
             {...register("password")}
           />
+          {errors.password && (
+            <p className="mt-1 text-center text-error">
+              {errors.password?.message}
+            </p>
+          )}
         </div>
         {error && <p className="text-center text-error">{error}</p>}
         <button
-          disabled={loadingSignIn ? true : false}
+          disabled={loading.signIn ? true : false}
           className="flex items-center justify-center w-full gap-2 p-2 mt-2 font-semibold rounded-md cursor-pointer enabled:hover:bg-primary-hover bg-primary text-primary-foreground shadow-button disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loadingSignIn && (
+          {loading.signIn && (
             <LuLoader2 className="animate-spin" size={"1.25rem"} />
           )}
           Sign In
@@ -118,17 +142,27 @@ const SignIn = () => {
       </form>
       <div className="mt-6 w-[350px] flex flex-col gap-4">
         <button
+          disabled={loading.google ? true : false}
           onClick={() => signInWith("oauth_google")}
           className="flex items-center justify-center w-full gap-2 p-2 border rounded-md cursor-pointer shadow-light hover:bg-input border-border"
         >
-          <FcGoogle size={"1.5rem"} />
+          {loading.google ? (
+            <LuLoader2 className="animate-spin" size={"1.25rem"} />
+          ) : (
+            <FcGoogle size={"1.5rem"} />
+          )}
           Continue with Google
         </button>
         <button
+          disabled={loading.github ? true : false}
           onClick={() => signInWith("oauth_github")}
           className="flex items-center justify-center w-full gap-2 p-2 border rounded-md cursor-pointer shadow-light hover:bg-input border-border"
         >
-          <FaGithub size={"1.5rem"} />
+          {loading.github ? (
+            <LuLoader2 className="animate-spin" size={"1.25rem"} />
+          ) : (
+            <FaGithub size={"1.5rem"} />
+          )}
           Continue with Github
         </button>
       </div>
