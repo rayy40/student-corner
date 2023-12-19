@@ -23,12 +23,13 @@ const config: Config = {
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
+          hover: "hsl(var(--secondary-hover))",
           foreground: "hsl(var(--secondary-foreground))",
         },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          hover: "hsl(var(--accent-hover))",
-          foreground: "hsl(var(--accent-foreground))",
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          hover: "hsl(var(--muted-hover))",
+          foreground: "hsl(var(--muted-foreground))",
         },
       },
       borderRadius: {

@@ -24,18 +24,19 @@ input::selection {
     --primary-hover: 174 26% 55%;
     --primary-foreground: 0 0% 96%;
 
-    --secondary: 0 0% 85%;
-    --secondary-foreground: 0 0% 60%;
+    --secondary: 0 0% 98%;
+    --secondary-foreground: 0 0% 30%;
+    --secondary-hover: 0 0% 94%;
 
-    --accent: 240 2% 84%;
-    --accent-hover: 240 6% 80%;
-    --accent-foreground: 0 0% 9%;
+    --muted: 240 2% 84%;
+    --muted-hover: 240 6% 80%;
+    --muted-foreground: 0 0% 60%;
 
     --error: 0 79% 63%;
 
-    --border: 0 0% 84%;
+    --border: 0 0% 90%;
     --input: 45 13% 94%;
-    --label: 0 0% 75%;
+    --label: 0 0% 70%;
 
     --radius: 0.5rem;
   }

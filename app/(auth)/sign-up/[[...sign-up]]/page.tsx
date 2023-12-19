@@ -175,7 +175,7 @@ const SignUp = () => {
           className="w-[350px] flex flex-col gap-4 border-b border-border py-8"
           onSubmit={onPressVerify}
         >
-          <p className="text-center text-secondary-foreground">
+          <p className="text-center text-muted-foreground">
             We just sent you a temporary login code. Please check your inbox.
           </p>
           <div className="flex flex-col gap-1">
