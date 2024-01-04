@@ -1,6 +1,6 @@
 "use client";
 
-import { FieldValues, useForm } from "react-hook-form";
+import { FieldError, FieldValues, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import DropDown from "@/components/DropDown/DropDown";
@@ -12,14 +12,16 @@ type quizSchema = z.infer<typeof quizSchema>;
 
 const Quiz = () => {
   const {
+    reset,
     watch,
     trigger,
     register,
     setValue,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitted },
   } = useForm<quizSchema>({
     resolver: zodResolver(quizSchema),
+    mode: "onSubmit",
   });
 
   const format = watch("format", "mcq");
@@ -37,8 +39,6 @@ const Quiz = () => {
     console.log(data);
   };
 
-  console.log(errors);
-
   const Topic = () => {
     return (
       <div className="flex flex-col gap-1">
@@ -52,11 +52,11 @@ const Quiz = () => {
           placeholder="Enter topic"
           {...register("topic")}
         />
-        {/* {errors?.topic && (
+        {isSubmitted && by === "topic" && (
           <p className="mt-1 text-[0.95rem] text-error">
-            {errors.topic?.message}
+            {(errors as { topic?: FieldError }).topic?.message}
           </p>
-        )} */}
+        )}
       </div>
     );
   };
@@ -64,7 +64,10 @@ const Quiz = () => {
   const Paragraph = () => {
     return (
       <div className="flex flex-col gap-1">
-        <label className="font-semibold text-[hsl(0_0%_50%)]" htmlFor="Topic">
+        <label
+          className="font-semibold text-[hsl(0_0%_50%)]"
+          htmlFor="Paragraph"
+        >
           Paragraph
         </label>
         <textarea
@@ -74,11 +77,11 @@ const Quiz = () => {
           placeholder="Enter text"
           {...register("paragraph")}
         />
-        {/* {errors?.paragraph && (
+        {isSubmitted && by === "paragraph" && (
           <p className="mt-1 text-[0.95rem] text-error">
-            {errors?.paragraph?.message}
+            {(errors as { paragraph?: FieldError }).paragraph?.message}
           </p>
-        )} */}
+        )}
       </div>
     );
   };
@@ -115,9 +118,7 @@ const Quiz = () => {
   const Format = () => {
     return (
       <div className="flex flex-col gap-1">
-        <label className="font-semibold text-[hsl(0_0%_50%)]" htmlFor="Format">
-          Format
-        </label>
+        <div className="font-semibold text-[hsl(0_0%_50%)]">Format</div>
         <div className="flex items-center w-full border rounded-md border-border">
           <button
             onClick={() => {
@@ -164,6 +165,7 @@ const Quiz = () => {
         <div className="flex flex-col items-start gap-4">
           <h1 className="text-4xl font-semibold">Quizify</h1>
           <DropDown
+            reset={reset}
             value={"Topic"}
             lists={["topic", "paragraph"]}
             setValue={setValue}
