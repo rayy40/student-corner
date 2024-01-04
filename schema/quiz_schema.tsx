@@ -18,7 +18,7 @@ const paragraphSchema = z.object({
   paragraph: z
     .string()
     .min(150, {
-      message: "The paragraph should atleast consist of 150 characters",
+      message: "Enter atleast 150 characters",
     })
     .max(5000, { message: "Cannot have more than 5000 characters" }),
   questions: z
