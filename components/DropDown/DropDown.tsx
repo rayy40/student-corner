@@ -44,7 +44,7 @@ const DropDown = ({ lists, value, reset, setValue }: Props) => {
         <LuChevronsUpDown className={"ml-auto text-muted-foreground"} />
       </button>
       {openDropDown && (
-        <div className="absolute left-0 w-full p-1 mt-3 border rounded-md top-full bg-secondary border-border shadow-medium">
+        <div className="absolute left-0 z-10 w-full p-1 mt-3 border rounded-md top-full bg-secondary border-border shadow-medium">
           <ul>
             {lists.map((item, i) => (
               <li
@@ -52,7 +52,8 @@ const DropDown = ({ lists, value, reset, setValue }: Props) => {
                   setOpenDropDown(false);
                   setCategory(item);
                   reset && reset();
-                  setValue && setValue("by", item as "topic" | "paragraph");
+                  setValue &&
+                    setValue("by", item as "topic" | "paragraph" | "document");
                 }}
                 className="flex items-center justify-between p-2 capitalize rounded-md cursor-pointer bg-secondary hover:bg-secondary-hover"
                 key={i}
