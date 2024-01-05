@@ -1,12 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
 import { FieldError, FieldValues, useForm } from "react-hook-form";
+import { LuFileUp } from "react-icons/lu";
 import { z } from "zod";
 
 import DropDown from "@/components/DropDown/DropDown";
 import { quizSchema } from "@/schema/quiz_schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 
 type quizSchema = z.infer<typeof quizSchema>;
 
@@ -32,12 +33,16 @@ const Quiz = () => {
       trigger("topic");
     } else if (by === "paragraph") {
       trigger("paragraph");
+    } else if (by === "document") {
+      trigger("document");
     }
   }, [by, trigger]);
 
   const onSubmit = (data: FieldValues) => {
     console.log(data);
   };
+
+  console.log(errors);
 
   const Topic = () => {
     return (
@@ -80,6 +85,37 @@ const Quiz = () => {
         {isSubmitted && by === "paragraph" && (
           <p className="mt-1 text-[0.95rem] text-error">
             {(errors as { paragraph?: FieldError }).paragraph?.message}
+          </p>
+        )}
+      </div>
+    );
+  };
+
+  const Document = () => {
+    return (
+      <div className="flex flex-col gap-1">
+        <div className="font-semibold text-[hsl(0_0%_50%)]">Document</div>
+        <div className="p-2 w-full h-[150px] bg-input-background rounded-md shadow-[inset_0_0_6px_-2px_rgba(15,15,15,0.25)]">
+          <div className="cursor-pointer relative bg-input rounded-md border-2 bg-light-gray border-dotted border-dark-gray w-full h-full flex items-center justify-center shadow-[inset_0_0_6px_-2px_rgba(15,15,15,0.25)]">
+            <label
+              className="flex items-center justify-center w-full h-full rounded-md"
+              htmlFor="file"
+            >
+              <div className="flex items-center gap-2 p-2 px-3 text-sm border rounded-md border-border bg-muted shadow-light">
+                <LuFileUp /> Upload PDFs
+              </div>
+            </label>
+            <input
+              type="file"
+              id="file"
+              className="absolute w-0 h-0 opacity-0 -z-10"
+              {...register("document")}
+            />
+          </div>
+        </div>
+        {isSubmitted && by === "document" && (
+          <p className="mt-2 text-[0.95rem] text-center text-error">
+            {(errors as { document?: FieldError }).document?.message}
           </p>
         )}
       </div>
@@ -167,12 +203,13 @@ const Quiz = () => {
           <DropDown
             reset={reset}
             value={"Topic"}
-            lists={["topic", "paragraph"]}
+            lists={["topic", "paragraph", "document"]}
             setValue={setValue}
           />
         </div>
         {by === "topic" && <Topic />}
         {by === "paragraph" && <Paragraph />}
+        {by === "document" && <Document />}
         <Questions />
         <Format />
         <button
