@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useMutation } from "convex/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { FieldError, FieldValues, useForm } from "react-hook-form";
 import { LuFileUp } from "react-icons/lu";
 import { z } from "zod";
 
 import DropDown from "@/components/DropDown/DropDown";
+import LoadingSpinner from "@/components/Loading/LoadingSpinner";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { useUserIdStore } from "@/providers/store";
 import { quizSchema } from "@/schema/quiz_schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -25,6 +31,13 @@ const Quiz = () => {
     mode: "onSubmit",
   });
 
+  const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
+  const [isCreatingQuizError, setIsCreatingQuizError] = useState(false);
+
+  const createQuiz = useMutation(api.quiz.createQuiz);
+  const { userId } = useUserIdStore();
+
+  const router = useRouter();
   const format = watch("format", "mcq");
   const by = watch("by", "topic");
 
@@ -38,11 +51,33 @@ const Quiz = () => {
     }
   }, [by, trigger]);
 
-  const onSubmit = (data: FieldValues) => {
-    console.log(data);
+  const onSubmit = async (data: FieldValues) => {
+    setIsCreatingQuiz(true);
+    let content = "";
+    if (by === "topic") {
+      content = "topic";
+    } else if (by === "paragraph") {
+      content = "paragraph";
+    } else if (by === "document") {
+      content = "document";
+    }
+    try {
+      const quizId = await createQuiz({
+        userId: userId as Id<"users">,
+        questionNumber: data.questions,
+        content: data?.[content],
+        format: data.format,
+        kind: data.by,
+      });
+      router.push(`/quiz/${quizId}`);
+    } catch (errors) {
+      console.log(errors);
+      setIsCreatingQuizError(true);
+      setIsCreatingQuiz(false);
+    } finally {
+      reset();
+    }
   };
-
-  console.log(errors);
 
   const Topic = () => {
     return (
@@ -193,32 +228,39 @@ const Quiz = () => {
 
   return (
     <div className="flex max-w-[500px] -my-12 mx-auto h-full items-center justify-center p-4 pt-20">
-      <form
-        className="flex flex-col w-full gap-8"
-        action={"/"}
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div className="flex flex-col items-start gap-4">
-          <h1 className="text-4xl font-semibold">Quizify</h1>
-          <DropDown
-            reset={reset}
-            value={"Topic"}
-            lists={["topic", "paragraph", "document"]}
-            setValue={setValue}
-          />
-        </div>
-        {by === "topic" && <Topic />}
-        {by === "paragraph" && <Paragraph />}
-        {by === "document" && <Document />}
-        <Questions />
-        <Format />
-        <button
-          className="p-2 mt-6 font-semibold transition-colors rounded-md bg-primary text-primary-foreground hover:bg-primary-hover"
-          type="submit"
+      {isCreatingQuiz ? (
+        <LoadingSpinner />
+      ) : (
+        <form
+          className="flex flex-col w-full gap-8"
+          action={"/"}
+          onSubmit={handleSubmit(onSubmit)}
         >
-          Submit
-        </button>
-      </form>
+          <div className="flex flex-col items-start gap-4">
+            <h1 className="text-4xl font-semibold">Quizify</h1>
+            <DropDown
+              reset={reset}
+              value={"Topic"}
+              lists={["topic", "paragraph", "document"]}
+              setValue={setValue}
+            />
+          </div>
+          {by === "topic" && <Topic />}
+          {by === "paragraph" && <Paragraph />}
+          {by === "document" && <Document />}
+          <Questions />
+          <Format />
+          <button
+            className="p-2 mt-6 font-semibold transition-colors rounded-md bg-primary text-primary-foreground hover:bg-primary-hover"
+            type="submit"
+          >
+            Submit
+          </button>
+          {isCreatingQuizError && (
+            <p className="text-center text-error">Validation Error</p>
+          )}
+        </form>
+      )}
     </div>
   );
 };
