@@ -9,10 +9,12 @@ import { z } from "zod";
 
 import DropDown from "@/components/DropDown/DropDown";
 import LoadingSpinner from "@/components/Loading/LoadingSpinner";
+import UnAuthenticated from "@/components/UnAuthenticated/UnAuthenticated";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useUserIdStore } from "@/providers/store";
 import { quizSchema } from "@/schema/quiz_schema";
+import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 type quizSchema = z.infer<typeof quizSchema>;
@@ -31,11 +33,13 @@ const Quiz = () => {
     mode: "onSubmit",
   });
 
+  const { isLoaded, isSignedIn } = useAuth();
+  const { userId } = useUserIdStore();
+
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
   const [isCreatingQuizError, setIsCreatingQuizError] = useState(false);
 
   const createQuiz = useMutation(api.quiz.createQuiz);
-  const { userId } = useUserIdStore();
 
   const router = useRouter();
   const format = watch("format", "mcq");
@@ -225,6 +229,18 @@ const Quiz = () => {
       </div>
     );
   };
+
+  if (!isLoaded && isSignedIn !== true) {
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return <UnAuthenticated />;
+  }
 
   return (
     <div className="flex max-w-[500px] -my-12 mx-auto h-full items-center justify-center p-4 pt-20">
