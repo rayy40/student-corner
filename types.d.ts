@@ -20,3 +20,12 @@ export interface DocumentTypes {
 }
 
 export type QuestionType = TopicTypes | ParagraphTypes | DocumentTypes;
+
+export type UserAnswers = {
+  [key: string]: string;
+};
+
+export type SelectedOptions = {
+  key: number;
+  value: string;
+}[];
