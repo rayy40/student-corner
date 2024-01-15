@@ -81,3 +81,7 @@ export const quizSchema = z
       throw new Error("Invalid option selected for 'by");
     }
   });
+
+export const answerSchema = z.object({
+  answers: z.array(z.string()).optional(),
+});
