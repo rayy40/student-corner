@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { string } from "zod";
 
 const QuizFormat = v.union(
   v.literal("mcq"),
@@ -11,6 +12,12 @@ const QuizKind = v.union(
   v.literal("paragraph"),
   v.literal("document")
 );
+export const Response = v.object({
+  question: v.string(),
+  answer: v.string(),
+  yourAnswer: v.optional(v.string()),
+  options: v.optional(v.array(v.string())),
+});
 
 export default defineSchema({
   users: defineTable({
@@ -24,5 +31,7 @@ export default defineSchema({
     content: v.string(),
     format: QuizFormat,
     kind: QuizKind,
+    response: v.optional(v.union(v.array(Response), v.string())),
+    score: v.optional(v.number()),
   }),
 });
