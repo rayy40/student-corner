@@ -147,10 +147,15 @@ export const getQuizData = query({
 });
 
 export const patchAnswer = mutation({
-  args: { quizId: v.id("quiz"), response: v.array(Response) },
+  args: {
+    quizId: v.id("quiz"),
+    response: v.array(Response),
+    score: v.number(),
+  },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.quizId, {
       response: args.response,
+      score: args.score,
     });
   },
 });
