@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { Infer } from "convex/values";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { LuTimer } from "react-icons/lu";
@@ -28,7 +29,9 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
   const [selectedOptions, setSelectedOptions] = useState<{
     [key: number]: string;
   }>({});
+  const [isCalculatingScore, setIsCalculatingScore] = useState(false);
   const { isLoaded, isSignedIn } = useAuth();
+  const router = useRouter();
 
   const quizData = useQuery(api.quiz.getQuizData, {
     quizId: params.quizId,
@@ -37,27 +40,31 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
   const patchAnswer = useMutation(api.quiz.patchAnswer);
 
   const onSubmit = async () => {
+    setIsCalculatingScore(true);
     const values = getValues();
+
     const score = calculateScore(
       quizData?.quiz?.response as QuizData[],
-      selectedOptions
+      values
     );
-    console.log(score);
+
     const updatedResponse = (quizData?.quiz?.response as QuizData[]).map(
       (item, index) => ({
         ...item,
-        yourAnswer: selectedOptions[index + 1],
+        yourAnswer: values[index + 1],
       })
     );
 
-    console.log(updatedResponse);
     try {
       await patchAnswer({
         quizId: params.quizId as Id<"quiz">,
         response: updatedResponse,
+        score: score,
       });
+      router.push(`/quiz/${params.quizId}/result`);
     } catch (errors) {
       console.log(errors);
+      setIsCalculatingScore(false);
     }
   };
 
@@ -157,7 +164,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     );
   }
 
-  if (quizData?.quiz && !quizData?.quiz?.response) {
+  if ((quizData?.quiz && !quizData?.quiz?.response) || isCalculatingScore) {
     return (
       <div className="flex items-center justify-center w-full h-full">
         <LoadingSpinner />
@@ -181,11 +188,11 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
           <p>{quizData?.quiz?.content}</p>
         </div>
         <div className="flex gap-0.5 font-semibold item-center text-muted-foreground">
-          <LuTimer size="1.5rem" /> 19s
+          <LuTimer size="1.5rem" /> {19}s
         </div>
       </div>
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(e) => e.preventDefault()}
         action="/"
         className="flex flex-col w-full gap-6"
       >
@@ -227,7 +234,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
         <div className="flex items-center justify-between w-full pt-4">
           <button
             type="button"
-            disabled={questionNumber === 1 ? true : false}
+            disabled={questionNumber === 1}
             className="p-2 px-3 border rounded-md disabled:opacity-40 bg-muted enabled:hover:bg-muted-hover shadow-button border-border"
             onClick={() => setQuestionNumber((prev) => prev - 1)}
           >
@@ -236,7 +243,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
           {questionNumber === quizData?.quiz?.response?.length ? (
             <button
               className="p-2 px-3 font-semibold transition-colors border rounded-md shadow-button border-border bg-primary hover:bg-primary-hover text-primary-foreground"
-              type="submit"
+              onClick={handleSubmit(onSubmit)}
             >
               Submit
             </button>
