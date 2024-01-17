@@ -7,11 +7,13 @@ body,
   height: 100%;
 }
 
-input {
+input,
+textarea {
   outline-color: rgba(35, 131, 226, 0.28);
 }
 
-input::selection {
+input::selection,
+textarea::selection {
   background-color: rgba(35, 131, 226, 0.28);
 }
 
@@ -27,6 +29,8 @@ input::selection {
     --secondary: 0 0% 98%;
     --secondary-foreground: 0 0% 30%;
     --secondary-hover: 0 0% 94%;
+
+    --tertiary-foreground: 0 0% 50%;
 
     --muted: 240 2% 84%;
     --muted-hover: 240 6% 80%;

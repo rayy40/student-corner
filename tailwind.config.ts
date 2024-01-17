@@ -26,6 +26,11 @@ const config: Config = {
           hover: "hsl(var(--secondary-hover))",
           foreground: "hsl(var(--secondary-foreground))",
         },
+        tertiary: {
+          DEFAULT: "hsl(var(--tertiary))",
+          hover: "hsl(var(--tertiary-hover))",
+          foreground: "hsl(var(--tertiary-foreground))",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           hover: "hsl(var(--muted-hover))",
