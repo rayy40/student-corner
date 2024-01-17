@@ -12,14 +12,10 @@ import logo from "../../assets/logo.svg";
 
 const Navbar = () => {
   const { signOut } = useClerk();
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isSignedIn } = useAuth();
   const { setUserId } = useUserIdStore();
   const router = useRouter();
   const pathname = usePathname();
-
-  if (!isLoaded) {
-    return;
-  }
 
   return (
     <div
