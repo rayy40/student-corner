@@ -63,17 +63,13 @@ export const calculateScore = (
   quizData: QuizData[],
   userAnswers: UserAnswers
 ) => {
-  let score = 0;
+  const correctAnswers = quizData.filter(
+    (question, index) => userAnswers[index + 1] === question.answer
+  ).length;
 
-  for (const question of quizData) {
-    const questionNumber = quizData.indexOf(question) + 1;
-    const userAnswer = userAnswers[questionNumber];
+  const score = (correctAnswers / quizData.length) * 100;
 
-    if (userAnswer === question.answer) {
-      score++;
-    }
-  }
-  return score;
+  return Math.round(score);
 };
 
 export const isValidQuizId = (quizId: string): boolean => {
