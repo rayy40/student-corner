@@ -13,12 +13,15 @@ import {
   createUserPrompt,
   isValidQuizId,
 } from "@/helpers/utils";
-import { Response } from "./schema";
+import { Questions, Response } from "./schema";
 import { Id } from "./_generated/dataModel";
+import { Infer } from "convex/values";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+type ResponseType = Infer<typeof Response>;
 
 export const createQuiz = mutation({
   args: {
@@ -100,23 +103,23 @@ export const generateQuiz = internalAction({
         model: "gpt-3.5-turbo",
       });
 
-      console.log(completion);
+      const response: ResponseType = completion.choices[0].message.content
+        ? JSON.parse(completion.choices[0].message.content)
+        : undefined;
 
-      const response: Response = JSON.parse(
-        completion.choices[0].message.content ?? ""
-      );
-
-      console.log(response);
-
+      if (!response || !response.title || !response.questions) {
+        throw new Error("Invalid response format from OpenAI.");
+      }
       await ctx.runMutation(internal.quiz.patchResponse, {
         quizId: args.quizId,
-        response: Array.isArray(response)
-          ? response
-          : "Unable to generate a quiz at this time.",
+        response: response,
       });
     } catch (error) {
-      console.error("Error fetching completion:", error);
-      throw new Error("Error while geenrating quiz.");
+      console.error("Error while generating quiz from OpenAI:", error);
+      await ctx.runMutation(internal.quiz.patchResponse, {
+        quizId: args.quizId,
+        response: "Error while generating quiz from OpenAI",
+      });
     }
   },
 });
@@ -124,7 +127,7 @@ export const generateQuiz = internalAction({
 export const patchResponse = internalMutation({
   args: {
     quizId: v.id("quiz"),
-    response: v.union(v.array(Response), v.string()),
+    response: v.union(Response, v.string()),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.quizId, {
@@ -137,25 +140,60 @@ export const getQuizData = query({
   args: { quizId: v.string() },
   handler: async (ctx, args) => {
     if (!isValidQuizId(args.quizId)) {
-      const err = true;
-      return { err };
+      return {
+        quizData: undefined,
+        fallbackData: undefined,
+        isGeneratingQuiz: false,
+        idNotFound: false,
+        invalidQuizId: true,
+      };
     }
     const quiz = await ctx.db.get(args.quizId as Id<"quiz">);
-    const fallback = "No database found for this Id.";
-    return { quiz, fallback };
+
+    return {
+      quizData: typeof quiz?.response === "string" ? undefined : quiz,
+      fallbackData: typeof quiz?.response === "string" ? quiz : undefined,
+      isGeneratingQuiz: quiz?.response === undefined ? true : false,
+      idNotFound: quiz ? false : true,
+      invalidQuizId: false,
+    };
   },
 });
 
 export const patchAnswer = mutation({
   args: {
     quizId: v.id("quiz"),
-    response: v.array(Response),
-    score: v.number(),
+    questions: v.array(Questions),
+    result: v.object({
+      score: v.number(),
+      correctAnswer: v.number(),
+    }),
   },
   handler: async (ctx, args) => {
+    const existingQuiz = await ctx.db.get(args.quizId);
+
+    if (typeof existingQuiz?.response !== "object") {
+      throw new Error("Response type should only be objects.");
+    }
+
+    const updatedResponse = {
+      ...existingQuiz.response,
+      questions: args.questions,
+    };
     await ctx.db.patch(args.quizId, {
-      response: args.response,
-      score: args.score,
+      response: updatedResponse,
+      result: args.result,
     });
+  },
+});
+
+export const getQuizHistory = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const quizes = await ctx.db
+      .query("quiz")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .collect();
+    return quizes;
   },
 });

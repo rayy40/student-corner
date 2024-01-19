@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { Infer } from "convex/values";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -12,14 +11,13 @@ import LoadingSpinner from "@/components/Loading/LoadingSpinner";
 import UnAuthenticated from "@/components/UnAuthenticated/UnAuthenticated";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Response } from "@/convex/schema";
 import { calculateScore, numToAlpha } from "@/helpers/utils";
 import { answerSchema } from "@/schema/quiz_schema";
+import { QuizData, ResponseType } from "@/types";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 type answerSchema = z.infer<typeof answerSchema>;
-type QuizData = Infer<typeof Response>;
 
 const QuizId = ({ params }: { params: { quizId: string } }) => {
   const { register, handleSubmit, setValue, getValues } = useForm({
@@ -33,7 +31,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
   const { isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
 
-  const quizData = useQuery(api.quiz.getQuizData, {
+  const game: ResponseType | undefined = useQuery(api.quiz.getQuizData, {
     quizId: params.quizId,
   });
 
@@ -43,23 +41,22 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     setIsCalculatingScore(true);
     const values = getValues();
 
-    const score = calculateScore(
-      quizData?.quiz?.response as QuizData[],
-      values
-    );
+    if (typeof game?.quizData?.response !== "object") return null;
 
-    const updatedResponse = (quizData?.quiz?.response as QuizData[]).map(
+    const result = calculateScore(game?.quizData?.response?.questions, values);
+
+    const updatedgame = (game?.quizData?.response?.questions).map(
       (item, index) => ({
         ...item,
-        yourAnswer: values[index + 1],
+        yourAnswer: values[index + 1] as string,
       })
     );
 
     try {
       await patchAnswer({
         quizId: params.quizId as Id<"quiz">,
-        response: updatedResponse,
-        score: score,
+        questions: updatedgame,
+        result: result,
       });
       router.push(`/quiz/${params.quizId}/result`);
     } catch (errors) {
@@ -72,7 +69,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     if (selectedOptions[id + 1] === answer) {
       return "bg-muted text-foreground";
     } else {
-      ("bg-transparent text-tertiary-foreground hover:bg-secondary-hover hover:text-secondary-foreground");
+      return "bg-transparent text-tertiary-foreground hover:bg-secondary-hover hover:text-secondary-foreground";
     }
   };
 
@@ -148,7 +145,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     return <UnAuthenticated />;
   }
 
-  if (!quizData) {
+  if (!game) {
     return (
       <div className="flex items-center justify-center w-full h-full">
         <LoadingSpinner />
@@ -156,7 +153,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     );
   }
 
-  if (quizData?.err) {
+  if (game?.invalidQuizId) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg">
         <p>No Quiz Id found.</p>
@@ -164,7 +161,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     );
   }
 
-  if ((quizData?.quiz && !quizData?.quiz?.response) || isCalculatingScore) {
+  if (game?.isGeneratingQuiz || isCalculatingScore) {
     return (
       <div className="flex items-center justify-center w-full h-full">
         <LoadingSpinner />
@@ -172,20 +169,31 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     );
   }
 
-  if (!quizData?.quiz) {
+  if (game?.idNotFound) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg">
-        <p>{quizData?.fallback}</p>
+        <p>No database found for this Id.</p>
+      </div>
+    );
+  }
+
+  if (game?.fallbackData) {
+    return (
+      <div className="flex items-center justify-center w-full h-full text-lg">
+        <p>{game?.fallbackData?.response as string}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-5 max-w-[600px] -my-12 mx-auto h-full items-center justify-center p-4 pt-20">
+    <div className="flex font-sans flex-col gap-5 max-w-[600px] -my-12 mx-auto h-full items-center justify-center p-4 pt-20">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2 text-lg">
           <span className="font-medium text-muted-foreground">Topic: </span>
-          <p>{quizData?.quiz?.content}</p>
+          <p>
+            {typeof game?.quizData?.response === "object" &&
+              game?.quizData?.response?.title}
+          </p>
         </div>
         <div className="flex gap-0.5 font-semibold item-center text-muted-foreground">
           <LuTimer size="1.5rem" /> {19}s
@@ -196,41 +204,32 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
         action="/"
         className="flex flex-col w-full gap-6"
       >
-        {quizData?.quiz?.response ? (
-          Array.isArray(quizData?.quiz?.response) ? (
-            quizData?.quiz?.response?.map((item, id) => (
-              <div
-                className={`${
-                  id + 1 === questionNumber ? "flex" : "hidden"
-                } flex-col gap-4 text-lg`}
-                key={id}
-              >
-                <div className="flex items-center gap-4 py-2">
-                  <span className="w-[50px] font-semibold whitespace-nowrap text-muted-foreground">
-                    {id + 1} /{" "}
-                    <span className="text-secondary-foreground">
-                      {quizData?.quiz?.response?.length}
-                    </span>
+        {typeof game?.quizData?.response === "object" &&
+          game?.quizData?.response?.questions?.map((item, id) => (
+            <div
+              className={`${
+                id + 1 === questionNumber ? "flex" : "hidden"
+              } flex-col gap-4 text-lg`}
+              key={id}
+            >
+              <div className="flex items-center gap-4 py-2">
+                <span className="w-[50px] font-semibold whitespace-nowrap text-muted-foreground">
+                  {id + 1} /{" "}
+                  <span className="text-secondary-foreground">
+                    {game?.quizData?.questionNumber}
                   </span>
-                  <p>{item.question}</p>
-                </div>
-                {quizData?.quiz?.format === "mcq" && (
-                  <MCQFormatQuiz item={item} id={id} />
-                )}
-                {quizData?.quiz?.format === "name" && (
-                  <NameFormatQuiz id={id} />
-                )}
-                {quizData?.quiz?.format === "true_false" && (
-                  <TrueFalseQuiz id={id} />
-                )}
+                </span>
+                <p>{item.question}</p>
               </div>
-            ))
-          ) : (
-            <p>{quizData?.quiz?.response}</p>
-          )
-        ) : (
-          <p>Unavailable</p>
-        )}
+              {game?.quizData?.format === "mcq" && (
+                <MCQFormatQuiz item={item} id={id} />
+              )}
+              {game?.quizData?.format === "name" && <NameFormatQuiz id={id} />}
+              {game?.quizData?.format === "true_false" && (
+                <TrueFalseQuiz id={id} />
+              )}
+            </div>
+          ))}
         <div className="flex items-center justify-between w-full pt-4">
           <button
             type="button"
@@ -240,7 +239,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
           >
             Previous
           </button>
-          {questionNumber === quizData?.quiz?.response?.length ? (
+          {questionNumber === game?.quizData?.questionNumber ? (
             <button
               className="p-2 px-3 font-semibold transition-colors border rounded-md shadow-button border-border bg-primary hover:bg-primary-hover text-primary-foreground"
               onClick={handleSubmit(onSubmit)}

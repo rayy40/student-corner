@@ -6,17 +6,14 @@ import { LuTrophy } from "react-icons/lu";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import LoadingSpinner from "@/components/Loading/LoadingSpinner";
+import { ResponseType } from "@/types";
 
 const Result = ({ params }: { params: { quizId: string } }) => {
-  console.log(params.quizId);
-
-  const quizData = useQuery(api.quiz.getQuizData, {
+  const game: ResponseType | undefined = useQuery(api.quiz.getQuizData, {
     quizId: params.quizId,
   });
 
-  console.log(quizData);
-
-  if (!quizData) {
+  if (!game) {
     return (
       <div className="flex items-center justify-center w-full h-full">
         <LoadingSpinner />
@@ -24,7 +21,7 @@ const Result = ({ params }: { params: { quizId: string } }) => {
     );
   }
 
-  if (quizData?.err) {
+  if (game?.invalidQuizId) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg">
         <p>No Quiz Id found.</p>
@@ -32,29 +29,32 @@ const Result = ({ params }: { params: { quizId: string } }) => {
     );
   }
 
-  if (quizData?.quiz && !quizData?.quiz?.response) {
+  if (game?.idNotFound) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
-        <LoadingSpinner />
+      <div className="flex items-center justify-center w-full h-full text-lg">
+        <p>No database found for this Id.</p>
       </div>
     );
   }
 
-  if (!quizData?.quiz) {
+  if (game?.fallbackData) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg">
-        <p>{quizData?.fallback}</p>
+        <p>{game?.fallbackData?.response as string}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col w-full gap-6 p-4 py-20">
+    <div className="flex flex-col w-full gap-6 p-4 py-20 font-sans">
       <div className="flex flex-col items-center justify-center w-full gap-6 py-10 border rounded-md border-border shadow-light">
         <LuTrophy className="text-[4rem]" />
         <div className="flex flex-col items-center justify-center gap-1 text-lg">
-          <p>You got 2 out of 4</p>
-          <p>Score - 40</p>
+          <p>
+            You got {game?.quizData?.result?.correctAnswer} out of{" "}
+            {game?.quizData?.questionNumber}
+          </p>
+          <p>Score - {game?.quizData?.result?.score}</p>
         </div>
       </div>
       <div className="flex flex-col items-center justify-center w-full gap-4">
@@ -70,7 +70,7 @@ const Result = ({ params }: { params: { quizId: string } }) => {
         <div className="w-full py-2 border-t border-t-border">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="font-medium text-tertiary-foreground">
+              <tr className="text-tertiary-foreground">
                 <td className="border-b-border border-b p-2 w-[5%]">No.</td>
                 <td className="border-b-border border-b p-2 mx-4 w-[50%]">
                   Questions
@@ -81,28 +81,21 @@ const Result = ({ params }: { params: { quizId: string } }) => {
               </tr>
             </thead>
             <tbody>
-              {quizData?.quiz?.response ? (
-                Array.isArray(quizData?.quiz?.response) ? (
-                  quizData?.quiz?.response?.map((q, id) => (
-                    <tr key={id}>
-                      <td className="border-b-border border-b p-3 px-2 w-[5%]">
-                        {id + 1}
-                      </td>
-                      <td className="border-b-border border-b p-3 px-2 pr-12 w-[50%]">
-                        <p className="font-light">{q.question}</p>
-                        <p className="font-medium">{q.answer}</p>
-                      </td>
-                      <td className="border-b-border border-b p-3 px-2 w-[40%] font-medium">
-                        {q.yourAnswer}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <p>{quizData?.quiz?.response}</p>
-                )
-              ) : (
-                <p>Unavailable</p>
-              )}
+              {typeof game?.quizData?.response === "object" &&
+                game?.quizData?.response?.questions?.map((q, id) => (
+                  <tr key={id}>
+                    <td className="border-b-border text-tertiary-foreground border-b p-3 px-2 w-[5%]">
+                      {id + 1}
+                    </td>
+                    <td className="border-b-border border-b p-3 px-2 pr-12 w-[50%]">
+                      <p className="text-foreground">{q.question}</p>
+                      <p className="text-secondary-foreground">{q.answer}</p>
+                    </td>
+                    <td className="border-b-border border-b p-3 px-2 w-[40%] text-secondary-foreground">
+                      {q.yourAnswer}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
