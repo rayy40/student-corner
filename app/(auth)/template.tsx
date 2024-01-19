@@ -8,7 +8,7 @@ const Template = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
 
   return (
-    <div className="relative max-w-[1400px] mx-auto w-full h-full">
+    <div className="font-sans relative max-w-[1400px] mx-auto w-full h-full">
       <div className="absolute flex flex-col items-end gap-2 top-10 right-10">
         <p className="text-muted-foreground">
           {pathname === "/sign-in"

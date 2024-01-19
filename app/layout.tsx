@@ -1,12 +1,17 @@
 import "./globals.css";
 
-import { Inter } from "next/font/google";
+import { Inter, DM_Sans, Roboto } from "next/font/google";
 
 import Navbar from "@/components/Navbar/Navbar";
 import { ConvexClientProvider } from "@/providers/convex-provider";
 
 import type { Metadata } from "next";
-const inter = Inter({ subsets: ["latin"] });
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans" });
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "700", "900"],
+  variable: "--font-roboto",
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${dmSans.variable} ${roboto.variable}`}>
         <ConvexClientProvider>
           <Navbar />
           {children}

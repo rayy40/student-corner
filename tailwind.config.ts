@@ -1,5 +1,7 @@
 import type { Config } from "tailwindcss";
 
+const defaultTheme = require("tailwindcss/defaultTheme");
+
 const config: Config = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -8,6 +10,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-roboto)", ...defaultTheme.fontFamily.sans], // Use Inter as default
+        dmSans: ["var(--font-dm-sans)"],
+      },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",

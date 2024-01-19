@@ -84,7 +84,7 @@ const SignIn = () => {
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center w-full h-full gap-2 text-foreground">
+      <div className="flex flex-col items-center justify-center w-full h-full gap-2 font-sans text-foreground">
         <h1 className="mb-4 text-5xl font-semibold">Sign In</h1>
         <form
           noValidate

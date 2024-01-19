@@ -243,7 +243,7 @@ const Quiz = () => {
   }
 
   return (
-    <div className="flex max-w-[500px] -my-12 mx-auto h-full items-center justify-center p-4 pt-20">
+    <div className="flex font-sans max-w-[500px] -my-12 mx-auto h-full items-center justify-center p-4 pt-20">
       {isCreatingQuiz ? (
         <LoadingSpinner />
       ) : (
@@ -253,7 +253,7 @@ const Quiz = () => {
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="flex flex-col items-start gap-4">
-            <h1 className="text-4xl font-semibold">Quizify</h1>
+            <h1 className="text-4xl font-semibold font-dmSans">Quizify</h1>
             <DropDown
               reset={reset}
               value={"Topic"}

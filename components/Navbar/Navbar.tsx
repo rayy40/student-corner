@@ -19,7 +19,7 @@ const Navbar = () => {
 
   return (
     <div
-      className={`fixed top-0 z-10 ${
+      className={`font-sans fixed top-0 z-10 ${
         ["/sign-in", "/sign-up"].includes(pathname) ? "hidden" : "flex"
       } items-center justify-between w-full p-3 bg-white shadow-medium`}
     >
