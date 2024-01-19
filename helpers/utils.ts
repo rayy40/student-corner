@@ -18,7 +18,7 @@ export const createSystemPrompt = ({ format }: { format: string }) => {
       ? NameTheFollowingformat
       : TrueFalseformat;
 
-  let prompt = `I want you to act as a Quiz generator. Your task is to generate a quiz, including a title for the same and format the response as JSON in the shape of ${JSON.stringify(
+  let prompt = `I want you to act as a Quiz generator. Your task is to generate a quiz and format the response as JSON in the shape of ${JSON.stringify(
     formatJSON
   )}.`;
   return prompt;
@@ -30,7 +30,7 @@ export const createUserPrompt = ({
   content,
   kind,
 }: Props) => {
-  let prompt = `Generate ${questionNumber} ${format} type questions, and provide a suitable title for the quiz,`;
+  let prompt = `Generate ${questionNumber} ${format} type questions, and provide a suitable title for the quiz (It should not include the word Quiz),`;
 
   if (kind === "topic") {
     prompt += ` related to ${content}`;
