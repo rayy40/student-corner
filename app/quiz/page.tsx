@@ -16,6 +16,7 @@ import { useUserIdStore } from "@/providers/store";
 import { quizSchema } from "@/schema/quiz_schema";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useUploadFiles } from "@xixixao/uploadstuff/react";
 
 type quizSchema = z.infer<typeof quizSchema>;
 
@@ -30,7 +31,7 @@ const Quiz = () => {
     formState: { errors, isSubmitted },
   } = useForm<quizSchema>({
     resolver: zodResolver(quizSchema),
-    mode: "onSubmit",
+    mode: "onBlur",
   });
 
   const { isLoaded, isSignedIn } = useAuth();
@@ -40,6 +41,7 @@ const Quiz = () => {
   const [isCreatingQuizError, setIsCreatingQuizError] = useState(false);
 
   const createQuiz = useMutation(api.quiz.createQuiz);
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
 
   const router = useRouter();
   const format = watch("format", "mcq");
@@ -57,7 +59,8 @@ const Quiz = () => {
 
   const onSubmit = async (data: FieldValues) => {
     setIsCreatingQuiz(true);
-    let content = "";
+    let content = "",
+      storage = "";
     if (by === "topic") {
       content = "topic";
     } else if (by === "paragraph") {
@@ -65,11 +68,24 @@ const Quiz = () => {
     } else if (by === "document") {
       content = "document";
     }
+    console.log(data);
     try {
+      if (content === "document") {
+        const uploadUrl = await generateUploadUrl();
+
+        const result = await fetch(uploadUrl, {
+          method: "POST",
+          headers: { "Content-Type": data?.document?.[0]!.type },
+          body: data?.document?.[0],
+        });
+
+        const { storageId } = await result.json();
+        storage = storageId;
+      }
       const quizId = await createQuiz({
         userId: userId as Id<"users">,
         questionNumber: data.questions,
-        content: data?.[content],
+        content: content === "document" ? storage : data?.[content],
         format: data.format,
         kind: data.by,
       });
@@ -138,7 +154,7 @@ const Quiz = () => {
           <div className="cursor-pointer relative bg-input rounded-md border-2 bg-light-gray border-dotted border-dark-gray w-full h-full flex items-center justify-center shadow-[inset_0_0_6px_-2px_rgba(15,15,15,0.25)]">
             <label
               className="flex items-center justify-center w-full h-full rounded-md"
-              htmlFor="file"
+              htmlFor="document"
             >
               <div className="flex items-center gap-2 p-2 px-3 text-sm border rounded-md border-border bg-muted shadow-light">
                 <LuFileUp /> Upload PDFs
@@ -146,7 +162,7 @@ const Quiz = () => {
             </label>
             <input
               type="file"
-              id="file"
+              id="document"
               className="absolute w-0 h-0 opacity-0 -z-10"
               {...register("document")}
             />
