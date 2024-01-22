@@ -14,7 +14,6 @@ const QuizDashboard = () => {
     userId: userId as Id<"users">,
   });
 
-  console.log(quizHistory);
   return (
     <div className="p-4 mt-16 font-sans ">
       <div className="flex items-center justify-between py-4 border-b border-b-border">
@@ -27,7 +26,11 @@ const QuizDashboard = () => {
         {quizHistory?.map((quiz) => (
           <DashboardCard
             key={quiz?._id}
-            topic={quiz?.content}
+            topic={
+              typeof quiz?.response === "object"
+                ? quiz?.response?.title
+                : "Quiz"
+            }
             questions={quiz?.questionNumber}
             quizId={quiz?._id}
             score={quiz?.result?.score ?? 0}
