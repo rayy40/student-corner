@@ -16,7 +16,6 @@ import { useUserIdStore } from "@/providers/store";
 import { quizSchema } from "@/schema/quiz_schema";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useUploadFiles } from "@xixixao/uploadstuff/react";
 
 type quizSchema = z.infer<typeof quizSchema>;
 
