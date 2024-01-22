@@ -19,7 +19,7 @@ export interface DocumentTypes {
   document: FileList;
   by: "topic" | "paragraph" | "document";
   questions: number;
-  format: "mcq" | "name" | "true_false";
+  format: FormatType;
 }
 
 export type QuestionType = TopicTypes | ParagraphTypes | DocumentTypes;
@@ -27,6 +27,8 @@ export type QuestionType = TopicTypes | ParagraphTypes | DocumentTypes;
 export type UserAnswers = {
   [key: string]: string;
 };
+
+export type FormatType = "mcq" | "name" | "true_false";
 
 export type SelectedOptions = {
   key: number;
@@ -64,4 +66,11 @@ interface QuizData {
   options?: string[] | undefined;
   question: string;
   answer: string;
+}
+
+export interface CreateUserPrompt {
+  format: FormatType;
+  questionNumber: number;
+  content: string;
+  kind: string;
 }

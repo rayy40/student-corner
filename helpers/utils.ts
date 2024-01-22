@@ -1,25 +1,20 @@
-import { QuizData, UserAnswers } from "@/types";
+import { FormatType, QuizData, UserAnswers } from "@/types";
 import { MCQformat, NameTheFollowingformat, TrueFalseformat } from "./format";
-import { Infer } from "convex/values";
-import { Response } from "@/convex/schema";
+import { CreateUserPrompt } from "@/types";
 
-interface Props {
-  format: string;
-  questionNumber: number;
-  content: string;
-  kind: string;
-}
-
-export const createSystemPrompt = ({ format }: { format: string }) => {
+export const JSONFormat = (format: FormatType) => {
   const formatJSON =
     format === "mcq"
       ? MCQformat
       : format === "name"
       ? NameTheFollowingformat
       : TrueFalseformat;
+  return formatJSON;
+};
 
+export const createSystemPrompt = (format: FormatType) => {
   let prompt = `I want you to act as a Quiz generator. Your task is to generate a quiz and format the response as JSON in the shape of ${JSON.stringify(
-    formatJSON
+    JSONFormat(format)
   )}.`;
   return prompt;
 };
@@ -29,7 +24,7 @@ export const createUserPrompt = ({
   questionNumber,
   content,
   kind,
-}: Props) => {
+}: CreateUserPrompt) => {
   let prompt = `Generate ${questionNumber} ${format} type questions, and provide a suitable title for the quiz (It should not include the word Quiz),`;
 
   if (kind === "topic") {
