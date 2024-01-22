@@ -35,6 +35,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     quizId: params.quizId,
   });
 
+  console.log(game);
   const patchAnswer = useMutation(api.quiz.patchAnswer);
 
   const onSubmit = async () => {
@@ -64,6 +65,8 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
       setIsCalculatingScore(false);
     }
   };
+
+  console.log(game);
 
   const handleOptionStyleChange = (id: number, answer: string) => {
     if (selectedOptions[id + 1] === answer) {
