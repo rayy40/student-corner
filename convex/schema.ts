@@ -44,4 +44,21 @@ export default defineSchema({
       })
     ),
   }),
+  chatEmbeddings: defineTable({
+    embedding: v.array(v.float64()),
+    chatId: v.id("chat"),
+  }).vectorIndex("by_embedding", {
+    vectorField: "embedding",
+    dimensions: 1536,
+    filterFields: ["chatId"],
+  }),
+  chat: defineTable({
+    userId: v.id("users"),
+    url: v.string(),
+    type: v.optional(v.string()),
+    title: v.optional(v.string()),
+    length: v.optional(v.number()),
+    chat: v.optional(v.any()),
+    embeddingId: v.optional(v.array(v.id("chatEmbeddings"))),
+  }).index("by_embedding", ["embeddingId"]),
 });
