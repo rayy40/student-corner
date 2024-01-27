@@ -1,18 +1,15 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { UseFormSetValue, UseFormReset } from "react-hook-form";
 import { LuCheck, LuChevronsUpDown } from "react-icons/lu";
-import { QuestionType } from "@/types";
+import { DropDownType } from "@/types";
 
-type Props = {
-  value: string;
-  lists: string[];
-  reset?: UseFormReset<QuestionType>;
-  setValue?: UseFormSetValue<QuestionType>;
-};
-
-const DropDown = ({ lists, value, reset, setValue }: Props) => {
+const DropDown = <K extends string>({
+  lists,
+  value,
+  reset,
+  setValue,
+}: DropDownType<K>) => {
   const [openDropDown, setOpenDropDown] = useState(false);
   const [category, setCategory] = useState(value);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -52,8 +49,7 @@ const DropDown = ({ lists, value, reset, setValue }: Props) => {
                   setOpenDropDown(false);
                   setCategory(item);
                   reset && reset();
-                  setValue &&
-                    setValue("by", item as "topic" | "paragraph" | "document");
+                  setValue && setValue("by", item as any);
                 }}
                 className="flex items-center justify-between p-2 capitalize rounded-md cursor-pointer bg-secondary hover:bg-secondary-hover"
                 key={i}
