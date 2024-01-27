@@ -158,7 +158,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
 
   if (game?.invalidQuizId) {
     return (
-      <div className="flex items-center justify-center w-full h-full text-lg">
+      <div className="flex font-sans items-center justify-center w-full h-full text-lg">
         <p>No Quiz Id found.</p>
       </div>
     );
@@ -174,7 +174,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
 
   if (game?.idNotFound) {
     return (
-      <div className="flex items-center justify-center w-full h-full text-lg">
+      <div className="flex font-sans items-center justify-center w-full h-full text-lg">
         <p>No database found for this Id.</p>
       </div>
     );
@@ -182,14 +182,14 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
 
   if (game?.fallbackData) {
     return (
-      <div className="flex items-center justify-center w-full h-full text-lg">
+      <div className="flex font-sans items-center justify-center w-full h-full text-lg">
         <p>{game?.fallbackData?.response as string}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex font-sans flex-col gap-5 max-w-[600px] -my-12 mx-auto h-full items-center justify-center p-4 pt-20">
+    <div className="flex font-sans flex-col gap-5 max-w-[600px] -my-12 mx-auto h-screen items-center justify-center p-4 pt-20">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2 text-lg">
           <span className="font-medium text-muted-foreground">Topic: </span>
