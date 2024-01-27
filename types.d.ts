@@ -1,28 +1,17 @@
 import { Infer } from "convex/values";
 import { Response } from "./convex/schema";
+import {
+  UseFormRegister,
+  FieldErrors,
+  UseFormReset,
+  UseFormSetValue,
+} from "react-hook-form";
+import { quizSchema } from "./schema/quiz_schema";
+import { chatSchema } from "./schema/chat_schema";
+import { z } from "zod";
 
-export interface TopicTypes {
-  topic: string;
-  by: "topic" | "paragraph" | "document";
-  questions: number;
-  format: "mcq" | "name" | "true_false";
-}
-
-export interface ParagraphTypes {
-  paragraph: string;
-  by: "topic" | "paragraph" | "document";
-  questions: number;
-  format: "mcq" | "name" | "true_false";
-}
-
-export interface DocumentTypes {
-  document: FileList;
-  by: "topic" | "paragraph" | "document";
-  questions: number;
-  format: FormatType;
-}
-
-export type QuestionType = TopicTypes | ParagraphTypes | DocumentTypes;
+type quizSchema = z.infer<typeof quizSchema>;
+type chatSchema = z.infer<typeof chatSchema>;
 
 export type UserAnswers = {
   [key: string]: string;
@@ -73,4 +62,28 @@ export interface CreateUserPrompt {
   questionNumber: number;
   content: string;
   kind: string;
+}
+
+export interface DocumentType<K extends string> {
+  kind: K;
+  format: K extends "quiz"
+    ? "topic" | "paragraph" | "document"
+    : "link" | "document";
+  isSubmitted: boolean;
+  register: K extends "quiz"
+    ? UseFormRegister<quizSchema>
+    : UseFormRegister<chatSchema>;
+  errors: K extends "quiz" ? FieldErrors<quizSchema> : FieldErrors<chatSchema>;
+}
+
+export interface DropDownType<K extends string> {
+  kind: K;
+  value: string;
+  lists: string[];
+  reset?: K extends "quiz"
+    ? UseFormReset<quizSchema>
+    : UseFormReset<chatSchema>;
+  setValue?: K extends "quiz"
+    ? UseFormSetValue<quizSchema>
+    : UseFormSetValue<chatSchema>;
 }
