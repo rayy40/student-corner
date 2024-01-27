@@ -4,7 +4,6 @@ import { useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FieldError, FieldValues, useForm } from "react-hook-form";
-import { LuFileUp } from "react-icons/lu";
 import { z } from "zod";
 
 import DropDown from "@/components/DropDown/DropDown";
@@ -16,6 +15,7 @@ import { useUserIdStore } from "@/providers/store";
 import { quizSchema } from "@/schema/quiz_schema";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Document from "@/components/Upload/Documents/Documents";
 
 type quizSchema = z.infer<typeof quizSchema>;
 
@@ -145,37 +145,6 @@ const Quiz = () => {
     );
   };
 
-  const Document = () => {
-    return (
-      <div className="flex flex-col gap-1">
-        <div className="font-semibold text-[hsl(0_0%_50%)]">Document</div>
-        <div className="p-2 w-full h-[150px] bg-input-background rounded-md shadow-[inset_0_0_6px_-2px_rgba(15,15,15,0.25)]">
-          <div className="cursor-pointer relative bg-input rounded-md border-2 bg-light-gray border-dotted border-dark-gray w-full h-full flex items-center justify-center shadow-[inset_0_0_6px_-2px_rgba(15,15,15,0.25)]">
-            <label
-              className="flex items-center justify-center w-full h-full rounded-md"
-              htmlFor="document"
-            >
-              <div className="flex items-center gap-2 p-2 px-3 text-sm border rounded-md border-border bg-muted shadow-light">
-                <LuFileUp /> Upload PDFs
-              </div>
-            </label>
-            <input
-              type="file"
-              id="document"
-              className="absolute w-0 h-0 opacity-0 -z-10"
-              {...register("document")}
-            />
-          </div>
-        </div>
-        {isSubmitted && by === "document" && (
-          <p className="mt-2 text-[0.95rem] text-center text-error">
-            {(errors as { document?: FieldError }).document?.message}
-          </p>
-        )}
-      </div>
-    );
-  };
-
   const Questions = () => {
     return (
       <div className="flex flex-col gap-1">
@@ -258,7 +227,7 @@ const Quiz = () => {
   }
 
   return (
-    <div className="flex font-sans max-w-[500px] -my-12 mx-auto h-full items-center justify-center p-4 pt-20">
+    <div className="flex font-sans max-w-[500px] -my-12 mx-auto h-screen items-center justify-center p-4 pt-20">
       {isCreatingQuiz ? (
         <LoadingSpinner />
       ) : (
@@ -270,6 +239,7 @@ const Quiz = () => {
           <div className="flex flex-col items-start gap-4">
             <h1 className="text-4xl font-semibold font-dmSans">Quizify</h1>
             <DropDown
+              kind="quiz"
               reset={reset}
               value={"Topic"}
               lists={["topic", "paragraph", "document"]}
@@ -278,7 +248,15 @@ const Quiz = () => {
           </div>
           {by === "topic" && <Topic />}
           {by === "paragraph" && <Paragraph />}
-          {by === "document" && <Document />}
+          {by === "document" && (
+            <Document
+              isSubmitted={isSubmitted}
+              errors={errors}
+              register={register}
+              kind="quiz"
+              format="document"
+            />
+          )}
           <Questions />
           <Format />
           <button
