@@ -1,3 +1,5 @@
+"use node";
+
 import { FormatType, QuizData, UserAnswers } from "@/types";
 import { MCQformat, NameTheFollowingformat, TrueFalseformat } from "./format";
 import { CreateUserPrompt } from "@/types";

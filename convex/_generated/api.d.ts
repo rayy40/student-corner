@@ -14,6 +14,8 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as chatbook from "../chatbook.js";
+import type * as docs from "../docs.js";
 import type * as files from "../files.js";
 import type * as openai from "../openai.js";
 import type * as quiz from "../quiz.js";
@@ -28,6 +30,8 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  chatbook: typeof chatbook;
+  docs: typeof docs;
   files: typeof files;
   openai: typeof openai;
   quiz: typeof quiz;
