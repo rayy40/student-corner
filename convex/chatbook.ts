@@ -7,19 +7,8 @@ import {
   query,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-export const fetchEmbedding = async (text: string[]) => {
-  const response = await openai.embeddings.create({
-    model: "text-embedding-ada-002",
-    input: text,
-  });
-  return response;
-};
+import { fetchEmbedding } from "./openai";
+import { Message } from "./schema";
 
 export const createChatbook = mutation({
   args: {
@@ -167,5 +156,26 @@ export const getEmbeddingId = query({
     } catch (error) {
       return "No dataset found for this Id.";
     }
+  },
+});
+
+export const patchMessages = mutation({
+  args: {
+    chatId: v.id("chat"),
+    message: v.array(v.object({ user: v.string(), assistant: Message })),
+  },
+  handler: async (ctx, args) => {
+    const existingChat = await ctx.db.get(args.chatId);
+
+    if (!existingChat) {
+      throw new Error("No chat history found for this Id.");
+    }
+
+    const messages = existingChat?.chat || [];
+    messages.push(...args.message);
+
+    await ctx.db.patch(args.chatId, {
+      chat: messages,
+    });
   },
 });

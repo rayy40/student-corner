@@ -1,5 +1,5 @@
 import { Infer, v } from "convex/values";
-import OpenAI from "openai";
+import OpenAI, { toFile } from "openai";
 
 import {
   createSystemPrompt,
@@ -218,3 +218,19 @@ export const generateQuiz = internalAction({
     }
   },
 });
+
+export const fetchEmbedding = async (text: string[]) => {
+  const response = await openai.embeddings.create({
+    model: "text-embedding-ada-002",
+    input: text,
+  });
+  return response;
+};
+
+export const fetchTranscripts = async (audioStream: any) => {
+  const response = await openai.audio.transcriptions.create({
+    file: await toFile(audioStream, "myfile.mp3"),
+    model: "whisper-1",
+  });
+  return response.text;
+};
