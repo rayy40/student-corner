@@ -1,20 +1,22 @@
 "use client";
 
-import LoadingSpinner from "@/components/Loading/LoadingSpinner";
-import UnAuthenticated from "@/components/UnAuthenticated/UnAuthenticated";
-import { useAuth } from "@clerk/clerk-react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "convex/react";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
-import { chatSchema } from "@/schema/chat_schema";
 import { z } from "zod";
+
 import DropDown from "@/components/DropDown/DropDown";
+import LoadingSpinner from "@/components/Loading/LoadingSpinner";
+import UnAuthenticated from "@/components/UnAuthenticated/UnAuthenticated";
 import Document from "@/components/Upload/Documents/Documents";
-import { useMutation } from "convex/react";
+import YTVideo from "@/components/Upload/Link/YTVideo";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useUserIdStore } from "@/providers/store";
-import { useRouter } from "next/navigation";
+import { chatSchema } from "@/schema/chat_schema";
+import { useAuth } from "@clerk/clerk-react";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type chatSchema = z.infer<typeof chatSchema>;
 
@@ -51,30 +53,38 @@ const Chat = () => {
     }
   }, [by, trigger]);
 
+  const uploadDocument = async (document: File) => {
+    const uploadUrl = await generateUploadUrl();
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      headers: { "Content-Type": document.type },
+      body: document,
+    });
+    const { storageId } = await response.json();
+    return storageId;
+  };
+
   const onSubmit = async (data: FieldValues) => {
-    setIsUploading(true);
-    console.log(data);
     try {
-      const uploadUrl = await generateUploadUrl();
-
-      const result = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": data?.document?.[0]!.type },
-        body: data?.document?.[0],
-      });
-
-      const { storageId } = await result.json();
-
-      const chatId = await createChatbook({
-        userId: userId as Id<"users">,
-        storageId: storageId,
-      });
-      console.log(chatId);
+      setIsUploading(true);
+      let chatId: Id<"chat">;
+      if (by === "document") {
+        const storageId = await uploadDocument(data.document[0]);
+        chatId = (await createChatbook({
+          userId: userId as Id<"users">,
+          storageId,
+        })) as Id<"chat">;
+      } else {
+        chatId = (await createChatbook({
+          userId: userId as Id<"users">,
+          url: data.link,
+        })) as Id<"chat">;
+      }
       router.push(`/chat/${chatId}`);
-    } catch (err) {
-      console.log(err);
-      setIsUploading(false);
+    } catch (error) {
+      console.error("Error:", error);
       setIsUploadingError(true);
+      setIsUploading(false);
     } finally {
       reset();
     }
@@ -114,15 +124,24 @@ const Chat = () => {
           </div>
           {by === "document" && (
             <Document
-              isSubmitted={isSubmitted}
-              errors={errors}
-              register={register}
               kind="chat"
               format="document"
+              errors={errors}
+              register={register}
+              isSubmitted={isSubmitted}
+            />
+          )}
+          {by === "link" && (
+            <YTVideo
+              kind="chat"
+              format="link"
+              errors={errors}
+              register={register}
+              isSubmitted={isSubmitted}
             />
           )}
           <button
-            className="p-2 mt-2 font-semibold transition-colors rounded-md bg-primary text-primary-foreground hover:bg-primary-hover"
+            className="p-2 font-semibold transition-colors rounded-md bg-primary text-primary-foreground hover:bg-primary-hover"
             type="submit"
           >
             Submit
