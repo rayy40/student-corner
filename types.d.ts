@@ -87,3 +87,14 @@ export interface DropDownType<K extends string> {
     ? UseFormSetValue<quizSchema>
     : UseFormSetValue<chatSchema>;
 }
+export interface YTVideoType<K extends string> {
+  kind: K;
+  format: K extends "quiz"
+    ? "topic" | "paragraph" | "document"
+    : "link" | "document";
+  isSubmitted: boolean;
+  register: K extends "quiz"
+    ? UseFormRegister<quizSchema>
+    : UseFormRegister<chatSchema>;
+  errors: K extends "quiz" ? FieldErrors<quizSchema> : FieldErrors<chatSchema>;
+}
