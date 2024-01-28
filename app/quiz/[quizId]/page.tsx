@@ -150,15 +150,15 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
 
   if (!game) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
+      <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
       </div>
     );
   }
 
-  if (game?.invalidQuizId) {
+  if (game?.invalidQuizId || game?.idNotFound) {
     return (
-      <div className="flex font-sans items-center justify-center w-full h-full text-lg">
+      <div className="flex font-sans items-center justify-center w-full h-screen text-lg">
         <p>No Quiz Id found.</p>
       </div>
     );
@@ -166,23 +166,15 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
 
   if (game?.isGeneratingQuiz || isCalculatingScore) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
+      <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (game?.idNotFound) {
-    return (
-      <div className="flex font-sans items-center justify-center w-full h-full text-lg">
-        <p>No database found for this Id.</p>
       </div>
     );
   }
 
   if (game?.fallbackData) {
     return (
-      <div className="flex font-sans items-center justify-center w-full h-full text-lg">
+      <div className="flex font-sans items-center justify-center w-full h-screen text-lg">
         <p>{game?.fallbackData?.response as string}</p>
       </div>
     );
