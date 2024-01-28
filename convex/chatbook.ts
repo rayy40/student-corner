@@ -54,6 +54,7 @@ export const createChatbook = mutation({
         {
           url,
           chatId,
+          kind: args.storageId ? "pdf" : "audio",
         }
       );
       return chatId;
@@ -136,8 +137,9 @@ export const addEmbedding = internalMutation({
 
     await ctx.db.patch(args.chatId, {
       embeddingId: embeddingIds,
-      title: args.metadata?.pdf?.info?.title,
-      type: args.metadata?.blobType,
+      title:
+        args.metadata?.pdf?.info?.title ?? args.metadata?.videoDetails?.title,
+      type: args.metadata ?? "Youtube Video",
     });
   },
 });
