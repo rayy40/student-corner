@@ -11,6 +11,14 @@ const QuizKind = v.union(
   v.literal("paragraph"),
   v.literal("document")
 );
+const Role = v.union(
+  v.literal("system"),
+  v.literal("user"),
+  v.literal("assistant"),
+  v.literal("function"),
+  v.literal("data"),
+  v.literal("tool")
+);
 export const Questions = v.object({
   question: v.string(),
   answer: v.string(),
@@ -21,6 +29,15 @@ export const Questions = v.object({
 export const Response = v.object({
   title: v.string(),
   questions: v.array(Questions),
+});
+
+export const Message = v.object({
+  id: v.string(),
+  tool_call_id: v.optional(v.string()),
+  createdAt: v.optional(v.any()),
+  content: v.string(),
+  ui: v.optional(v.union(v.string(), v.null(), v.any())),
+  role: v.optional(Role),
 });
 
 export default defineSchema({
@@ -58,7 +75,9 @@ export default defineSchema({
     type: v.optional(v.string()),
     title: v.optional(v.string()),
     length: v.optional(v.number()),
-    chat: v.optional(v.any()),
+    chat: v.optional(
+      v.array(v.object({ user: v.string(), assistant: Message }))
+    ),
     embeddingId: v.optional(v.array(v.id("chatEmbeddings"))),
   }).index("by_embedding", ["embeddingId"]),
 });
