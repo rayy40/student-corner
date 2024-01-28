@@ -4,17 +4,12 @@ import { v } from "convex/values";
 import { Document } from "langchain/document";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { OpenAI, toFile } from "openai";
 import { YoutubeTranscript } from "youtube-transcript";
+import ytdl, { getBasicInfo, getURLVideoID, validateID } from "ytdl-core";
 
 import { internal } from "./_generated/api";
 import { internalAction } from "./_generated/server";
-
-const ytdl = require("ytdl-core");
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { fetchTranscripts } from "./openai";
 
 const extractText = async (url: string) => {
   try {
@@ -40,13 +35,13 @@ const extractText = async (url: string) => {
 
 const extractAudio = async (url: string) => {
   try {
-    const videoId = ytdl.getURLVideoID(url);
+    const videoId = getURLVideoID(url);
 
-    if (!ytdl.validateID(videoId)) {
+    if (!validateID(videoId)) {
       throw new Error("Invalid video Id.");
     }
 
-    const metadata = await ytdl.getBasicInfo(videoId);
+    const metadata = await getBasicInfo(videoId);
 
     let transcript: string = "";
     try {
@@ -62,11 +57,7 @@ const extractAudio = async (url: string) => {
         throw new Error("Unable to extract audio stream from video.");
       }
 
-      const response = await openai.audio.transcriptions.create({
-        file: await toFile(audioStream, "myfile.mp3"),
-        model: "whisper-1",
-      });
-      transcript = response.text;
+      transcript = await fetchTranscripts(audioStream);
     }
     return { transcript, metadata };
   } catch (error) {
