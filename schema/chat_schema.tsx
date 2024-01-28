@@ -29,22 +29,30 @@ const File = z.custom<FileList>().superRefine((files, ctx) => {
 });
 
 const documentSchema = z.object({
-  by: z.enum(["link", "document"]).default("document"),
+  by: z.enum(["youtube", "github", "document"]).default("document"),
   document: File,
 });
 
-const linkSchema = z.object({
-  by: z.enum(["link", "document"]).default("document"),
-  link: z.string().url(),
+const youtubeSchema = z.object({
+  by: z.enum(["youtube", "github", "document"]).default("document"),
+  youtube: z.string().url({ message: "Invalid Url" }),
+});
+
+const githubSchema = z.object({
+  by: z.enum(["youtube", "github", "document"]).default("document"),
+  github: z.string().url({ message: "Invalid Url" }),
+  repo: z.enum(["public", "private"]).default("public"),
 });
 
 export const chatSchema = z
-  .union([linkSchema, documentSchema])
+  .union([youtubeSchema, documentSchema, githubSchema])
   .transform((data) => {
     if (data.by === "document") {
       return documentSchema.parse(data);
-    } else if (data.by === "link") {
-      return linkSchema.parse(data);
+    } else if (data.by === "youtube") {
+      return youtubeSchema.parse(data);
+    } else if (data.by === "github") {
+      return githubSchema.parse(data);
     } else {
       throw new Error("Invalid option selected for 'by");
     }
