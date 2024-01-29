@@ -32,7 +32,7 @@ export const createChatbook = mutation({
         throw new Error("No URL found.");
       }
 
-      const chatId = await ctx.db.insert("chat", {
+      const chatId = await ctx.db.insert("chatbook", {
         userId: args.userId,
         url,
       });
@@ -55,7 +55,7 @@ export const createChatbook = mutation({
 
 export const readChatData = internalQuery({
   args: {
-    chatId: v.id("chat"),
+    chatId: v.id("chatbook"),
   },
   handler: async (ctx, args) => {
     const chat = await ctx.db.get(args.chatId);
@@ -65,7 +65,7 @@ export const readChatData = internalQuery({
 
 export const generateEmbeddings = internalAction({
   args: {
-    chatId: v.id("chat"),
+    chatId: v.id("chatbook"),
     chunks: v.array(v.string()),
     metadata: v.any(),
   },
@@ -100,7 +100,7 @@ export const generateEmbeddings = internalAction({
 });
 
 export const addEmbeddingsLength = internalMutation({
-  args: { chatId: v.id("chat"), embeddingLength: v.number() },
+  args: { chatId: v.id("chatbook"), embeddingLength: v.number() },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.chatId, {
       length: args.embeddingLength,
@@ -110,7 +110,7 @@ export const addEmbeddingsLength = internalMutation({
 
 export const addEmbedding = internalMutation({
   args: {
-    chatId: v.id("chat"),
+    chatId: v.id("chatbook"),
     embedding: v.array(v.number()),
     metadata: v.any(),
   },
@@ -134,7 +134,7 @@ export const addEmbedding = internalMutation({
 });
 
 export const getEmbeddingId = query({
-  args: { chatId: v.id("chat") },
+  args: { chatId: v.id("chatbook") },
   handler: async (ctx, args) => {
     try {
       const chat = await ctx.db.get(args.chatId);
@@ -144,7 +144,7 @@ export const getEmbeddingId = query({
       }
 
       const embeddingId = ctx.db
-        .query("chat")
+        .query("chatbook")
         .filter((q) =>
           q.and(
             q.eq(q.field("length"), chat?.embeddingId?.length),
@@ -161,7 +161,7 @@ export const getEmbeddingId = query({
 
 export const patchMessages = mutation({
   args: {
-    chatId: v.id("chat"),
+    chatId: v.id("chatbook"),
     message: v.array(Message),
   },
   handler: async (ctx, args) => {
@@ -181,7 +181,7 @@ export const patchMessages = mutation({
 });
 
 export const getMessageHistory = query({
-  args: { chatId: v.id("chat") },
+  args: { chatId: v.id("chatbook") },
   handler: async (ctx, args) => {
     try {
       const chat = await ctx.db.get(args.chatId);
@@ -195,5 +195,12 @@ export const getMessageHistory = query({
       console.log(error);
       return "No Chat history found.";
     }
+  },
+});
+
+export const deleteMessageHistory = mutation({
+  args: { chatId: v.id("chatbook") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.chatId, { chat: undefined });
   },
 });
