@@ -10,7 +10,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { LuArrowUp } from "react-icons/lu";
+import { LuArrowUp, LuTrash } from "react-icons/lu";
 
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -19,10 +19,11 @@ import { MessageData } from "@/types";
 
 import MessageList from "../MessageList/MessageList";
 
-const ChatBot = ({ chatId }: { chatId: Id<"chat"> }) => {
+const ChatBot = ({ chatId }: { chatId: Id<"chatbook"> }) => {
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const patchMessages = useMutation(api.chatbook.patchMessages);
   const [messageHistory, setMessageHistory] = useState<Message[]>([]);
+  const deleteHistory = useMutation(api.chatbook.deleteMessageHistory);
   const convex = useConvex();
 
   const { input, handleInputChange, handleSubmit, messages } = useChat({
@@ -75,7 +76,15 @@ const ChatBot = ({ chatId }: { chatId: Id<"chat"> }) => {
   return (
     <>
       <div className="w-full sticky top-0 h-min mt-[0.75rem] p-4 items-center border-b border-b-border shadow-light">
-        <h2 className="text-lg">Solar System</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg">Solar System</h2>
+          <div>
+            <LuTrash
+              onClick={() => deleteHistory({ chatId })}
+              className="text-xl opacity-60 cursor-pointer hover:opacity-100"
+            />
+          </div>
+        </div>
       </div>
       <div ref={messageListRef} className="h-full overflow-y-auto">
         <MessageList messages={allMessages} />
