@@ -1,8 +1,17 @@
 "use node";
 
-import { FormatType, QuizData, UserAnswers } from "@/types";
+import { Message } from "ai";
+
+import {
+  CreateUserPrompt,
+  FormatType,
+  MessageData,
+  MessageType,
+  QuizData,
+  UserAnswers,
+} from "@/types";
+
 import { MCQformat, NameTheFollowingformat, TrueFalseformat } from "./format";
-import { CreateUserPrompt } from "@/types";
 
 export const JSONFormat = (format: FormatType) => {
   const formatJSON =
@@ -69,4 +78,22 @@ export const calculateScore = (
 
 export const isValidQuizId = (quizId: string): boolean => {
   return !!quizId && /^[a-z0-9]{32}$/.test(quizId);
+};
+
+export const formattedMessage = <K extends string>({
+  messages,
+  formatTo,
+}: MessageType<K>) => {
+  const msg = messages.map((message) => {
+    const createdAtDate =
+      formatTo === "Date"
+        ? new Date(message.createdAt!)
+        : new Date(message.createdAt!).getTime();
+
+    return {
+      ...message,
+      createdAt: createdAtDate,
+    };
+  });
+  return msg as K extends "Date" ? Message[] : MessageData[];
 };
