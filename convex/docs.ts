@@ -106,7 +106,7 @@ const createChunks = async (
 export const extractTextAndCreateChunks = internalAction({
   args: {
     url: v.string(),
-    chatId: v.id("chat"),
+    chatId: v.id("chatbook"),
     kind: v.union(v.literal("pdf"), v.literal("audio")),
   },
   handler: async (ctx, args) => {

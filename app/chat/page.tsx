@@ -70,18 +70,18 @@ const Chat = () => {
   const onSubmit = async (data: FieldValues) => {
     try {
       setIsUploading(true);
-      let chatId: Id<"chat">;
+      let chatId: Id<"chatbook">;
       if (by === "document") {
         const storageId = await uploadDocument(data.document[0]);
         chatId = (await createChatbook({
           userId: userId as Id<"users">,
           storageId,
-        })) as Id<"chat">;
+        })) as Id<"chatbook">;
       } else {
         chatId = (await createChatbook({
           userId: userId as Id<"users">,
           url: data.link,
-        })) as Id<"chat">;
+        })) as Id<"chatbook">;
       }
       router.push(`/chat/${chatId}`);
     } catch (error) {

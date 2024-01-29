@@ -63,13 +63,13 @@ export default defineSchema({
   }),
   chatEmbeddings: defineTable({
     embedding: v.array(v.float64()),
-    chatId: v.id("chat"),
+    chatId: v.id("chatbook"),
   }).vectorIndex("by_embedding", {
     vectorField: "embedding",
     dimensions: 1536,
     filterFields: ["chatId"],
   }),
-  chat: defineTable({
+  chatbook: defineTable({
     userId: v.id("users"),
     url: v.string(),
     type: v.optional(v.string()),
