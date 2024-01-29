@@ -34,10 +34,10 @@ export const Response = v.object({
 export const Message = v.object({
   id: v.string(),
   tool_call_id: v.optional(v.string()),
-  createdAt: v.optional(v.any()),
+  createdAt: v.optional(v.number()),
   content: v.string(),
   ui: v.optional(v.union(v.string(), v.null(), v.any())),
-  role: v.optional(Role),
+  role: Role,
 });
 
 export default defineSchema({
@@ -75,9 +75,7 @@ export default defineSchema({
     type: v.optional(v.string()),
     title: v.optional(v.string()),
     length: v.optional(v.number()),
-    chat: v.optional(
-      v.array(v.object({ user: v.string(), assistant: Message }))
-    ),
+    chat: v.optional(v.array(Message)),
     embeddingId: v.optional(v.array(v.id("chatEmbeddings"))),
   }).index("by_embedding", ["embeddingId"]),
 });

@@ -1,14 +1,16 @@
+import { Message } from "ai";
 import { Infer } from "convex/values";
-import { Response } from "./convex/schema";
 import {
-  UseFormRegister,
   FieldErrors,
+  UseFormRegister,
   UseFormReset,
   UseFormSetValue,
 } from "react-hook-form";
-import { quizSchema } from "./schema/quiz_schema";
-import { chatSchema } from "./schema/chat_schema";
 import { z } from "zod";
+
+import { Message, Response } from "./convex/schema";
+import { chatSchema } from "./schema/chat_schema";
+import { quizSchema } from "./schema/quiz_schema";
 
 type quizSchema = z.infer<typeof quizSchema>;
 type chatSchema = z.infer<typeof chatSchema>;
@@ -25,6 +27,7 @@ export type SelectedOptions = {
 }[];
 
 export type ResponseData = Infer<typeof Response>;
+export type MessageData = Infer<typeof Message>;
 
 export type GameData = {
   _id: Id<"quiz">;
@@ -99,4 +102,9 @@ export interface UrlType<K extends string> {
     ? UseFormRegister<quizSchema>
     : UseFormRegister<chatSchema>;
   errors: K extends "quiz" ? FieldErrors<quizSchema> : FieldErrors<chatSchema>;
+}
+
+export interface MessageType<K extends string> {
+  formatTo: K;
+  messages: K extends "Date" ? MessageData[] : Message[];
 }
