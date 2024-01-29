@@ -162,7 +162,7 @@ export const getEmbeddingId = query({
 export const patchMessages = mutation({
   args: {
     chatId: v.id("chat"),
-    message: v.array(v.object({ user: v.string(), assistant: Message })),
+    message: v.array(Message),
   },
   handler: async (ctx, args) => {
     const existingChat = await ctx.db.get(args.chatId);
@@ -177,5 +177,23 @@ export const patchMessages = mutation({
     await ctx.db.patch(args.chatId, {
       chat: messages,
     });
+  },
+});
+
+export const getMessageHistory = query({
+  args: { chatId: v.id("chat") },
+  handler: async (ctx, args) => {
+    try {
+      const chat = await ctx.db.get(args.chatId);
+
+      if (!chat?.chat) {
+        throw new Error("No Chat history found.");
+      }
+
+      return chat?.chat;
+    } catch (error) {
+      console.log(error);
+      return "No Chat history found.";
+    }
   },
 });

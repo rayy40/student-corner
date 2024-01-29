@@ -1,29 +1,90 @@
-import React from "react";
-import MessageList from "../MessageList/MessageList";
-import { LuArrowUp } from "react-icons/lu";
+"use client";
+
+import { Message } from "ai";
 import { useChat } from "ai/react";
+import { useConvex, useMutation } from "convex/react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { LuArrowUp } from "react-icons/lu";
 
-type Props = {};
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { formattedMessage } from "@/helpers/utils";
+import { MessageData } from "@/types";
 
-const ChatBot = (props: Props) => {
+import MessageList from "../MessageList/MessageList";
+
+const ChatBot = ({ chatId }: { chatId: Id<"chat"> }) => {
+  const messageListRef = useRef<HTMLDivElement | null>(null);
+  const patchMessages = useMutation(api.chatbook.patchMessages);
+  const [messageHistory, setMessageHistory] = useState<Message[]>([]);
+  const convex = useConvex();
+
   const { input, handleInputChange, handleSubmit, messages } = useChat({
     api: "/api/chat",
+    onFinish: async () => {
+      console.log(messages);
+      await patchMessages({
+        chatId: chatId,
+        message: formattedMessage({ messages, formatTo: "timestamp" }),
+      });
+    },
   });
 
-  console.log(messages);
+  const fetchMessageHistory = useCallback(async () => {
+    try {
+      const response: MessageData[] | string = await convex.query(
+        api.chatbook.getMessageHistory,
+        {
+          chatId: chatId,
+        }
+      );
+      if (Array.isArray(response)) {
+        const message = formattedMessage({
+          messages: response,
+          formatTo: "Date",
+        });
+        setMessageHistory(message);
+      }
+    } catch (error) {
+      console.log("Error fetching message history: ", error);
+    }
+  }, [chatId, convex]);
+
+  useEffect(() => {
+    fetchMessageHistory();
+  }, [fetchMessageHistory]);
+
+  const allMessages: Message[] = useMemo(
+    () => [...messageHistory, ...messages],
+    [messageHistory, messages]
+  );
+
+  useEffect(() => {
+    messageListRef.current?.scrollTo({
+      top: messageListRef?.current?.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages, allMessages]);
 
   return (
     <>
       <div className="w-full sticky top-0 h-min mt-[0.75rem] p-4 items-center border-b border-b-border shadow-light">
         <h2 className="text-lg">Solar System</h2>
       </div>
-      <div className="h-full overflow-y-auto">
-        <MessageList messages={messages} />
+      <div ref={messageListRef} className="h-full overflow-y-auto">
+        <MessageList messages={allMessages} />
       </div>
       <div className="sticky bottom-0 p-4 w-full">
         <form onSubmit={handleSubmit}>
           <div className="flex gap-4 w-full p-2 border bg-input rounded-2xl border-border shadow-input">
             <input
+              autoComplete="off"
               type="text"
               id="chatbot"
               value={input}
