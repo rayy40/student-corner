@@ -31,11 +31,11 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
   const { isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
 
-  const game: ResponseType | undefined = useQuery(api.quiz.getQuizData, {
-    quizId: params.quizId,
-  });
+  const game: ResponseType | undefined = useQuery(
+    api.quiz.getQuizData,
+    params.quizId !== null ? { quizId: params.quizId } : "skip"
+  );
 
-  console.log(game);
   const patchAnswer = useMutation(api.quiz.patchAnswer);
 
   const onSubmit = async () => {
@@ -66,13 +66,11 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     }
   };
 
-  console.log(game);
-
   const handleOptionStyleChange = (id: number, answer: string) => {
     if (selectedOptions[id + 1] === answer) {
       return "bg-muted text-foreground";
     } else {
-      return "bg-transparent text-tertiary-foreground hover:bg-secondary-hover hover:text-secondary-foreground";
+      return "bg-transparent text-secondary-foreground hover:bg-secondary-hover hover:text-secondary-foreground";
     }
   };
 
