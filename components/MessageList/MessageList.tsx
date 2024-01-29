@@ -1,5 +1,6 @@
-import React from "react";
 import { Message } from "ai/react";
+import React from "react";
+import Markdown from "markdown-to-jsx";
 
 type Props = {
   messages: Message[];
@@ -7,12 +8,20 @@ type Props = {
 
 const MessageList = ({ messages }: Props) => {
   if (!messages) return;
-  console.log(messages);
+
+  const FormattedText = ({ text }: { text: string }) => {
+    return (
+      <Markdown className="markdown-wrapper flex flex-col gap-6">
+        {text}
+      </Markdown>
+    );
+  };
+
   return (
     <div className="py-3 px-5">
-      {messages.map((message: any) => (
+      {messages.map((message: Message, index: number) => (
         <div
-          key={message?.id}
+          key={index}
           className={`${
             message.role === "user" ? "justify-end" : "justify-start"
           } flex py-2`}
@@ -22,7 +31,7 @@ const MessageList = ({ messages }: Props) => {
               message.role === "user" ? "bg-secondary" : "bg-input"
             } p-3 rounded-lg shadow-input border border-border max-w-[600px]`}
           >
-            <p>{message.content}</p>
+            <FormattedText text={message.content} />
           </div>
         </div>
       ))}
