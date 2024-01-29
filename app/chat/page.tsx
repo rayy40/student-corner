@@ -10,13 +10,13 @@ import DropDown from "@/components/DropDown/DropDown";
 import LoadingSpinner from "@/components/Loading/LoadingSpinner";
 import UnAuthenticated from "@/components/UnAuthenticated/UnAuthenticated";
 import Document from "@/components/Upload/Documents/Documents";
-import YTVideo from "@/components/Upload/Link/YTVideo";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useUserIdStore } from "@/providers/store";
 import { chatSchema } from "@/schema/chat_schema";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Url from "@/components/Upload/Link/Url";
 
 type chatSchema = z.infer<typeof chatSchema>;
 
@@ -43,13 +43,16 @@ const Chat = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingError, setIsUploadingError] = useState(false);
 
+  const repo = watch("repo", "public");
   const by = watch("by", "document");
 
   useEffect(() => {
-    if (by === "link") {
-      trigger("link");
+    if (by === "youtube") {
+      trigger("youtube");
     } else if (by === "document") {
       trigger("document");
+    } else if (by === "github") {
+      trigger("github");
     }
   }, [by, trigger]);
 
@@ -92,7 +95,7 @@ const Chat = () => {
 
   if (!isLoaded && isSignedIn !== true) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
+      <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
       </div>
     );
@@ -118,7 +121,7 @@ const Chat = () => {
               kind="chat"
               reset={reset}
               value={"Document"}
-              lists={["document", "link"]}
+              lists={["document", "youtube", "github"]}
               setValue={setValue}
             />
           </div>
@@ -131,12 +134,14 @@ const Chat = () => {
               isSubmitted={isSubmitted}
             />
           )}
-          {by === "link" && (
-            <YTVideo
+          {["youtube", "github"].includes(by) && (
+            <Url
               kind="chat"
-              format="link"
+              repo={repo}
+              format={by}
               errors={errors}
               register={register}
+              setValue={setValue}
               isSubmitted={isSubmitted}
             />
           )}
