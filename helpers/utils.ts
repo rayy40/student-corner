@@ -1,17 +1,10 @@
 "use node";
 
-import { Message } from "ai";
-
-import {
-  CreateUserPrompt,
-  FormatType,
-  MessageData,
-  MessageType,
-  QuizData,
-  UserAnswers,
-} from "@/types";
+import { CreateUserPrompt, FormatType, QuizData, UserAnswers } from "@/types";
 
 import { MCQformat, NameTheFollowingformat, TrueFalseformat } from "./format";
+
+import { v4 as uuidv4 } from "uuid";
 
 export const JSONFormat = (format: FormatType) => {
   const formatJSON =
@@ -80,20 +73,8 @@ export const isValidQuizId = (quizId: string): boolean => {
   return !!quizId && /^[a-z0-9]{32}$/.test(quizId);
 };
 
-export const formattedMessage = <K extends string>({
-  messages,
-  formatTo,
-}: MessageType<K>) => {
-  const msg = messages.map((message) => {
-    const createdAtDate =
-      formatTo === "Date"
-        ? new Date(message.createdAt!)
-        : new Date(message.createdAt!).getTime();
-
-    return {
-      ...message,
-      createdAt: createdAtDate,
-    };
-  });
-  return msg as K extends "Date" ? Message[] : MessageData[];
+export const generateRandomString = () => {
+  const uuid = uuidv4();
+  const randomString = uuid.slice(0, 6);
+  return randomString;
 };

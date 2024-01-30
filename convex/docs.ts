@@ -87,7 +87,6 @@ const createChunks = async (
     }
 
     const splitter = new RecursiveCharacterTextSplitter({
-      separators: ["\n"],
       chunkSize: 1000,
       chunkOverlap: 200,
     });
