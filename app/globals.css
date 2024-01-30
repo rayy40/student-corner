@@ -16,54 +16,44 @@ textarea::selection {
   background-color: rgba(35, 131, 226, 0.28);
 }
 
-.markdown-wrapper {
-  h1 {
-    font-size: 1.986rem;
-    font-weight: 700;
-  }
-  h2 {
-    font-size: 1.488rem;
-    font-weight: 700;
-  }
-  h3 {
-    font-size: 1.074rem;
-    font-weight: 500;
-  }
-  h4 {
-    font-size: 1.074rem;
-    font-weight: 500;
-  }
-  h5 {
-    font-size: 1.074rem;
-    font-weight: 500;
-  }
-  h6 {
-    font-size: 1.074rem;
-    font-weight: 500;
-  }
-  p {
-    font-weight: 400;
-  }
-  a {
-    font-weight: 400;
-  }
-  ul,
-  ol {
-    font-weight: 400;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  li {
-    font-weight: 400;
-    offset: 5px;
-  }
+.markdown-wrapper h1 {
+  font-size: 1.986rem;
+  font-weight: 700;
+}
+.markdown-wrapper h2 {
+  font-size: 1.488rem;
+  font-weight: 700;
+}
+.markdown-wrapper h3,
+.markdown-wrapper h4,
+.markdown-wrapper h5 .markdown-wrapper h6 {
+  font-size: 1.074rem;
+  font-weight: 500;
+}
+
+.markdown-wrapper p,
+.markdown-wrapper a {
+  font-weight: 400;
+}
+.markdown-wrapper a {
+  text-decoration: none;
+}
+
+.markdown-wrapper ul,
+.markdown-wrapper ol {
+  font-weight: 400;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.markdown-wrapper li {
+  font-weight: 400;
 }
 
 @layer base {
   :root {
     --background: 0 0% 98%;
-    --foreground: 201 36% 9%;
+    --foreground: 0 0% 13%;
 
     --primary: 174 26% 50%;
     --primary-hover: 174 26% 55%;
