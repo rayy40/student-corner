@@ -34,7 +34,6 @@ export const Response = v.object({
 export const Message = v.object({
   id: v.string(),
   tool_call_id: v.optional(v.string()),
-  createdAt: v.optional(v.number()),
   content: v.string(),
   ui: v.optional(v.union(v.string(), v.null(), v.any())),
   role: Role,
@@ -63,6 +62,7 @@ export default defineSchema({
   }),
   chatEmbeddings: defineTable({
     embedding: v.array(v.float64()),
+    content: v.string(),
     chatId: v.id("chatbook"),
   }).vectorIndex("by_embedding", {
     vectorField: "embedding",
@@ -74,7 +74,6 @@ export default defineSchema({
     url: v.string(),
     type: v.optional(v.string()),
     title: v.optional(v.string()),
-    length: v.optional(v.number()),
     chat: v.optional(v.array(Message)),
     embeddingId: v.optional(v.array(v.id("chatEmbeddings"))),
   }).index("by_embedding", ["embeddingId"]),
