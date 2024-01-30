@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import {
+  action,
   internalAction,
   internalMutation,
   internalQuery,
@@ -9,6 +10,9 @@ import {
 import { internal } from "./_generated/api";
 import { fetchEmbedding } from "./openai";
 import { Message } from "./schema";
+import { Doc } from "./_generated/dataModel";
+
+export type Result = Doc<"chatbook"> & { _score: number };
 
 export const createChatbook = mutation({
   args: {
@@ -71,26 +75,29 @@ export const generateEmbeddings = internalAction({
   },
   handler: async (ctx, args) => {
     try {
-      const response = await fetchEmbedding(args.chunks.map((chunk) => chunk));
-      const allembeddings = response.data as {
-        embedding: number[];
-        index: number;
-      }[];
-      allembeddings.sort((a, b) => a.index - b.index);
+      const BATCH_SIZE = 100;
+      for (
+        let batchStart = 0;
+        batchStart < args.chunks.length;
+        batchStart += BATCH_SIZE
+      ) {
+        const batchEnd = batchStart + BATCH_SIZE;
+        const batch = args.chunks.slice(batchStart, batchEnd);
 
-      const totalEmbeddings = allembeddings.length;
+        const response = await fetchEmbedding(batch);
 
-      await ctx.runMutation(internal.chatbook.addEmbeddingsLength, {
-        chatId: args.chatId,
-        embeddingLength: totalEmbeddings,
-      });
+        if (typeof response === "string") {
+          throw new Error(response);
+        }
 
-      for (let i = 0; i < allembeddings.length; i++) {
-        await ctx.runMutation(internal.chatbook.addEmbedding, {
-          chatId: args.chatId,
-          embedding: allembeddings[i].embedding,
-          metadata: args.metadata,
-        });
+        for (let i = 0; i < response.data.length; i++) {
+          await ctx.runMutation(internal.chatbook.addEmbedding, {
+            chatId: args.chatId,
+            content: args.chunks[i],
+            embedding: response.data[i].embedding,
+            metadata: args.metadata,
+          });
+        }
       }
     } catch (err) {
       console.log(err);
@@ -99,24 +106,17 @@ export const generateEmbeddings = internalAction({
   },
 });
 
-export const addEmbeddingsLength = internalMutation({
-  args: { chatId: v.id("chatbook"), embeddingLength: v.number() },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.chatId, {
-      length: args.embeddingLength,
-    });
-  },
-});
-
 export const addEmbedding = internalMutation({
   args: {
     chatId: v.id("chatbook"),
+    content: v.string(),
     embedding: v.array(v.number()),
     metadata: v.any(),
   },
   handler: async (ctx, args) => {
     const chatEmbeddingId = await ctx.db.insert("chatEmbeddings", {
       embedding: args.embedding,
+      content: args.content,
       chatId: args.chatId,
     });
     const existingChatDocument = await ctx.db.get(args.chatId);
@@ -128,7 +128,7 @@ export const addEmbedding = internalMutation({
       embeddingId: embeddingIds,
       title:
         args.metadata?.pdf?.info?.title ?? args.metadata?.videoDetails?.title,
-      type: args.metadata ?? "Youtube Video",
+      type: args.metadata?.blobType ?? "Youtube Video",
     });
   },
 });
@@ -145,12 +145,7 @@ export const getEmbeddingId = query({
 
       const embeddingId = ctx.db
         .query("chatbook")
-        .filter((q) =>
-          q.and(
-            q.eq(q.field("length"), chat?.embeddingId?.length),
-            q.eq(q.field("_id"), chat?._id)
-          )
-        )
+        .filter((q) => q.and(q.eq(q.field("_id"), chat?._id)))
         .unique();
       return embeddingId;
     } catch (error) {
@@ -162,7 +157,7 @@ export const getEmbeddingId = query({
 export const patchMessages = mutation({
   args: {
     chatId: v.id("chatbook"),
-    message: v.array(Message),
+    message: Message,
   },
   handler: async (ctx, args) => {
     const existingChat = await ctx.db.get(args.chatId);
@@ -172,10 +167,9 @@ export const patchMessages = mutation({
     }
 
     const messages = existingChat?.chat || [];
-    messages.push(...args.message);
 
     await ctx.db.patch(args.chatId, {
-      chat: messages,
+      chat: messages.concat([args.message]),
     });
   },
 });
@@ -202,5 +196,66 @@ export const deleteMessageHistory = mutation({
   args: { chatId: v.id("chatbook") },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.chatId, { chat: undefined });
+  },
+});
+
+export const fetchResults = internalQuery({
+  args: {
+    embeddingIds: v.array(v.id("chatEmbeddings")),
+  },
+  handler: async (ctx, args) => {
+    const results: Array<Doc<"chatEmbeddings">> = [];
+    for (const embeddingId of args.embeddingIds) {
+      const content = await ctx.db.get(embeddingId);
+      if (content === null) {
+        continue;
+      }
+      results.push(content);
+    }
+    return results;
+  },
+});
+
+export const similarContent = action({
+  args: { chatId: v.id("chatbook"), query: v.string() },
+  handler: async (ctx, args) => {
+    try {
+      const embed = await fetchEmbedding([args.query]);
+      if (typeof embed === "string") {
+        throw new Error(embed);
+      }
+
+      const results = await ctx.vectorSearch("chatEmbeddings", "by_embedding", {
+        vector: embed.data[0].embedding,
+        limit: 4,
+        filter: (q) => q.eq("chatId", args.chatId),
+      });
+
+      const filteredResults = results.filter((r) => r._score > 0.8);
+
+      if (filteredResults.length === 0) {
+        throw new Error(
+          "Unable to find any content related to the file provided."
+        );
+      }
+
+      const chunks: Array<Doc<"chatEmbeddings">> = await ctx.runQuery(
+        internal.chatbook.fetchResults,
+        {
+          embeddingIds: filteredResults.map((result) => result._id),
+        }
+      );
+
+      if (chunks.length === 0) {
+        throw new Error(
+          "Unable to find any content related to the file provided."
+        );
+      }
+
+      return chunks.map((d: Doc<"chatEmbeddings">) => d.content).join("\n\n");
+    } catch (error) {
+      console.log(error);
+      return "Unable to find any content related to the file provided.";
+    }
   },
 });
