@@ -220,11 +220,16 @@ export const generateQuiz = internalAction({
 });
 
 export const fetchEmbedding = async (text: string[]) => {
-  const response = await openai.embeddings.create({
-    model: "text-embedding-ada-002",
-    input: text,
-  });
-  return response;
+  try {
+    const response = await openai.embeddings.create({
+      model: "text-embedding-ada-002",
+      input: text,
+    });
+    return response;
+  } catch (error) {
+    console.log(error);
+    return "Unable to create embeddings from Open AI.";
+  }
 };
 
 export const fetchTranscripts = async (audioStream: any) => {
