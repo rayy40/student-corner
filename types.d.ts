@@ -104,7 +104,10 @@ export interface UrlType<K extends string> {
   errors: K extends "quiz" ? FieldErrors<quizSchema> : FieldErrors<chatSchema>;
 }
 
-export interface MessageType<K extends string> {
-  formatTo: K;
-  messages: K extends "Date" ? MessageData[] : Message[];
+export interface MessageType {
+  tool_call_id?: string;
+  ui?: any;
+  content: string;
+  id: string;
+  role: "function" | "system" | "user" | "assistant" | "data" | "tool";
 }
