@@ -1,77 +1,49 @@
 "use client";
 
-import { Message } from "ai";
 import { useChat } from "ai/react";
-import { useConvex, useMutation } from "convex/react";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useMutation, useQuery } from "convex/react";
+import React, { useEffect, useRef } from "react";
 import { LuArrowUp, LuTrash } from "react-icons/lu";
 
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { formattedMessage } from "@/helpers/utils";
-import { MessageData } from "@/types";
 
 import MessageList from "../MessageList/MessageList";
 
 const ChatBot = ({ chatId }: { chatId: Id<"chatbook"> }) => {
   const messageListRef = useRef<HTMLDivElement | null>(null);
-  const patchMessages = useMutation(api.chatbook.patchMessages);
-  const [messageHistory, setMessageHistory] = useState<Message[]>([]);
   const deleteHistory = useMutation(api.chatbook.deleteMessageHistory);
-  const convex = useConvex();
 
-  const { input, handleInputChange, handleSubmit, messages } = useChat({
-    api: "/api/chat",
-    onFinish: async () => {
-      console.log(messages);
-      await patchMessages({
-        chatId: chatId,
-        message: formattedMessage({ messages, formatTo: "timestamp" }),
-      });
-    },
-  });
-
-  const fetchMessageHistory = useCallback(async () => {
-    try {
-      const response: MessageData[] | string = await convex.query(
-        api.chatbook.getMessageHistory,
-        {
-          chatId: chatId,
-        }
-      );
-      if (Array.isArray(response)) {
-        const message = formattedMessage({
-          messages: response,
-          formatTo: "Date",
-        });
-        setMessageHistory(message);
-      }
-    } catch (error) {
-      console.log("Error fetching message history: ", error);
-    }
-  }, [chatId, convex]);
-
-  useEffect(() => {
-    fetchMessageHistory();
-  }, [fetchMessageHistory]);
-
-  const allMessages: Message[] = useMemo(
-    () => [...messageHistory, ...messages],
-    [messageHistory, messages]
+  const initalMessage = useQuery(
+    api.chatbook.getMessageHistory,
+    chatId !== null ? { chatId } : "skip"
   );
+
+  const {
+    input,
+    handleInputChange,
+    handleSubmit,
+    messages,
+    setMessages,
+    isLoading,
+  } = useChat({
+    api: "/api/chat",
+    body: {
+      chatId,
+    },
+    initialMessages: initalMessage
+      ? Array.isArray(initalMessage)
+        ? initalMessage
+        : []
+      : [],
+  });
 
   useEffect(() => {
     messageListRef.current?.scrollTo({
       top: messageListRef?.current?.scrollHeight,
       behavior: "smooth",
     });
-  }, [messages, allMessages]);
+  }, [messages]);
 
   return (
     <>
@@ -80,14 +52,17 @@ const ChatBot = ({ chatId }: { chatId: Id<"chatbook"> }) => {
           <h2 className="text-lg">Solar System</h2>
           <div>
             <LuTrash
-              onClick={() => deleteHistory({ chatId })}
+              onClick={() => {
+                deleteHistory({ chatId });
+                setMessages([]);
+              }}
               className="text-xl opacity-60 cursor-pointer hover:opacity-100"
             />
           </div>
         </div>
       </div>
       <div ref={messageListRef} className="h-full overflow-y-auto">
-        <MessageList messages={allMessages} />
+        <MessageList messages={messages} isLoading={isLoading} />
       </div>
       <div className="sticky bottom-0 p-4 w-full">
         <form onSubmit={handleSubmit}>
