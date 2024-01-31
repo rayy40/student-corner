@@ -9,6 +9,7 @@ const DropDown = <K extends string>({
   value,
   reset,
   setValue,
+  setError,
 }: DropDownType<K>) => {
   const [openDropDown, setOpenDropDown] = useState(false);
   const [category, setCategory] = useState(value);
@@ -33,6 +34,7 @@ const DropDown = <K extends string>({
   return (
     <div ref={dropdownRef} className="relative text-sm ">
       <button
+        type="button"
         onClick={() => setOpenDropDown((prev) => !prev)}
         className="w-[152px] flex capitalize items-center gap-2 p-2 border rounded-md border-border shadow-light bg-secondary hover:bg-secondary-hover"
       >
@@ -50,6 +52,7 @@ const DropDown = <K extends string>({
                   setCategory(item);
                   reset && reset();
                   setValue && setValue("by", item as any);
+                  setError("");
                 }}
                 className="flex items-center justify-between p-2 capitalize rounded-md cursor-pointer bg-secondary hover:bg-secondary-hover"
                 key={i}

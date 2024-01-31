@@ -60,7 +60,7 @@ const Url = <K extends string>({
           </div>
         </div>
       )}
-      {isSubmitted && (
+      {isSubmitted && Object.keys(errors).length > 0 && (
         <p className="mt-2 text-[0.95rem] text-center text-error">
           {getError()}
         </p>

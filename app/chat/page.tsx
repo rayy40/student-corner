@@ -10,13 +10,14 @@ import DropDown from "@/components/DropDown/DropDown";
 import LoadingSpinner from "@/components/Loading/LoadingSpinner";
 import UnAuthenticated from "@/components/UnAuthenticated/UnAuthenticated";
 import Document from "@/components/Upload/Documents/Documents";
+import Url from "@/components/Upload/Link/Url";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useUserIdStore } from "@/providers/store";
 import { chatSchema } from "@/schema/chat_schema";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Url from "@/components/Upload/Link/Url";
+import { isValidUrl } from "@/helpers/utils";
 
 type chatSchema = z.infer<typeof chatSchema>;
 
@@ -41,7 +42,7 @@ const Chat = () => {
   const createChatbook = useMutation(api.chatbook.createChatbook);
 
   const [isUploading, setIsUploading] = useState(false);
-  const [isUploadingError, setIsUploadingError] = useState(false);
+  const [error, setError] = useState("");
 
   const repo = watch("repo", "public");
   const by = watch("by", "document");
@@ -57,7 +58,10 @@ const Chat = () => {
   }, [by, trigger]);
 
   const uploadDocument = async (document: File) => {
-    const uploadUrl = await generateUploadUrl();
+    const uploadUrl: string = await generateUploadUrl();
+    if (!isValidUrl(uploadUrl)) {
+      throw new Error(uploadUrl);
+    }
     const response = await fetch(uploadUrl, {
       method: "POST",
       headers: { "Content-Type": document.type },
@@ -70,26 +74,33 @@ const Chat = () => {
   const onSubmit = async (data: FieldValues) => {
     try {
       setIsUploading(true);
-      let chatId: Id<"chatbook">;
+      let chatId: string | Id<"chatbook">;
       if (by === "document") {
         const storageId = await uploadDocument(data.document[0]);
-        chatId = (await createChatbook({
+        chatId = await createChatbook({
           userId: userId as Id<"users">,
           storageId,
-        })) as Id<"chatbook">;
+        });
       } else {
-        chatId = (await createChatbook({
+        chatId = await createChatbook({
           userId: userId as Id<"users">,
-          url: data.link,
-        })) as Id<"chatbook">;
+          url: data?.[by],
+        });
+      }
+      if (typeof chatId === "string") {
+        throw new Error(chatId);
       }
       router.push(`/chat/${chatId}`);
     } catch (error) {
-      console.error("Error:", error);
-      setIsUploadingError(true);
+      setError((error as Error).message);
       setIsUploading(false);
+      setValue("by", data.by);
     } finally {
-      reset();
+      reset({
+        by: data.by,
+        repo: "public",
+        [data.by]: data.by === "document" ? null : "",
+      });
     }
   };
 
@@ -120,8 +131,9 @@ const Chat = () => {
             <DropDown
               kind="chat"
               reset={reset}
-              value={"Document"}
+              value={by}
               lists={["document", "youtube", "github"]}
+              setError={setError}
               setValue={setValue}
             />
           </div>
@@ -151,9 +163,7 @@ const Chat = () => {
           >
             Submit
           </button>
-          {isUploadingError && (
-            <p className="text-center text-error">Unable to upload file.</p>
-          )}
+          {error && <p className="text-center text-error">{error}</p>}
         </form>
       )}
     </div>

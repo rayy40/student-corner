@@ -1,4 +1,4 @@
-import { Infer, v } from "convex/values";
+import { ConvexError, Infer, v } from "convex/values";
 import OpenAI, { toFile } from "openai";
 
 import {
@@ -47,12 +47,13 @@ const getResponseFromOpenAI = async ({
       : undefined;
 
     if (!response || !response.title || !response.questions) {
-      throw new Error("Invalid response format from OpenAI.");
+      throw new ConvexError("Invalid response format from OpenAI.");
     }
     return response;
   } catch (error) {
-    console.error(error);
-    return "Error while generating quiz from OpenAI.";
+    return error instanceof ConvexError
+      ? error.data
+      : "Unexpected error occured.";
   }
 };
 
@@ -70,7 +71,6 @@ const uploadFile = async (
       return createAssistant(file.id, format, questions);
     }
   } catch (error) {
-    console.error(error);
     return "Error while uploading file to OpenAI.";
   }
 };
@@ -174,7 +174,7 @@ export const generateQuiz = internalAction({
     });
 
     if (!quiz) {
-      throw new Error("No dataset found for this quiz Id.");
+      throw new ConvexError("No dataset found for this quiz Id.");
     }
 
     if (quiz?.kind === "document") {
@@ -184,7 +184,7 @@ export const generateQuiz = internalAction({
       console.log(url);
 
       if (url === "No Url Found.") {
-        throw new Error("No File found for this quiz Id.");
+        throw new ConvexError("No File found for this quiz Id.");
       }
       const response = await uploadFile(
         url,
@@ -233,9 +233,14 @@ export const fetchEmbedding = async (text: string[]) => {
 };
 
 export const fetchTranscripts = async (audioStream: any) => {
-  const response = await openai.audio.transcriptions.create({
-    file: await toFile(audioStream, "myfile.mp3"),
-    model: "whisper-1",
-  });
-  return response.text;
+  try {
+    const response = await openai.audio.transcriptions.create({
+      file: await toFile(audioStream, "myfile.mp3"),
+      model: "whisper-1",
+    });
+    return response.text;
+  } catch (error) {
+    console.log(error);
+    return "Unable to fetch transcripts.";
+  }
 };

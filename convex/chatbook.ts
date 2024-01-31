@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import {
   action,
   internalAction,
@@ -11,6 +11,7 @@ import { internal } from "./_generated/api";
 import { fetchEmbedding } from "./openai";
 import { Message } from "./schema";
 import { Doc } from "./_generated/dataModel";
+import { isValidQuizId } from "@/helpers/utils";
 
 export type Result = Doc<"chatbook"> & { _score: number };
 
@@ -26,14 +27,15 @@ export const createChatbook = mutation({
         .query("users")
         .filter((q) => q.eq(q.field("_id"), args.userId));
       if (!user) {
-        throw new Error("You need to login first.");
+        throw new ConvexError("You need to login first.");
       }
+
       const url = args.storageId
         ? await ctx.storage.getUrl(args.storageId)
         : args.url;
 
       if (!url) {
-        throw new Error("No URL found.");
+        throw new ConvexError("No URL found.");
       }
 
       const chatId = await ctx.db.insert("chatbook", {
@@ -52,7 +54,10 @@ export const createChatbook = mutation({
       );
       return chatId;
     } catch (error) {
-      return error;
+      console.log(error);
+      return error instanceof ConvexError
+        ? error.data
+        : "Unexpected error occured.";
     }
   },
 });
@@ -71,7 +76,8 @@ export const generateEmbeddings = internalAction({
   args: {
     chatId: v.id("chatbook"),
     chunks: v.array(v.string()),
-    metadata: v.any(),
+    title: v.string(),
+    type: v.string(),
   },
   handler: async (ctx, args) => {
     try {
@@ -87,7 +93,7 @@ export const generateEmbeddings = internalAction({
         const response = await fetchEmbedding(batch);
 
         if (typeof response === "string") {
-          throw new Error(response);
+          throw new ConvexError(response);
         }
 
         for (let i = 0; i < response.data.length; i++) {
@@ -95,13 +101,16 @@ export const generateEmbeddings = internalAction({
             chatId: args.chatId,
             content: args.chunks[i],
             embedding: response.data[i].embedding,
-            metadata: args.metadata,
+            title: args.title,
+            type: args.type,
           });
         }
       }
-    } catch (err) {
-      console.log(err);
-      return "Error while creating embeddings.";
+    } catch (error) {
+      console.log(error);
+      return error instanceof ConvexError
+        ? error.data
+        : "Unexpected error occured.";
     }
   },
 });
@@ -111,7 +120,8 @@ export const addEmbedding = internalMutation({
     chatId: v.id("chatbook"),
     content: v.string(),
     embedding: v.array(v.number()),
-    metadata: v.any(),
+    title: v.string(),
+    type: v.string(),
   },
   handler: async (ctx, args) => {
     const chatEmbeddingId = await ctx.db.insert("chatEmbeddings", {
@@ -126,9 +136,8 @@ export const addEmbedding = internalMutation({
 
     await ctx.db.patch(args.chatId, {
       embeddingId: embeddingIds,
-      title:
-        args.metadata?.pdf?.info?.title ?? args.metadata?.videoDetails?.title,
-      type: args.metadata?.blobType ?? "Youtube Video",
+      title: args.title,
+      type: args.type,
     });
   },
 });
@@ -137,10 +146,14 @@ export const getEmbeddingId = query({
   args: { chatId: v.id("chatbook") },
   handler: async (ctx, args) => {
     try {
+      if (!isValidQuizId(args.chatId)) {
+        throw new ConvexError("Invalid Id.");
+      }
+
       const chat = await ctx.db.get(args.chatId);
 
       if (!chat) {
-        throw new Error("No dataset found for this Id.");
+        throw new ConvexError("No dataset found for this Id.");
       }
 
       const embeddingId = ctx.db
@@ -149,7 +162,9 @@ export const getEmbeddingId = query({
         .unique();
       return embeddingId;
     } catch (error) {
-      return "No dataset found for this Id.";
+      return error instanceof ConvexError
+        ? error.data
+        : "Unexpected error occured.";
     }
   },
 });
@@ -163,7 +178,7 @@ export const patchMessages = mutation({
     const existingChat = await ctx.db.get(args.chatId);
 
     if (!existingChat) {
-      throw new Error("No chat history found for this Id.");
+      throw new ConvexError("No chat history found for this Id.");
     }
 
     const messages = existingChat?.chat || [];
@@ -181,13 +196,14 @@ export const getMessageHistory = query({
       const chat = await ctx.db.get(args.chatId);
 
       if (!chat?.chat) {
-        throw new Error("No Chat history found.");
+        throw new ConvexError("No Chat history found.");
       }
 
       return chat?.chat;
     } catch (error) {
-      console.log(error);
-      return "No Chat history found.";
+      return error instanceof ConvexError
+        ? error.data
+        : "Unexpected error occured.";
     }
   },
 });
@@ -222,7 +238,7 @@ export const similarContent = action({
     try {
       const embed = await fetchEmbedding([args.query]);
       if (typeof embed === "string") {
-        throw new Error(embed);
+        throw new ConvexError(embed);
       }
 
       const results = await ctx.vectorSearch("chatEmbeddings", "by_embedding", {
@@ -234,7 +250,7 @@ export const similarContent = action({
       const filteredResults = results.filter((r) => r._score > 0.8);
 
       if (filteredResults.length === 0) {
-        throw new Error(
+        throw new ConvexError(
           "Unable to find any content related to the file provided."
         );
       }
@@ -247,15 +263,16 @@ export const similarContent = action({
       );
 
       if (chunks.length === 0) {
-        throw new Error(
+        throw new ConvexError(
           "Unable to find any content related to the file provided."
         );
       }
 
       return chunks.map((d: Doc<"chatEmbeddings">) => d.content).join("\n\n");
     } catch (error) {
-      console.log(error);
-      return "Unable to find any content related to the file provided.";
+      return error instanceof ConvexError
+        ? error.data
+        : "Unexpected error occured.";
     }
   },
 });

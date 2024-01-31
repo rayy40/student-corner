@@ -1,6 +1,6 @@
 "use node";
 
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { Document } from "langchain/document";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
@@ -17,19 +17,22 @@ const extractText = async (url: string) => {
 
     const response: Response = await fetch(url);
     const blob: Blob = await response.blob();
-    const loader: PDFLoader = new PDFLoader(blob);
+    const loader: PDFLoader = new PDFLoader(blob, {
+      parsedItemSeparator: "",
+    });
     const docs: Document<Record<string, any>>[] = await loader.load();
 
-    const metadata = docs[0].metadata;
+    const title: string = docs?.[0]?.metadata?.pdf?.info?.title ?? "PDF";
+    const type: string = docs?.[0]?.metadata?.blobType;
 
     docs.forEach((doc) => {
       document.push(doc.pageContent);
     });
 
-    return { document, metadata };
+    return { document, title, type };
   } catch (error) {
-    console.error("Error: ", error);
-    return error as string;
+    console.error(error);
+    return "Unable to extract text from PDF.";
   }
 };
 
@@ -38,10 +41,12 @@ const extractAudio = async (url: string) => {
     const videoId = getURLVideoID(url);
 
     if (!validateID(videoId)) {
-      throw new Error("Invalid video Id.");
+      throw new ConvexError("Invalid video Id.");
     }
 
     const metadata = await getBasicInfo(videoId);
+    const title = metadata?.videoDetails?.title;
+    const type = "Youtube Video";
 
     let transcript: string = "";
     try {
@@ -54,28 +59,29 @@ const extractAudio = async (url: string) => {
 
       const audioStream = await ytdl(url, { filter: "audioonly" });
       if (!audioStream) {
-        throw new Error("Unable to extract audio stream from video.");
+        throw new ConvexError("Unable to extract audio stream from video.");
       }
 
       transcript = await fetchTranscripts(audioStream);
     }
-    return { transcript, metadata };
+    return { transcript, title, type };
   } catch (error) {
-    console.error("Error: ", error);
-    return error as string;
+    return error instanceof ConvexError
+      ? error.data
+      : "Unexpected error occured.";
   }
 };
 
 const createChunks = async (
   url: string,
   kind: "pdf" | "audio"
-): Promise<{ chunks: string[]; metadata: any } | string> => {
+): Promise<{ chunks: string[]; title: string; type: string } | string> => {
   try {
     const extractTextFn = kind === "pdf" ? extractText : extractAudio;
     const response = await extractTextFn(url);
 
     if (typeof response === "string") {
-      throw new Error(response);
+      throw new ConvexError(response);
     }
 
     let docs: string[];
@@ -95,10 +101,11 @@ const createChunks = async (
 
     const chunkArr = chunks.map((chunk) => chunk.pageContent);
 
-    return { chunks: chunkArr, metadata: response.metadata };
+    return { chunks: chunkArr, title: response.title, type: response.type };
   } catch (error) {
-    console.log(error);
-    return "Unable to parse through file.";
+    return error instanceof ConvexError
+      ? error.data
+      : "Unexpected error occured.";
   }
 };
 
@@ -113,17 +120,19 @@ export const extractTextAndCreateChunks = internalAction({
       const chunks = await createChunks(args.url, args.kind);
 
       if (typeof chunks == "string") {
-        throw new Error(chunks);
+        throw new ConvexError(chunks);
       }
 
       await ctx.scheduler.runAfter(0, internal.chatbook.generateEmbeddings, {
         chatId: args.chatId,
         chunks: chunks.chunks,
-        metadata: chunks.metadata,
+        title: chunks.title,
+        type: chunks.type,
       });
     } catch (error) {
-      console.log(error);
-      return error;
+      return error instanceof ConvexError
+        ? error.data
+        : "Unexpected error occured.";
     }
   },
 });

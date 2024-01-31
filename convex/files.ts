@@ -1,9 +1,15 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { internalQuery, mutation } from "./_generated/server";
 
 export const generateUploadUrl = mutation({
   handler: async (ctx) => {
-    return await ctx.storage.generateUploadUrl();
+    try {
+      return await ctx.storage.generateUploadUrl();
+    } catch (error) {
+      return error instanceof ConvexError
+        ? error.data
+        : "Unable to generate upload url.";
+    }
   },
 });
 
