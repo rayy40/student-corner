@@ -22,7 +22,11 @@ const extractText = async (url: string) => {
     });
     const docs: Document<Record<string, any>>[] = await loader.load();
 
-    const title: string = docs?.[0]?.metadata?.pdf?.info?.title ?? "PDF";
+    const title: string =
+      docs?.[0]?.metadata?.pdf?.info?.title ??
+      docs?.[0]?.metadata?.pdf?.info?.Title ??
+      "PDF";
+
     const type: string = docs?.[0]?.metadata?.blobType;
 
     docs.forEach((doc) => {
@@ -66,9 +70,7 @@ const extractAudio = async (url: string) => {
     }
     return { transcript, title, type };
   } catch (error) {
-    return error instanceof ConvexError
-      ? error.data
-      : "Unexpected error occured.";
+    return (error as Error).message;
   }
 };
 
@@ -93,8 +95,8 @@ const createChunks = async (
     }
 
     const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 1000,
-      chunkOverlap: 200,
+      chunkSize: 600,
+      chunkOverlap: 100,
     });
 
     const chunks = await splitter.createDocuments(docs);
@@ -103,9 +105,7 @@ const createChunks = async (
 
     return { chunks: chunkArr, title: response.title, type: response.type };
   } catch (error) {
-    return error instanceof ConvexError
-      ? error.data
-      : "Unexpected error occured.";
+    return (error as Error).message;
   }
 };
 
@@ -130,9 +130,7 @@ export const extractTextAndCreateChunks = internalAction({
         type: chunks.type,
       });
     } catch (error) {
-      return error instanceof ConvexError
-        ? error.data
-        : "Unexpected error occured.";
+      return (error as Error).message;
     }
   },
 });
