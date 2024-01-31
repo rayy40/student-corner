@@ -55,9 +55,7 @@ export const createChatbook = mutation({
       return chatId;
     } catch (error) {
       console.log(error);
-      return error instanceof ConvexError
-        ? error.data
-        : "Unexpected error occured.";
+      return error;
     }
   },
 });
@@ -243,7 +241,7 @@ export const similarContent = action({
 
       const results = await ctx.vectorSearch("chatEmbeddings", "by_embedding", {
         vector: embed.data[0].embedding,
-        limit: 4,
+        limit: 3,
         filter: (q) => q.eq("chatId", args.chatId),
       });
 
