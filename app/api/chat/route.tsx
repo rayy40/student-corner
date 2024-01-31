@@ -1,6 +1,7 @@
-import OpenAI from "openai";
-import { OpenAIStream, StreamingTextResponse, Message } from "ai";
+import { Message, OpenAIStream, StreamingTextResponse } from "ai";
 import { fetchAction, fetchMutation } from "convex/nextjs";
+import OpenAI from "openai";
+
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { generateRandomString } from "@/helpers/utils";
@@ -34,7 +35,10 @@ export const patchMessages = async ({
 
 export async function POST(req: Request) {
   try {
-    const { messages, chatId } = await req.json();
+    const {
+      messages,
+      chatId,
+    }: { messages: Message[]; chatId: Id<"chatbook"> } = await req.json();
     const previousMessage: string = messages[messages.length - 1].content;
 
     const content = await fetchAction(api.chatbook.similarContent, {
@@ -42,23 +46,30 @@ export async function POST(req: Request) {
       query: previousMessage,
     });
 
-    const prompt = {
+    const prompt: { role: "system"; content: string } = {
       role: "system",
-      content: `You are a helpful assistant. Your task is to answer questions related to the context provided to you. Please STRICTLY ADHERE to answering questions related to the content only and if a question is unrelated then refrain from giving an answer even if you know the answer and say 'I'm sorry but I do not know the answer to this query as it is unrelated to the content'. You will not apologize for previous responses. And process the response intelligently into markdown formatting for structure, without altering the contents.
-  
-      START CONTENT BLOCK
+      content: `You are a helpful assistant. Your task is to provide answers strictly related to the following content. If a question is unrelated to the content, respond with 'I'm sorry, but I can only provide answers related to the provided content.' Do not apologize for previous responses. Format your responses in markdown for structure, without altering the content.
+
+      ### START CONTENT BLOCK ###
       ${content}
-      END CONTENT BLOCK
-    `,
+      ### END CONTENT BLOCK ###
+      
+      Remember to be specific in your responses, provide context where necessary, and answer as if you were an expert on the content. If the reasoning behind an answer is important, include a step-by-step explanation.`,
     };
 
+    const formattedMessages = messages.map(({ role, content }) => ({
+      role,
+      content,
+    })) as { role: "system" | "user" | "assistant"; content: string }[];
+
+    formattedMessages.unshift(prompt);
+
     const response = await openai.chat.completions.create({
+      temperature: 0.8,
       model: "gpt-3.5-turbo",
       stream: true,
-      messages: [
-        prompt,
-        ...messages.filter((message: Message) => message.role === "user"),
-      ],
+      max_tokens: 3000,
+      messages: formattedMessages,
     });
 
     const stream = OpenAIStream(response, {
