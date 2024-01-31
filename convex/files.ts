@@ -6,9 +6,7 @@ export const generateUploadUrl = mutation({
     try {
       return await ctx.storage.generateUploadUrl();
     } catch (error) {
-      return error instanceof ConvexError
-        ? error.data
-        : "Unable to generate upload url.";
+      return error;
     }
   },
 });
