@@ -55,7 +55,7 @@ export const createChatbook = mutation({
       return chatId;
     } catch (error) {
       console.log(error);
-      return error;
+      return (error as Error).message;
     }
   },
 });
@@ -106,9 +106,7 @@ export const generateEmbeddings = internalAction({
       }
     } catch (error) {
       console.log(error);
-      return error instanceof ConvexError
-        ? error.data
-        : "Unexpected error occured.";
+      return (error as Error).message;
     }
   },
 });
@@ -160,9 +158,7 @@ export const getEmbeddingId = query({
         .unique();
       return embeddingId;
     } catch (error) {
-      return error instanceof ConvexError
-        ? error.data
-        : "Unexpected error occured.";
+      return (error as Error).message;
     }
   },
 });
@@ -199,9 +195,7 @@ export const getMessageHistory = query({
 
       return chat?.chat;
     } catch (error) {
-      return error instanceof ConvexError
-        ? error.data
-        : "Unexpected error occured.";
+      return (error as Error).message;
     }
   },
 });
@@ -209,7 +203,12 @@ export const getMessageHistory = query({
 export const deleteMessageHistory = mutation({
   args: { chatId: v.id("chatbook") },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.chatId, { chat: undefined });
+    try {
+      await ctx.db.patch(args.chatId, { chat: undefined });
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
   },
 });
 
@@ -268,9 +267,7 @@ export const similarContent = action({
 
       return chunks.map((d: Doc<"chatEmbeddings">) => d.content).join("\n\n");
     } catch (error) {
-      return error instanceof ConvexError
-        ? error.data
-        : "Unexpected error occured.";
+      return (error as Error).message;
     }
   },
 });
