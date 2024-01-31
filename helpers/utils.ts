@@ -69,6 +69,10 @@ export const calculateScore = (
   return { score: Math.round(score), correctAnswer: correctAnswers };
 };
 
+export const isValidQuizId = (quizId: string): boolean => {
+  return !!quizId && /^[a-z0-9]{32}$/.test(quizId);
+};
+
 export const generateRandomString = () => {
   const uuid = uuidv4();
   const randomString = uuid.slice(0, 6);
