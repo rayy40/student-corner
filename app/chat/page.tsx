@@ -17,7 +17,6 @@ import { useUserIdStore } from "@/providers/store";
 import { chatSchema } from "@/schema/chat_schema";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidUrl } from "@/helpers/utils";
 
 type chatSchema = z.infer<typeof chatSchema>;
 
@@ -58,11 +57,11 @@ const Chat = () => {
   }, [by, trigger]);
 
   const uploadDocument = async (document: File) => {
-    const uploadUrl: string = await generateUploadUrl();
-    if (!isValidUrl(uploadUrl)) {
-      throw new Error(uploadUrl);
+    const uploadUrl = await generateUploadUrl();
+    if ((uploadUrl as Error).message) {
+      throw new Error((uploadUrl as Error).message);
     }
-    const response = await fetch(uploadUrl, {
+    const response = await fetch(uploadUrl as string, {
       method: "POST",
       headers: { "Content-Type": document.type },
       body: document,
@@ -74,7 +73,7 @@ const Chat = () => {
   const onSubmit = async (data: FieldValues) => {
     try {
       setIsUploading(true);
-      let chatId: string | Id<"chatbook">;
+      let chatId;
       if (by === "document") {
         const storageId = await uploadDocument(data.document[0]);
         chatId = await createChatbook({
@@ -87,8 +86,8 @@ const Chat = () => {
           url: data?.[by],
         });
       }
-      if (typeof chatId === "string") {
-        throw new Error(chatId);
+      if ((chatId as Error).message) {
+        throw new Error((chatId as Error).message);
       }
       router.push(`/chat/${chatId}`);
     } catch (error) {
