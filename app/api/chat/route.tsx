@@ -57,7 +57,9 @@ export async function POST(req: Request) {
       Remember to be specific in your responses, provide context where necessary, and answer as if you were an expert on the content. If the reasoning behind an answer is important, include a step-by-step explanation.`,
     };
 
-    const formattedMessages = messages.map(({ role, content }) => ({
+    const lastThreeMessages = messages.slice(-3);
+
+    const formattedMessages = lastThreeMessages.map(({ role, content }) => ({
       role,
       content,
     })) as { role: "system" | "user" | "assistant"; content: string }[];
