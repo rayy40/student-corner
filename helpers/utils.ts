@@ -73,6 +73,14 @@ export const isValidQuizId = (quizId: string): boolean => {
   return !!quizId && /^[a-z0-9]{32}$/.test(quizId);
 };
 
+export const isValidUrl = (url: string): boolean => {
+  const pattern = new RegExp(
+    /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/
+  );
+
+  return !pattern.test(url);
+};
+
 export const generateRandomString = () => {
   const uuid = uuidv4();
   const randomString = uuid.slice(0, 6);
