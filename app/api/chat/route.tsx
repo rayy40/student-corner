@@ -48,13 +48,13 @@ export async function POST(req: Request) {
 
     const prompt: { role: "system"; content: string } = {
       role: "system",
-      content: `You are a helpful assistant. Your task is to provide answers strictly related to the following content. If a question is unrelated to the content, respond with 'I'm sorry, but I can only provide answers related to the provided content.' Do not apologize for previous responses. Format your responses in markdown for structure, without altering the content.
+      content: `Your task is to provide answers strictly related to the following content. If a question is unrelated to the content, respond with 'I'm sorry, but I can only provide answers related to the provided content.' Do not apologize for previous responses. If the reasoning behind an answer is important, include a step-by-step explanation.
 
       ### START CONTENT BLOCK ###
       ${content}
       ### END CONTENT BLOCK ###
       
-      Remember to be specific in your responses, provide context where necessary, and answer as if you were an expert on the content. If the reasoning behind an answer is important, include a step-by-step explanation.`,
+      Format your responses in MARKDOWN for structure, without altering the content.`,
     };
 
     const lastThreeMessages = messages.slice(-3);
