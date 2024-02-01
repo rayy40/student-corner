@@ -11,6 +11,7 @@ import { z } from "zod";
 import { Message, Response } from "./convex/schema";
 import { chatSchema } from "./schema/chat_schema";
 import { quizSchema } from "./schema/quiz_schema";
+import { Dispatch } from "react";
 
 type quizSchema = z.infer<typeof quizSchema>;
 type chatSchema = z.infer<typeof chatSchema>;
@@ -44,14 +45,6 @@ export type GameData = {
   title?: string;
   userId: Id<"users">;
 };
-
-interface ResponseType {
-  fallbackData: GameData | undefined;
-  quizData: GameData | undefined | null;
-  isGeneratingQuiz: boolean;
-  invalidQuizId: boolean;
-  idNotFound: boolean;
-}
 
 interface QuizData {
   yourAnswer?: string | undefined;
@@ -89,6 +82,7 @@ export interface DropDownType<K extends string> {
   setValue?: K extends "quiz"
     ? UseFormSetValue<quizSchema>
     : UseFormSetValue<chatSchema>;
+  setError: React.Dispatch<React.SetStateAction<string>>;
 }
 export interface UrlType<K extends string> {
   kind: K;
