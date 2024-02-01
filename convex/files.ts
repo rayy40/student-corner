@@ -1,13 +1,9 @@
-import { ConvexError, v } from "convex/values";
+import { v } from "convex/values";
 import { internalQuery, mutation } from "./_generated/server";
 
 export const generateUploadUrl = mutation({
   handler: async (ctx) => {
-    try {
-      return await ctx.storage.generateUploadUrl();
-    } catch (error) {
-      return error;
-    }
+    return await ctx.storage.generateUploadUrl();
   },
 });
 

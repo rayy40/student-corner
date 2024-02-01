@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 
 import { isValidQuizId } from "@/helpers/utils";
 
@@ -33,7 +33,7 @@ export const createQuiz = mutation({
       .query("users")
       .filter((q) => q.eq(q.field("_id"), args.userId));
     if (!user) {
-      throw new Error("You need to login first.");
+      throw new ConvexError("You need to login first.");
     }
     const quizId = await ctx.db.insert("quiz", {
       userId: args.userId,
@@ -55,6 +55,9 @@ export const readQuizData = internalQuery({
   },
   handler: async (ctx, args) => {
     const quiz = await ctx.db.get(args.quizId);
+    if (!quiz) {
+      throw new ConvexError("No database found for this Id.");
+    }
     return quiz;
   },
 });
@@ -75,23 +78,15 @@ export const getQuizData = query({
   args: { quizId: v.string() },
   handler: async (ctx, args) => {
     if (!isValidQuizId(args.quizId)) {
-      return {
-        quizData: undefined,
-        fallbackData: undefined,
-        isGeneratingQuiz: false,
-        idNotFound: false,
-        invalidQuizId: true,
-      };
+      throw new ConvexError("Invalid Id.");
     }
     const quiz = await ctx.db.get(args.quizId as Id<"quiz">);
 
-    return {
-      quizData: typeof quiz?.response === "string" ? undefined : quiz,
-      fallbackData: typeof quiz?.response === "string" ? quiz : undefined,
-      isGeneratingQuiz: quiz?.response === undefined ? true : false,
-      idNotFound: quiz ? false : true,
-      invalidQuizId: false,
-    };
+    if (!quiz) {
+      throw new ConvexError("No database found for this Id.");
+    }
+
+    return quiz;
   },
 });
 
@@ -108,7 +103,7 @@ export const patchAnswer = mutation({
     const existingQuiz = await ctx.db.get(args.quizId);
 
     if (typeof existingQuiz?.response !== "object") {
-      throw new Error("Response type should only be objects.");
+      throw new ConvexError("Response type should only be objects.");
     }
 
     const updatedResponse = {
@@ -129,6 +124,10 @@ export const getQuizHistory = query({
       .query("quiz")
       .filter((q) => q.eq(q.field("userId"), args.userId))
       .collect();
+
+    if (quizes.length === 0) {
+      throw new ConvexError("No quiz history found.");
+    }
     return quizes;
   },
 });

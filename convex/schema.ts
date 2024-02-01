@@ -52,7 +52,7 @@ export default defineSchema({
     content: v.string(),
     format: QuizFormat,
     kind: QuizKind,
-    response: v.optional(v.union(Response, v.string())),
+    response: v.optional(Response),
     result: v.optional(
       v.object({
         correctAnswer: v.number(),

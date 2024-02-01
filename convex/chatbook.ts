@@ -22,41 +22,32 @@ export const createChatbook = mutation({
     url: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    try {
-      const user = await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("_id"), args.userId));
-      if (!user) {
-        throw new ConvexError("You need to login first.");
-      }
-
-      const url = args.storageId
-        ? await ctx.storage.getUrl(args.storageId)
-        : args.url;
-
-      if (!url) {
-        throw new ConvexError("No URL found.");
-      }
-
-      const chatId = await ctx.db.insert("chatbook", {
-        userId: args.userId,
-        url,
-      });
-
-      await ctx.scheduler.runAfter(
-        0,
-        internal.docs.extractTextAndCreateChunks,
-        {
-          url,
-          chatId,
-          kind: args.storageId ? "pdf" : "audio",
-        }
-      );
-      return chatId;
-    } catch (error) {
-      console.log(error);
-      return (error as Error).message;
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("_id"), args.userId));
+    if (!user) {
+      throw new ConvexError("You need to login first.");
     }
+
+    const url = args.storageId
+      ? await ctx.storage.getUrl(args.storageId)
+      : args.url;
+
+    if (!url) {
+      throw new ConvexError("No URL found.");
+    }
+
+    const chatId = await ctx.db.insert("chatbook", {
+      userId: args.userId,
+      url,
+    });
+
+    await ctx.scheduler.runAfter(0, internal.docs.extractTextAndCreateChunks, {
+      url,
+      chatId,
+      kind: args.storageId ? "pdf" : "audio",
+    });
+    return chatId;
   },
 });
 
@@ -78,35 +69,30 @@ export const generateEmbeddings = internalAction({
     type: v.string(),
   },
   handler: async (ctx, args) => {
-    try {
-      const BATCH_SIZE = 100;
-      for (
-        let batchStart = 0;
-        batchStart < args.chunks.length;
-        batchStart += BATCH_SIZE
-      ) {
-        const batchEnd = batchStart + BATCH_SIZE;
-        const batch = args.chunks.slice(batchStart, batchEnd);
+    const BATCH_SIZE = 100;
+    for (
+      let batchStart = 0;
+      batchStart < args.chunks.length;
+      batchStart += BATCH_SIZE
+    ) {
+      const batchEnd = batchStart + BATCH_SIZE;
+      const batch = args.chunks.slice(batchStart, batchEnd);
 
-        const response = await fetchEmbedding(batch);
+      const response = await fetchEmbedding(batch);
 
-        if (typeof response === "string") {
-          throw new ConvexError(response);
-        }
-
-        for (let i = 0; i < response.data.length; i++) {
-          await ctx.runMutation(internal.chatbook.addEmbedding, {
-            chatId: args.chatId,
-            content: args.chunks[i],
-            embedding: response.data[i].embedding,
-            title: args.title,
-            type: args.type,
-          });
-        }
+      if (typeof response === "string") {
+        throw new ConvexError(response);
       }
-    } catch (error) {
-      console.log(error);
-      return (error as Error).message;
+
+      for (let i = 0; i < response.data.length; i++) {
+        await ctx.runMutation(internal.chatbook.addEmbedding, {
+          chatId: args.chatId,
+          content: args.chunks[i],
+          embedding: response.data[i].embedding,
+          title: args.title,
+          type: args.type,
+        });
+      }
     }
   },
 });
@@ -141,25 +127,26 @@ export const addEmbedding = internalMutation({
 export const getEmbeddingId = query({
   args: { chatId: v.id("chatbook") },
   handler: async (ctx, args) => {
-    try {
-      if (!isValidQuizId(args.chatId)) {
-        throw new ConvexError("Invalid Id.");
-      }
-
-      const chat = await ctx.db.get(args.chatId);
-
-      if (!chat) {
-        throw new ConvexError("No dataset found for this Id.");
-      }
-
-      const embeddingId = ctx.db
-        .query("chatbook")
-        .filter((q) => q.and(q.eq(q.field("_id"), chat?._id)))
-        .unique();
-      return embeddingId;
-    } catch (error) {
-      return (error as Error).message;
+    if (!isValidQuizId(args.chatId)) {
+      throw new ConvexError("Invalid Id.");
     }
+
+    const chat = await ctx.db.get(args.chatId);
+
+    if (!chat) {
+      throw new ConvexError("No dataset found for this Id.");
+    }
+
+    const embeddingId = ctx.db
+      .query("chatbook")
+      .filter((q) => q.and(q.eq(q.field("_id"), chat?._id)))
+      .unique();
+
+    if (!embeddingId) {
+      throw new ConvexError("No embedding Id found.");
+    }
+
+    return embeddingId;
   },
 });
 
@@ -186,29 +173,16 @@ export const patchMessages = mutation({
 export const getMessageHistory = query({
   args: { chatId: v.id("chatbook") },
   handler: async (ctx, args) => {
-    try {
-      const chat = await ctx.db.get(args.chatId);
+    const chat = await ctx.db.get(args.chatId);
 
-      if (!chat?.chat) {
-        throw new ConvexError("No Chat history found.");
-      }
-
-      return chat?.chat;
-    } catch (error) {
-      return (error as Error).message;
-    }
+    return !chat?.chat ? null : chat?.chat;
   },
 });
 
 export const deleteMessageHistory = mutation({
   args: { chatId: v.id("chatbook") },
   handler: async (ctx, args) => {
-    try {
-      await ctx.db.patch(args.chatId, { chat: undefined });
-    } catch (error) {
-      console.log(error);
-      return error;
-    }
+    await ctx.db.patch(args.chatId, { chat: undefined });
   },
 });
 
@@ -232,42 +206,34 @@ export const fetchResults = internalQuery({
 export const similarContent = action({
   args: { chatId: v.id("chatbook"), query: v.string() },
   handler: async (ctx, args) => {
-    try {
-      const embed = await fetchEmbedding([args.query]);
-      if (typeof embed === "string") {
-        throw new ConvexError(embed);
-      }
-
-      const results = await ctx.vectorSearch("chatEmbeddings", "by_embedding", {
-        vector: embed.data[0].embedding,
-        limit: 3,
-        filter: (q) => q.eq("chatId", args.chatId),
-      });
-
-      const filteredResults = results.filter((r) => r._score > 0.8);
-
-      if (filteredResults.length === 0) {
-        throw new ConvexError(
-          "Unable to find any content related to the file provided."
-        );
-      }
-
-      const chunks: Array<Doc<"chatEmbeddings">> = await ctx.runQuery(
-        internal.chatbook.fetchResults,
-        {
-          embeddingIds: filteredResults.map((result) => result._id),
-        }
-      );
-
-      if (chunks.length === 0) {
-        throw new ConvexError(
-          "Unable to find any content related to the file provided."
-        );
-      }
-
-      return chunks.map((d: Doc<"chatEmbeddings">) => d.content).join("\n\n");
-    } catch (error) {
-      return (error as Error).message;
+    const embed = await fetchEmbedding([args.query]);
+    if (typeof embed === "string") {
+      throw new ConvexError(embed);
     }
+
+    const results = await ctx.vectorSearch("chatEmbeddings", "by_embedding", {
+      vector: embed.data[0].embedding,
+      limit: 3,
+      filter: (q) => q.eq("chatId", args.chatId),
+    });
+
+    const filteredResults = results.filter((r) => r._score > 0.7);
+
+    if (filteredResults.length === 0) {
+      return "Unable to find any content related to the file provided.";
+    }
+
+    const chunks: Array<Doc<"chatEmbeddings">> = await ctx.runQuery(
+      internal.chatbook.fetchResults,
+      {
+        embeddingIds: filteredResults.map((result) => result._id),
+      }
+    );
+
+    if (chunks.length === 0) {
+      return "Unable to find any content related to the file provided.";
+    }
+
+    return chunks.map((d: Doc<"chatEmbeddings">) => d.content).join("\n\n");
   },
 });
