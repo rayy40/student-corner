@@ -6,6 +6,8 @@ import { MCQformat, NameTheFollowingformat, TrueFalseformat } from "./format";
 
 import { v4 as uuidv4 } from "uuid";
 
+import fuzzysearch from "fuzzysearch";
+
 export const JSONFormat = (format: FormatType) => {
   const formatJSON =
     format === "mcq"
@@ -60,13 +62,25 @@ export const calculateScore = (
   quizData: QuizData[],
   userAnswers: UserAnswers
 ) => {
-  const correctAnswers = quizData.filter(
-    (question, index) => userAnswers[index + 1] === question.answer
-  ).length;
+  let correctAnswers = 0;
+  let score = 0;
 
-  const score = (correctAnswers / quizData.length) * 100;
+  quizData.forEach((question, index) => {
+    const userAnswer = userAnswers[index + 1];
+    const isCorrect = fuzzysearch(userAnswer, question.answer);
 
-  return { score: Math.round(score), correctAnswer: correctAnswers };
+    if (isCorrect) {
+      correctAnswers++;
+      score += score;
+    }
+  });
+
+  const totalScore = (score / quizData.length) * 100;
+
+  return {
+    score: Math.round(totalScore),
+    correctAnswer: correctAnswers,
+  };
 };
 
 export const isValidQuizId = (quizId: string): boolean => {
