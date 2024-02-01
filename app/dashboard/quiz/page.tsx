@@ -1,18 +1,23 @@
 "use client";
 
-import { useQuery } from "convex/react";
 import React from "react";
 
 import DashboardCard from "@/components/DashboardCard/DashboardCard";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
 import { useUserIdStore } from "@/providers/store";
+import { useQueryQuizHistoryProps } from "@/hooks/useQueryObject";
+import LoadingSpinner from "@/components/Loading/LoadingSpinner";
 
 const QuizDashboard = () => {
   const { userId } = useUserIdStore();
-  const quizHistory = useQuery(api.quiz.getQuizHistory, {
-    userId: userId as Id<"users">,
-  });
+  const quizHistory = useQueryQuizHistoryProps({ userId: userId! });
+
+  if (quizHistory.loading) {
+    return (
+      <div className="flex items-center justify-center w-full h-screen">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 mt-16 font-sans ">
@@ -23,7 +28,7 @@ const QuizDashboard = () => {
         </form> */}
       </div>
       <div className="py-6 grid gap-6 grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))]">
-        {quizHistory?.map((quiz) => (
+        {quizHistory?.data?.map((quiz) => (
           <DashboardCard
             key={quiz?._id}
             topic={

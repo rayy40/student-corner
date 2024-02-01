@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -12,8 +12,9 @@ import UnAuthenticated from "@/components/UnAuthenticated/UnAuthenticated";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { calculateScore, numToAlpha } from "@/helpers/utils";
+import { useQueryQuizProps } from "@/hooks/useQueryObject";
 import { answerSchema } from "@/schema/quiz_schema";
-import { QuizData, ResponseType } from "@/types";
+import { QuizData } from "@/types";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -31,10 +32,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
   const { isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
 
-  const game: ResponseType | undefined = useQuery(
-    api.quiz.getQuizData,
-    params.quizId !== null ? { quizId: params.quizId } : "skip"
-  );
+  const game = useQueryQuizProps({ quizId: params.quizId as Id<"quiz"> });
 
   const patchAnswer = useMutation(api.quiz.patchAnswer);
 
@@ -42,11 +40,13 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     setIsCalculatingScore(true);
     const values = getValues();
 
-    if (typeof game?.quizData?.response !== "object") return null;
+    if (!game?.data?.response) {
+      throw new Error("Unable to get response from OpenAI.");
+    }
 
-    const result = calculateScore(game?.quizData?.response?.questions, values);
+    const result = calculateScore(game?.data?.response?.questions, values);
 
-    const updatedgame = (game?.quizData?.response?.questions).map(
+    const updatedgame = (game?.data?.response?.questions).map(
       (item, index) => ({
         ...item,
         yourAnswer: values[index + 1] as string,
@@ -146,34 +146,10 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     return <UnAuthenticated />;
   }
 
-  if (!game) {
+  if (game.loading || isCalculatingScore) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (game?.invalidQuizId || game?.idNotFound) {
-    return (
-      <div className="flex font-sans items-center justify-center w-full h-screen text-lg">
-        <p>No Quiz Id found.</p>
-      </div>
-    );
-  }
-
-  if (game?.isGeneratingQuiz || isCalculatingScore) {
-    return (
-      <div className="flex items-center justify-center w-full h-screen">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (game?.fallbackData) {
-    return (
-      <div className="flex font-sans items-center justify-center w-full h-screen text-lg">
-        <p>{game?.fallbackData?.response as string}</p>
       </div>
     );
   }
@@ -183,10 +159,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2 text-lg">
           <span className="font-medium text-muted-foreground">Topic: </span>
-          <p>
-            {typeof game?.quizData?.response === "object" &&
-              game?.quizData?.response?.title}
-          </p>
+          <p>{game?.data?.response?.title}</p>
         </div>
         <div className="flex gap-0.5 font-semibold item-center text-muted-foreground">
           <LuTimer size="1.5rem" /> {19}s
@@ -197,32 +170,29 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
         action="/"
         className="flex flex-col w-full gap-6"
       >
-        {typeof game?.quizData?.response === "object" &&
-          game?.quizData?.response?.questions?.map((item, id) => (
-            <div
-              className={`${
-                id + 1 === questionNumber ? "flex" : "hidden"
-              } flex-col gap-4 text-lg`}
-              key={id}
-            >
-              <div className="flex items-center gap-4 py-2">
-                <span className="w-[50px] font-semibold whitespace-nowrap text-muted-foreground">
-                  {id + 1} /{" "}
-                  <span className="text-secondary-foreground">
-                    {game?.quizData?.questionNumber}
-                  </span>
+        {game?.data?.response?.questions?.map((item, id) => (
+          <div
+            className={`${
+              id + 1 === questionNumber ? "flex" : "hidden"
+            } flex-col gap-4 text-lg`}
+            key={id}
+          >
+            <div className="flex items-center gap-4 py-2">
+              <span className="w-[50px] font-semibold whitespace-nowrap text-muted-foreground">
+                {id + 1} /{" "}
+                <span className="text-secondary-foreground">
+                  {game?.data?.questionNumber}
                 </span>
-                <p>{item.question}</p>
-              </div>
-              {game?.quizData?.format === "mcq" && (
-                <MCQFormatQuiz item={item} id={id} />
-              )}
-              {game?.quizData?.format === "name" && <NameFormatQuiz id={id} />}
-              {game?.quizData?.format === "true_false" && (
-                <TrueFalseQuiz id={id} />
-              )}
+              </span>
+              <p>{item.question}</p>
             </div>
-          ))}
+            {game?.data?.format === "mcq" && (
+              <MCQFormatQuiz item={item} id={id} />
+            )}
+            {game?.data?.format === "name" && <NameFormatQuiz id={id} />}
+            {game?.data?.format === "true_false" && <TrueFalseQuiz id={id} />}
+          </div>
+        ))}
         <div className="flex items-center justify-between w-full pt-4">
           <button
             type="button"
@@ -232,7 +202,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
           >
             Previous
           </button>
-          {questionNumber === game?.quizData?.questionNumber ? (
+          {questionNumber === game?.data?.questionNumber ? (
             <button
               className="p-2 px-3 font-semibold transition-colors border rounded-md shadow-button border-border bg-primary hover:bg-primary-hover text-primary-foreground"
               onClick={handleSubmit(onSubmit)}

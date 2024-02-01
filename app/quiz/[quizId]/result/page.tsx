@@ -3,44 +3,18 @@
 import Link from "next/link";
 import React from "react";
 import { LuTrophy } from "react-icons/lu";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+
 import LoadingSpinner from "@/components/Loading/LoadingSpinner";
-import { ResponseType } from "@/types";
+import { Id } from "@/convex/_generated/dataModel";
+import { useQueryQuizProps } from "@/hooks/useQueryObject";
 
 const Result = ({ params }: { params: { quizId: string } }) => {
-  const game: ResponseType | undefined = useQuery(api.quiz.getQuizData, {
-    quizId: params.quizId,
-  });
+  const game = useQueryQuizProps({ quizId: params.quizId as Id<"quiz"> });
 
   if (!game) {
     return (
       <div className="flex items-center justify-center w-full h-full">
         <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (game?.invalidQuizId) {
-    return (
-      <div className="flex items-center justify-center w-full h-full text-lg">
-        <p>No Quiz Id found.</p>
-      </div>
-    );
-  }
-
-  if (game?.idNotFound) {
-    return (
-      <div className="flex items-center justify-center w-full h-full text-lg">
-        <p>No database found for this Id.</p>
-      </div>
-    );
-  }
-
-  if (game?.fallbackData) {
-    return (
-      <div className="flex items-center justify-center w-full h-full text-lg">
-        <p>{game?.fallbackData?.response as string}</p>
       </div>
     );
   }
@@ -51,10 +25,10 @@ const Result = ({ params }: { params: { quizId: string } }) => {
         <LuTrophy className="text-[4rem]" />
         <div className="flex flex-col items-center justify-center gap-1 text-lg">
           <p>
-            You got {game?.quizData?.result?.correctAnswer} out of{" "}
-            {game?.quizData?.questionNumber}
+            You got {game?.data?.result?.correctAnswer} out of{" "}
+            {game?.data?.questionNumber}
           </p>
-          <p>Score - {game?.quizData?.result?.score}</p>
+          <p>Score - {game?.data?.result?.score}</p>
         </div>
       </div>
       <div className="flex flex-col items-center justify-center w-full gap-4">
@@ -81,21 +55,20 @@ const Result = ({ params }: { params: { quizId: string } }) => {
               </tr>
             </thead>
             <tbody>
-              {typeof game?.quizData?.response === "object" &&
-                game?.quizData?.response?.questions?.map((q, id) => (
-                  <tr key={id}>
-                    <td className="border-b-border text-tertiary-foreground border-b p-3 px-2 w-[5%]">
-                      {id + 1}
-                    </td>
-                    <td className="border-b-border border-b p-3 px-2 pr-12 w-[50%]">
-                      <p className="text-foreground">{q.question}</p>
-                      <p className="text-secondary-foreground">{q.answer}</p>
-                    </td>
-                    <td className="border-b-border border-b p-3 px-2 w-[40%] text-secondary-foreground">
-                      {q.yourAnswer}
-                    </td>
-                  </tr>
-                ))}
+              {game?.data?.response?.questions?.map((q, id) => (
+                <tr key={id}>
+                  <td className="border-b-border text-tertiary-foreground border-b p-3 px-2 w-[5%]">
+                    {id + 1}
+                  </td>
+                  <td className="border-b-border border-b p-3 px-2 pr-12 w-[50%]">
+                    <p className="text-foreground">{q.question}</p>
+                    <p className="text-secondary-foreground">{q.answer}</p>
+                  </td>
+                  <td className="border-b-border border-b p-3 px-2 w-[40%] text-secondary-foreground">
+                    {q.yourAnswer}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
