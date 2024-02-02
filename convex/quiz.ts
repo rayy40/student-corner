@@ -88,11 +88,13 @@ export const readQuizData = internalQuery({
 export const patchResponse = internalMutation({
   args: {
     quizId: v.id("quiz"),
+    title: v.string(),
     response: Response,
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.quizId, {
       response: args.response,
+      title: args.title,
     });
   },
 });
