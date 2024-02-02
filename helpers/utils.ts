@@ -1,6 +1,13 @@
 "use node";
 
-import { CreateUserPrompt, FormatType, QuizData, UserAnswers } from "@/types";
+import {
+  ChatData,
+  CreateUserPrompt,
+  FormatType,
+  GameData,
+  QuizData,
+  UserAnswers,
+} from "@/types";
 
 import { MCQformat, NameTheFollowingformat, TrueFalseformat } from "./format";
 
@@ -91,4 +98,17 @@ export const generateRandomString = () => {
   const uuid = uuidv4();
   const randomString = uuid.slice(0, 6);
   return randomString;
+};
+
+export const getDate = (timestamp: number) => {
+  const date = new Date(timestamp).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  return date;
+};
+
+export const isGameData = (item: ChatData | GameData): item is GameData => {
+  return (item as GameData).content !== undefined;
 };
