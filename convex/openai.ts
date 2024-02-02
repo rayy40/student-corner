@@ -70,6 +70,7 @@ export const generateQuiz = internalAction({
 
     await ctx.runMutation(internal.quiz.patchResponse, {
       quizId: args.quizId,
+      title: response.title ?? "Untitled",
       response: response,
     });
   },
