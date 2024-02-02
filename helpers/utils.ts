@@ -19,7 +19,7 @@ export const JSONFormat = (format: FormatType) => {
 };
 
 export const createSystemPrompt = (format: FormatType) => {
-  let prompt = `I want you to act as a Quiz generator. Your task is to generate a quiz and format the response as JSON in the shape of ${JSON.stringify(
+  let prompt = `I want you to act as a Quiz generator. Your task is to generate a quiz and format the response in JSON for structure as provided with an example: ${JSON.stringify(
     JSONFormat(format)
   )}.`;
   return prompt;
@@ -35,7 +35,7 @@ export const createUserPrompt = ({
 
   if (kind === "topic") {
     prompt += ` related to ${content}`;
-  } else if (kind === "paragraph") {
+  } else {
     prompt += ` related to the below text:\n\nText:\n------\n${content}\n------`;
   }
 
@@ -71,7 +71,7 @@ export const calculateScore = (
 
     if (isCorrect) {
       correctAnswers++;
-      score += score;
+      score += 1;
     }
   });
 
