@@ -50,8 +50,6 @@ const ChatBot = ({ chatId, title }: Props) => {
     },
   });
 
-  console.log(isStreamingStarted);
-
   useEffect(() => {
     messageListRef.current?.scrollTo({
       top: messageListRef?.current?.scrollHeight,
