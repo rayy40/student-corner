@@ -8,7 +8,7 @@ import {
 } from "react-hook-form";
 import { z } from "zod";
 
-import { Message, Response } from "./convex/schema";
+import { Response } from "./convex/schema";
 import { chatSchema } from "./schema/chat_schema";
 import { quizSchema } from "./schema/quiz_schema";
 import { Dispatch } from "react";
@@ -30,7 +30,7 @@ export type SelectedOptions = {
 export type ResponseData = Infer<typeof Response>;
 export type MessageData = Infer<typeof Message>;
 
-export type GameData = {
+export interface GameData {
   _id: Id<"quiz">;
   _creationTime: number;
   content: string;
@@ -44,7 +44,7 @@ export type GameData = {
   };
   title?: string;
   userId: Id<"users">;
-};
+}
 
 interface QuizData {
   yourAnswer?: string | undefined;
@@ -58,6 +58,25 @@ export interface CreateUserPrompt {
   questionNumber: number;
   content: string;
   kind: string;
+}
+
+export interface ChatData {
+  _id: Id<"chatbook">;
+  _creationTime: number;
+  url: string;
+  type?: string;
+  title?: string;
+  chat?: MessageType[];
+  userId: Id<"users">;
+  embeddingId?: ID<"chatEmbeddings">[];
+}
+
+export interface MessageType {
+  tool_call_id?: string;
+  ui?: any;
+  content: string;
+  id: string;
+  role: "function" | "system" | "user" | "assistant" | "data" | "tool";
 }
 
 export interface DocumentType<K extends string> {
@@ -98,10 +117,7 @@ export interface UrlType<K extends string> {
   errors: K extends "quiz" ? FieldErrors<quizSchema> : FieldErrors<chatSchema>;
 }
 
-export interface MessageType {
-  tool_call_id?: string;
-  ui?: any;
-  content: string;
-  id: string;
-  role: "function" | "system" | "user" | "assistant" | "data" | "tool";
+export interface DashboardType<K extends string> {
+  type: K;
+  data: K extends "quiz" ? GameData[] : ChatData[];
 }
