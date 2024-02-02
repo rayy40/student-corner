@@ -37,7 +37,7 @@ const Quiz = () => {
   const { userId } = useUserIdStore();
 
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
-  const [isCreatingQuizError, setIsCreatingQuizError] = useState(false);
+  const [error, setError] = useState("");
 
   const createQuiz = useMutation(api.quiz.createQuiz);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
@@ -72,7 +72,7 @@ const Quiz = () => {
       if (content === "document") {
         const uploadUrl = await generateUploadUrl();
 
-        const result = await fetch(uploadUrl, {
+        const result = await fetch(uploadUrl as string, {
           method: "POST",
           headers: { "Content-Type": data?.document?.[0]!.type },
           body: data?.document?.[0],
@@ -89,12 +89,17 @@ const Quiz = () => {
         kind: data.by,
       });
       router.push(`/quiz/${quizId}`);
-    } catch (errors) {
-      console.log(errors);
-      setIsCreatingQuizError(true);
+    } catch (error) {
+      setError((error as Error).message);
       setIsCreatingQuiz(false);
+      setValue("by", data.by);
     } finally {
-      reset();
+      reset({
+        by: data.by,
+        format: "mcq",
+        questions: 5,
+        [data.by]: data.by === "document" ? null : "",
+      });
     }
   };
 
@@ -241,9 +246,10 @@ const Quiz = () => {
             <DropDown
               kind="quiz"
               reset={reset}
-              value={"Topic"}
+              value={by}
               lists={["topic", "paragraph", "document"]}
               setValue={setValue}
+              setError={setError}
             />
           </div>
           {by === "topic" && <Topic />}
@@ -265,9 +271,7 @@ const Quiz = () => {
           >
             Submit
           </button>
-          {isCreatingQuizError && (
-            <p className="text-center text-error">Validation Error</p>
-          )}
+          {error && <p className="text-center text-error">{error}</p>}
         </form>
       )}
     </div>

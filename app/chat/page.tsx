@@ -58,9 +58,7 @@ const Chat = () => {
 
   const uploadDocument = async (document: File) => {
     const uploadUrl = await generateUploadUrl();
-    if ((uploadUrl as Error).message) {
-      throw new Error((uploadUrl as Error).message);
-    }
+
     const response = await fetch(uploadUrl as string, {
       method: "POST",
       headers: { "Content-Type": document.type },
@@ -85,9 +83,6 @@ const Chat = () => {
           userId: userId as Id<"users">,
           url: data?.[by],
         });
-      }
-      if ((chatId as Error).message) {
-        throw new Error((chatId as Error).message);
       }
       router.push(`/chat/${chatId}`);
     } catch (error) {
