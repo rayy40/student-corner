@@ -1,25 +1,23 @@
-import { Message } from "ai/react";
 import React from "react";
 import Markdown from "markdown-to-jsx";
+import { MessageType } from "@/types";
 
 type Props = {
-  messages: Message[];
+  messages: MessageType[];
+  isLoading: boolean;
+  isStreamingStarted: boolean;
 };
 
-const MessageList = ({ messages }: Props) => {
+const MessageList = ({ messages, isLoading, isStreamingStarted }: Props) => {
   if (!messages) return;
 
   const FormattedText = ({ text }: { text: string }) => {
-    return (
-      <Markdown className="markdown-wrapper flex flex-col gap-6">
-        {text}
-      </Markdown>
-    );
+    return <Markdown className="markdown-wrapper">{text}</Markdown>;
   };
 
   return (
-    <div className="py-3 px-5">
-      {messages.map((message: Message, index: number) => (
+    <div className="chat-bot py-3 px-5">
+      {messages.map((message: MessageType, index: number) => (
         <div
           key={index}
           className={`${
@@ -35,6 +33,12 @@ const MessageList = ({ messages }: Props) => {
           </div>
         </div>
       ))}
+      {!isStreamingStarted && isLoading && (
+        <div className="flex flex-col gap-1 w-full max-w-[500px] animate-pulse">
+          <div className="bg-input rounded-md shadow-input border border-border h-8 w-[80%]"></div>
+          <div className="bg-input rounded-md shadow-input border border-border h-8 min-w-[200px] w-[40%]"></div>
+        </div>
+      )}
     </div>
   );
 };
