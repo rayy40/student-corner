@@ -5,12 +5,14 @@ import { isValidQuizId } from "@/helpers/utils";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import {
+  internalAction,
   internalMutation,
   internalQuery,
   mutation,
   query,
 } from "./_generated/server";
 import { Questions, Response } from "./schema";
+import { fetchSummary } from "./openai";
 
 export const createQuiz = mutation({
   args: {
@@ -42,9 +44,30 @@ export const createQuiz = mutation({
       kind: args.kind,
       format: args.format,
     });
-    ctx.scheduler.runAfter(0, internal.openai.generateQuiz, {
-      quizId,
-    });
+
+    if (args?.kind === "document") {
+      let url = await ctx.storage.getUrl(args?.content as Id<"_storage">);
+
+      if (!url) {
+        throw new ConvexError("No File found for this quiz Id.");
+      }
+
+      await ctx.scheduler.runAfter(
+        0,
+        internal.docs.extractTextAndCreateChunks,
+        {
+          url,
+          id: quizId,
+          isGenerateEmbeddings: false,
+          chunkSize: 5000,
+          kind: "pdf",
+        }
+      );
+    } else {
+      ctx.scheduler.runAfter(0, internal.openai.generateQuiz, {
+        quizId,
+      });
+    }
     return quizId;
   },
 });
@@ -65,7 +88,7 @@ export const readQuizData = internalQuery({
 export const patchResponse = internalMutation({
   args: {
     quizId: v.id("quiz"),
-    response: v.union(Response, v.string(), v.any()),
+    response: Response,
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.quizId, {
@@ -129,5 +152,31 @@ export const getQuizHistory = query({
       throw new ConvexError("No quiz history found.");
     }
     return quizes;
+  },
+});
+
+export const generateSummary = internalAction({
+  args: {
+    quizId: v.id("quiz"),
+    chunks: v.array(v.string()),
+    title: v.string(),
+  },
+  handler: async (ctx, args) => {
+    let content: string = "";
+    for (let i = 0; i < args.chunks.length; i += 1) {
+      const chunk = args.chunks[i];
+      content += await fetchSummary(chunk);
+
+      if (content.length === 0) {
+        throw new ConvexError("Unable to generate summary from OpenAI.");
+      }
+    }
+
+    console.log(content);
+
+    await ctx.scheduler.runAfter(0, internal.openai.generateQuiz, {
+      quizId: args.quizId,
+      content,
+    });
   },
 });
