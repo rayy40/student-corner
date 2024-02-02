@@ -10,6 +10,7 @@ import ytdl, { getBasicInfo, getURLVideoID, validateID } from "ytdl-core";
 import { internal } from "./_generated/api";
 import { internalAction } from "./_generated/server";
 import { fetchTranscripts } from "./openai";
+import { Id } from "./_generated/dataModel";
 
 const extractText = async (url: string) => {
   let document: string[] = [];
@@ -65,9 +66,27 @@ const extractAudio = async (url: string) => {
   return { transcript, title, type };
 };
 
+const splitChunkManually = (
+  docs: string[],
+  size: number,
+  chunkArr: string[]
+) => {
+  let text: string = "";
+  for (let i = 0; i < docs.length; i++) {
+    text += docs[i];
+  }
+  while (text) {
+    const chunk = text.slice(0, size);
+    chunkArr.push(chunk);
+    text = text.slice(size);
+  }
+  return chunkArr;
+};
+
 const createChunks = async (
   url: string,
-  kind: "pdf" | "audio"
+  kind: "pdf" | "audio",
+  size: number
 ): Promise<{ chunks: string[]; title: string; type: string } | string> => {
   const extractTextFn = kind === "pdf" ? extractText : extractAudio;
   const response = await extractTextFn(url);
@@ -84,14 +103,19 @@ const createChunks = async (
     docs = [response.transcript];
   }
 
-  const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 600,
-    chunkOverlap: 100,
-  });
+  let chunkArr: string[] = [];
 
-  const chunks = await splitter.createDocuments(docs);
+  if (size > 1000) {
+    chunkArr = splitChunkManually(docs, size, chunkArr);
+  } else {
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: size,
+      chunkOverlap: 100,
+    });
+    const chunks = await splitter.createDocuments(docs);
 
-  const chunkArr = chunks.map((chunk) => chunk.pageContent);
+    chunkArr = chunks.map((chunk) => chunk.pageContent);
+  }
 
   return { chunks: chunkArr, title: response.title, type: response.type };
 };
@@ -99,21 +123,33 @@ const createChunks = async (
 export const extractTextAndCreateChunks = internalAction({
   args: {
     url: v.string(),
-    chatId: v.id("chatbook"),
+    isGenerateEmbeddings: v.boolean(),
+    chunkSize: v.number(),
+    id: v.union(v.id("chatbook"), v.id("quiz")),
     kind: v.union(v.literal("pdf"), v.literal("audio")),
   },
   handler: async (ctx, args) => {
-    const chunks = await createChunks(args.url, args.kind);
+    const chunks = await createChunks(args.url, args.kind, args.chunkSize);
 
-    if (typeof chunks == "string") {
+    if (typeof chunks === "string") {
       throw new ConvexError(chunks);
     }
 
-    await ctx.scheduler.runAfter(0, internal.chatbook.generateEmbeddings, {
-      chatId: args.chatId,
-      chunks: chunks.chunks,
-      title: chunks.title,
-      type: chunks.type,
-    });
+    if (!args.isGenerateEmbeddings) {
+      await ctx.scheduler.runAfter(0, internal.quiz.generateSummary, {
+        quizId: args.id as Id<"quiz">,
+        chunks: chunks.chunks,
+        title: chunks.title,
+      });
+    } else {
+      await ctx.scheduler.runAfter(0, internal.chatbook.generateEmbeddings, {
+        chatId: args.id as Id<"chatbook">,
+        chunks: chunks.chunks,
+        title: chunks.title,
+        type: chunks.type,
+      });
+    }
   },
 });
+
+export const extractImportantTexts = () => {};
