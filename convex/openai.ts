@@ -1,12 +1,8 @@
 import { ConvexError, Infer, v } from "convex/values";
 import OpenAI, { toFile } from "openai";
 
-import {
-  createSystemPrompt,
-  createUserPrompt,
-  JSONFormat,
-} from "@/helpers/utils";
-import { CreateUserPrompt, FormatType } from "@/types";
+import { createSystemPrompt, createUserPrompt } from "@/helpers/utils";
+import { CreateUserPrompt } from "@/types";
 
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
@@ -51,111 +47,10 @@ const getResponseFromOpenAI = async ({
   return response;
 };
 
-const uploadFile = async (
-  url: string,
-  format: FormatType,
-  questions: number
-) => {
-  const file = await openai.files.create({
-    file: await fetch(url),
-    purpose: "assistants",
-  });
-  if (!file.id) {
-    throw new ConvexError("Error while uploading file to OpenAI.");
-  }
-  if (file.id) {
-    return createAssistant(file.id, format, questions);
-  }
-};
-
-const createAssistant = async (
-  fileId: string,
-  format: FormatType,
-  quesitons: number
-) => {
-  const assistant = await openai.beta.assistants.create({
-    name: "Quiz Generator",
-    instructions: `You are a quiz generator, whose task is to generate quiz and provide a suitable title for the quiz (excluding the word Quiz), based on the file provided.`,
-    model: "gpt-3.5-turbo-1106",
-    tools: [{ type: "retrieval" }],
-    file_ids: [fileId],
-  });
-  if (!assistant.id) {
-    throw new ConvexError("Error while creating an assistant.");
-  }
-  if (assistant.id) {
-    return createThreadAndRun(format, fileId, assistant.id, quesitons);
-  }
-};
-
-const createThreadAndRun = async (
-  format: FormatType,
-  fileId: string,
-  assistantId: string,
-  quesitons: number
-) => {
-  const run = await openai.beta.threads.createAndRun({
-    assistant_id: assistantId,
-    thread: {
-      messages: [
-        {
-          role: "user",
-          content: `Generate ${quesitons} ${format} type questions. And format the response as the example format given - ${JSON.stringify(
-            JSONFormat(format)
-          )}.`,
-          file_ids: [fileId],
-        },
-      ],
-    },
-  });
-  if (!run.id) {
-    throw new ConvexError("Error while creating thread.");
-  }
-  if (run.id) {
-    return await startPolling(run.id, run.thread_id);
-  }
-};
-
-const startPolling = async (runId: string, threadId: string) => {
-  if (!threadId) return;
-
-  let baseTimeout = 20000; // Initial timeout duration
-  let currentTimeout = baseTimeout; // Current timeout duration
-
-  while (true) {
-    const response = await openai.beta.threads.runs.retrieve(threadId, runId);
-
-    if (!response) {
-      throw new ConvexError("Error while retrieving run.");
-    }
-
-    if (
-      ["cancelled", "failed", "completed", "expired"].includes(response.status)
-    ) {
-      const completion = await openai.beta.threads.messages.list(threadId);
-
-      if (!completion.data) {
-        throw new ConvexError("Error while retrieving messages.");
-      }
-
-      return completion.data[0].content;
-    }
-
-    // If status is "in_progress", double the timeout duration
-    if (response.status === "in_progress") {
-      currentTimeout *= 2;
-    } else {
-      // Reset the timeout duration to the base value if not "in_progress"
-      currentTimeout = baseTimeout;
-    }
-    // Wait for 5 second before checking the status again
-    await new Promise((resolve) => setTimeout(resolve, currentTimeout));
-  }
-};
-
 export const generateQuiz = internalAction({
   args: {
     quizId: v.id("quiz"),
+    content: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const quiz = await ctx.runQuery(internal.quiz.readQuizData, {
@@ -165,38 +60,18 @@ export const generateQuiz = internalAction({
     if (!quiz) {
       throw new ConvexError("No dataset found for this quiz Id.");
     }
+    const response = await getResponseFromOpenAI({
+      format: quiz?.format,
+      questionNumber: quiz?.questionNumber,
+      content:
+        quiz?.kind === "document" ? (args.content as string) : quiz?.content,
+      kind: quiz?.kind,
+    });
 
-    if (quiz?.kind === "document") {
-      let url = await ctx.runQuery(internal.files.getFileUrl, {
-        storageId: quiz?.content as Id<"_storage">,
-      });
-
-      if (url === "No Url Found.") {
-        throw new ConvexError("No File found for this quiz Id.");
-      }
-      const response = await uploadFile(
-        url,
-        quiz?.format,
-        quiz?.questionNumber
-      );
-
-      await ctx.runMutation(internal.quiz.patchResponse, {
-        quizId: args.quizId,
-        response: response,
-      });
-    } else {
-      const response = await getResponseFromOpenAI({
-        format: quiz?.format,
-        questionNumber: quiz?.questionNumber,
-        content: quiz?.content,
-        kind: quiz?.kind,
-      });
-
-      await ctx.runMutation(internal.quiz.patchResponse, {
-        quizId: args.quizId,
-        response: response,
-      });
-    }
+    await ctx.runMutation(internal.quiz.patchResponse, {
+      quizId: args.quizId,
+      response: response,
+    });
   },
 });
 
@@ -220,4 +95,26 @@ export const fetchTranscripts = async (audioStream: any) => {
     throw new ConvexError("Unable to fetch transcripts.");
   }
   return response.text;
+};
+
+export const fetchSummary = async (text: string) => {
+  const prompt: { role: "user"; content: string } = {
+    role: "user",
+    content: `Extract the key facts out of this text. Don't include opinions. \nGive each fact a number and keep them short sentences. :\n\n ${text}`,
+  };
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [
+      {
+        role: "system",
+        content: "Add a maximum of 15 facts only. DO NOT EXCEED.",
+      },
+      prompt,
+    ],
+  });
+
+  const response = completion.choices[0].message.content;
+
+  return response;
 };
