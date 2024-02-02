@@ -56,7 +56,7 @@ textarea::selection {
   font-weight: 400;
 }
 
-table {
+.chat-bot table {
   table-layout: fixed;
   width: 100%;
   border-collapse: collapse;
@@ -64,28 +64,28 @@ table {
   border-radius: 1rem;
 }
 
-table thead {
+.chat-bot table thead {
   border-bottom: 1px solid hsl(var(--muted));
 }
 
-table tbody tr:not(:last-child) {
+.chat-bot table tbody tr:not(:last-child) {
   border-bottom: 1px solid hsl(var(--muted));
 }
 
-table tbody tr,
-table thead tr {
+.chat-bot table tbody tr,
+.chat-bot table thead tr {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
 }
 
-table tbody tr td,
-table thead tr th {
+.chat-bot table tbody tr td,
+.chat-bot table thead tr th {
   min-width: 100px;
   padding: 1rem;
 }
 
-table tbody tr td:not(:last-child),
-table thead tr th:not(:last-child) {
+.chat-bot table tbody tr td:not(:last-child),
+.chat-bot table thead tr th:not(:last-child) {
   border-right: 1px solid hsl(var(--muted));
 }
 
