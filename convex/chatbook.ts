@@ -44,7 +44,9 @@ export const createChatbook = mutation({
 
     await ctx.scheduler.runAfter(0, internal.docs.extractTextAndCreateChunks, {
       url,
-      chatId,
+      id: chatId,
+      isGenerateEmbeddings: true,
+      chunkSize: 600,
       kind: args.storageId ? "pdf" : "audio",
     });
     return chatId;
