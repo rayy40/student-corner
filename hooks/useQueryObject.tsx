@@ -44,3 +44,20 @@ export const useQueryChatProps = ({ chatId }: { chatId: Id<"chatbook"> }) => {
     loading,
   };
 };
+
+export const useQueryChatHistoryProps = ({
+  userId,
+}: {
+  userId: Id<"users">;
+}) => {
+  const data = useQuery(api.chatbook.getChatHistory, {
+    userId,
+  });
+
+  const loading = data === undefined;
+
+  return {
+    data,
+    loading,
+  };
+};

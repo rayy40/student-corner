@@ -181,6 +181,21 @@ export const getMessageHistory = query({
   },
 });
 
+export const getChatHistory = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const chats = await ctx.db
+      .query("chatbook")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .collect();
+
+    if (chats.length === 0) {
+      throw new ConvexError("No chat history found.");
+    }
+    return chats;
+  },
+});
+
 export const deleteMessageHistory = mutation({
   args: { chatId: v.id("chatbook") },
   handler: async (ctx, args) => {
