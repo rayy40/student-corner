@@ -11,8 +11,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-roboto)", ...defaultTheme.fontFamily.sans], // Use Inter as default
-        dmSans: ["var(--font-dm-sans)"],
+        sans: ["var(--font-roboto)", ...defaultTheme.fontFamily.sans],
       },
       colors: {
         background: "hsl(var(--background))",

@@ -6,7 +6,6 @@ import Navbar from "@/components/Navbar/Navbar";
 import { ConvexClientProvider } from "@/providers/convex-provider";
 
 import type { Metadata } from "next";
-const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans" });
 const roboto = Roboto({
   subsets: ["latin"],
   weight: ["300", "400", "500", "700", "900"],
@@ -25,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${roboto.variable}`}>
+      <body className={roboto.variable}>
         <ConvexClientProvider>
           <Navbar />
           {children}
