@@ -55,6 +55,11 @@ const config: Config = {
         light: " 0px 1px 2px rgba(15, 15, 15, 0.05)",
         medium: " 0px 0px 5px rgba(15, 15, 15, 0.2)",
       },
+      keyframes: {
+        pulse: {
+          "50%": { opacity: "0.75" },
+        },
+      },
     },
   },
   plugins: [],
