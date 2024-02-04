@@ -1,4 +1,6 @@
-import z from "zod";
+import z, { ZodObject } from "zod";
+
+import isGithubUrl from "is-github-url";
 
 const File = z.custom<FileList>().superRefine((files, ctx) => {
   if (files?.length === 0) {
@@ -40,20 +42,17 @@ const youtubeSchema = z.object({
 
 const githubSchema = z.object({
   by: z.enum(["youtube", "github", "document"]).default("document"),
-  github: z.string().url({ message: "Invalid Url" }),
+  github: z
+    .string()
+    .url({ message: "Invalid Url" })
+    .refine((val) => isGithubUrl(val, { repository: true }), {
+      message: "Please enter a repository Url.",
+    }),
   repo: z.enum(["public", "private"]).default("public"),
 });
 
-export const chatSchema = z
-  .union([youtubeSchema, documentSchema, githubSchema])
-  .transform((data) => {
-    if (data.by === "document") {
-      return documentSchema.parse(data);
-    } else if (data.by === "youtube") {
-      return youtubeSchema.parse(data);
-    } else if (data.by === "github") {
-      return githubSchema.parse(data);
-    } else {
-      throw new Error("Invalid option selected for 'by");
-    }
-  });
+export const chatSchema = z.union([
+  youtubeSchema,
+  documentSchema,
+  githubSchema,
+]);
