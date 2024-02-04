@@ -9,9 +9,9 @@ import {
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { fetchEmbedding } from "./openai";
-import { Message } from "./schema";
+import { Github, Message } from "./schema";
 import { Doc } from "./_generated/dataModel";
-import { isValidQuizId } from "@/helpers/utils";
+import { extractPathFromUrl, isValidQuizId } from "@/helpers/utils";
 
 export type Result = Doc<"chatbook"> & { _score: number };
 
@@ -20,6 +20,11 @@ export const createChatbook = mutation({
     userId: v.id("users"),
     storageId: v.optional(v.id("_storage")),
     url: v.optional(v.string()),
+    type: v.union(
+      v.literal("document"),
+      v.literal("github"),
+      v.literal("youtube")
+    ),
   },
   handler: async (ctx, args) => {
     const user = await ctx.db
@@ -42,13 +47,26 @@ export const createChatbook = mutation({
       url,
     });
 
-    await ctx.scheduler.runAfter(0, internal.docs.extractTextAndCreateChunks, {
-      url,
-      id: chatId,
-      isGenerateEmbeddings: true,
-      chunkSize: 600,
-      kind: args.storageId ? "pdf" : "audio",
-    });
+    if (args.type === "github") {
+      await ctx.scheduler.runAfter(0, internal.github.getFilesFromRepo, {
+        repoUrl: url,
+        filePath: extractPathFromUrl(url),
+        chatId,
+      });
+    } else {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.docs.extractTextAndCreateChunks,
+        {
+          url,
+          id: chatId,
+          isGenerateEmbeddings: true,
+          chunkSize: 600,
+          kind: args.storageId ? "pdf" : "audio",
+        }
+      );
+    }
+
     return chatId;
   },
 });
@@ -230,7 +248,7 @@ export const similarContent = action({
 
     const results = await ctx.vectorSearch("chatEmbeddings", "by_embedding", {
       vector: embed.data[0].embedding,
-      limit: 3,
+      limit: 4,
       filter: (q) => q.eq("chatId", args.chatId),
     });
 
@@ -252,5 +270,29 @@ export const similarContent = action({
     }
 
     return chunks.map((d: Doc<"chatEmbeddings">) => d.content).join("\n\n");
+  },
+});
+
+export const patchGithubFiles = internalMutation({
+  args: { files: v.array(Github) },
+  handler: async (ctx, args) => {
+    const files = args.files;
+
+    try {
+      await Promise.all(
+        files.map(
+          async (file) =>
+            await ctx.db.insert("github", {
+              name: file.name,
+              path: file.path,
+              url: file.url,
+              content: file.content,
+              download_url: file.download_url,
+            })
+        )
+      );
+    } catch (error) {
+      console.log("Error inserting documents", (error as Error).message);
+    }
   },
 });
