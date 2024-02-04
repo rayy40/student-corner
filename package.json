@@ -11,6 +11,7 @@
   "dependencies": {
     "@clerk/clerk-react": "^4.30.0",
     "@hookform/resolvers": "^3.3.2",
+    "@octokit/rest": "^20.0.2",
     "@types/node": "20.8.9",
     "@types/pdf-parse": "^1.1.4",
     "@types/react": "18.2.33",
@@ -22,8 +23,10 @@
     "eslint-config-next": "14.0.0",
     "fs": "^0.0.1-security",
     "fuzzysearch": "^1.0.3",
+    "is-github-url": "^1.2.2",
     "langchain": "^0.1.5",
     "markdown-to-jsx": "^7.4.0",
+    "minimatch": "^9.0.3",
     "next": "14.0.0",
     "openai": "^4.24.1",
     "openai-edge": "^1.2.2",
@@ -43,6 +46,7 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
-    "@types/fuzzysearch": "^1.0.2"
+    "@types/fuzzysearch": "^1.0.2",
+    "@types/is-github-url": "^1.2.2"
   }
 }
