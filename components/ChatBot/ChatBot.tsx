@@ -13,9 +13,10 @@ import MessageList from "../MessageList/MessageList";
 type Props = {
   chatId: Id<"chatbook">;
   title: string;
+  type?: string;
 };
 
-const ChatBot = ({ chatId, title }: Props) => {
+const ChatBot = ({ chatId, title, type }: Props) => {
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const deleteHistory = useMutation(api.chatbook.deleteMessageHistory);
   const [isStreamingStarted, setIsStreamingStarted] = useState(false);
@@ -36,6 +37,7 @@ const ChatBot = ({ chatId, title }: Props) => {
     api: "/api/chat",
     body: {
       chatId,
+      type,
     },
     initialMessages: initalMessage
       ? Array.isArray(initalMessage)

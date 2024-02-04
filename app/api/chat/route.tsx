@@ -4,7 +4,7 @@ import OpenAI from "openai";
 
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { generateRandomString } from "@/helpers/utils";
+import { generatePrompt, generateRandomString } from "@/helpers/utils";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -38,7 +38,9 @@ export async function POST(req: Request) {
     const {
       messages,
       chatId,
-    }: { messages: Message[]; chatId: Id<"chatbook"> } = await req.json();
+      type,
+    }: { messages: Message[]; chatId: Id<"chatbook">; type: string } =
+      await req.json();
     const previousMessage: string = messages[messages.length - 1].content;
 
     const content = await fetchAction(api.chatbook.similarContent, {
@@ -46,23 +48,14 @@ export async function POST(req: Request) {
       query: previousMessage,
     });
 
-    const prompt: { role: "system"; content: string } = {
-      role: "system",
-      content: `Your task is to provide answers strictly related to the following content. If a question is unrelated to the content, respond with 'I'm sorry, but I can only provide answers related to the provided content.' Do not apologize for previous responses. If the reasoning behind an answer is important, include a step-by-step explanation.
-
-      ### START CONTENT BLOCK ###
-      ${content}
-      ### END CONTENT BLOCK ###
-      
-      Format your responses in MARKDOWN for structure, without altering the content.`,
-    };
-
     const lastThreeMessages = messages.slice(-3);
 
     const formattedMessages = lastThreeMessages.map(({ role, content }) => ({
       role,
       content,
     })) as { role: "system" | "user" | "assistant"; content: string }[];
+
+    const prompt = generatePrompt(content, type);
 
     formattedMessages.unshift(prompt);
 
