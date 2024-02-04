@@ -185,3 +185,12 @@ export const generatePrompt = (content: string, type: string) => {
   };
   return prompt;
 };
+
+export const extractPathFromUrl = (url: string) => {
+  const pathWithoutDomain = url.replace(
+    /^https:\/\/github\.com\/[^/]+\/[^/]+\//,
+    ""
+  );
+  const path = pathWithoutDomain.split(/[?#]/)[0];
+  return path === url ? "" : `/${path}`;
+};
