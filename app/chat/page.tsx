@@ -2,7 +2,7 @@
 
 import { useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -12,11 +12,11 @@ import UnAuthenticated from "@/components/UnAuthenticated/UnAuthenticated";
 import Document from "@/components/Upload/Documents/Documents";
 import Url from "@/components/Upload/Link/Url";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
 import { useUserIdStore } from "@/providers/store";
 import { chatSchema } from "@/schema/chat_schema";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Id } from "@/convex/_generated/dataModel";
 
 type chatSchema = z.infer<typeof chatSchema>;
 
@@ -28,7 +28,7 @@ const Chat = () => {
     register,
     setValue,
     handleSubmit,
-    formState: { errors, isSubmitted },
+    formState: { errors: formErrors, isSubmitted },
   } = useForm<chatSchema>({
     resolver: zodResolver(chatSchema),
     mode: "onBlur",
@@ -46,16 +46,6 @@ const Chat = () => {
   const repo = watch("repo", "public");
   const by = watch("by", "document");
 
-  useEffect(() => {
-    if (by === "youtube") {
-      trigger("youtube");
-    } else if (by === "document") {
-      trigger("document");
-    } else if (by === "github") {
-      trigger("github");
-    }
-  }, [by, trigger]);
-
   const uploadDocument = async (document: File) => {
     const uploadUrl = await generateUploadUrl();
 
@@ -69,6 +59,8 @@ const Chat = () => {
   };
 
   const onSubmit = async (data: FieldValues) => {
+    console.log(data);
+
     try {
       setIsUploading(true);
       let chatId;
@@ -77,11 +69,13 @@ const Chat = () => {
         chatId = await createChatbook({
           userId: userId as Id<"users">,
           storageId,
+          type: data.by,
         });
       } else {
         chatId = await createChatbook({
           userId: userId as Id<"users">,
           url: data?.[by],
+          type: data.by,
         });
       }
       router.push(`/chat/${chatId}`);
@@ -126,6 +120,7 @@ const Chat = () => {
               kind="chat"
               reset={reset}
               value={by}
+              trigger={trigger}
               lists={["document", "youtube", "github"]}
               setError={setError}
               setValue={setValue}
@@ -135,7 +130,7 @@ const Chat = () => {
             <Document
               kind="chat"
               format="document"
-              errors={errors}
+              errors={formErrors}
               register={register}
               isSubmitted={isSubmitted}
             />
@@ -145,7 +140,7 @@ const Chat = () => {
               kind="chat"
               repo={repo}
               format={by}
-              errors={errors}
+              errors={formErrors}
               register={register}
               setValue={setValue}
               isSubmitted={isSubmitted}
