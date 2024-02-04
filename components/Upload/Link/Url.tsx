@@ -1,5 +1,5 @@
 import React from "react";
-import { FieldError } from "react-hook-form";
+import { FieldErrors } from "react-hook-form";
 
 import { UrlType } from "@/types";
 
@@ -11,16 +11,6 @@ const Url = <K extends string>({
   setValue,
   repo,
 }: UrlType<K>) => {
-  const getError = () => {
-    if (format === "youtube") {
-      return (errors as { youtube?: FieldError }).youtube?.message;
-    } else if (format === "document") {
-      return (errors as { document?: FieldError }).document?.message;
-    } else if (format === "github") {
-      return (errors as { github?: FieldError }).github?.message;
-    }
-  };
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
@@ -62,7 +52,7 @@ const Url = <K extends string>({
       )}
       {isSubmitted && Object.keys(errors).length > 0 && (
         <p className="mt-2 text-[0.95rem] text-center text-error">
-          {getError()}
+          {(errors as FieldErrors)?.[format]?.message as string}
         </p>
       )}
     </div>
