@@ -2,7 +2,7 @@
 
 import { useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FieldError, FieldValues, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -45,16 +45,6 @@ const Quiz = () => {
   const router = useRouter();
   const format = watch("format", "mcq");
   const by = watch("by", "topic");
-
-  useEffect(() => {
-    if (by === "topic") {
-      trigger("topic");
-    } else if (by === "paragraph") {
-      trigger("paragraph");
-    } else if (by === "document") {
-      trigger("document");
-    }
-  }, [by, trigger]);
 
   const onSubmit = async (data: FieldValues) => {
     setIsCreatingQuiz(true);
@@ -246,6 +236,7 @@ const Quiz = () => {
             <DropDown
               kind="quiz"
               reset={reset}
+              trigger={trigger}
               value={by}
               lists={["topic", "paragraph", "document"]}
               setValue={setValue}
