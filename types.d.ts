@@ -5,6 +5,7 @@ import {
   UseFormRegister,
   UseFormReset,
   UseFormSetValue,
+  UseFormTrigger,
 } from "react-hook-form";
 import { z } from "zod";
 
@@ -101,6 +102,9 @@ export interface DropDownType<K extends string> {
   setValue?: K extends "quiz"
     ? UseFormSetValue<quizSchema>
     : UseFormSetValue<chatSchema>;
+  trigger?: K extends "quiz"
+    ? UseFormTrigger<quizSchema>
+    : UseFormTrigger<chatSchema>;
   setError: React.Dispatch<React.SetStateAction<string>>;
 }
 export interface UrlType<K extends string> {
