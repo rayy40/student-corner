@@ -39,6 +39,14 @@ export const Message = v.object({
   role: Role,
 });
 
+export const Github = v.object({
+  name: v.string(),
+  path: v.string(),
+  url: v.string(),
+  content: v.optional(v.string()),
+  download_url: v.optional(v.string()),
+});
+
 export default defineSchema({
   users: defineTable({
     userId: v.string(),
@@ -59,6 +67,13 @@ export default defineSchema({
         score: v.number(),
       })
     ),
+  }),
+  github: defineTable({
+    name: v.string(),
+    path: v.string(),
+    url: v.string(),
+    content: v.optional(v.string()),
+    download_url: v.optional(v.string()),
   }),
   chatEmbeddings: defineTable({
     embedding: v.array(v.float64()),
