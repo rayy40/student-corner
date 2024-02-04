@@ -10,6 +10,7 @@ const DropDown = <K extends string>({
   reset,
   setValue,
   setError,
+  trigger,
 }: DropDownType<K>) => {
   const [openDropDown, setOpenDropDown] = useState(false);
   const [category, setCategory] = useState(value);
@@ -50,6 +51,7 @@ const DropDown = <K extends string>({
                 onClick={() => {
                   setOpenDropDown(false);
                   setCategory(item);
+                  trigger && trigger(item as any);
                   reset && reset();
                   setValue && setValue("by", item as any);
                   setError("");
