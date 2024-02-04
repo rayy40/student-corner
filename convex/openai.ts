@@ -5,7 +5,6 @@ import { createSystemPrompt, createUserPrompt } from "@/helpers/utils";
 import { CreateUserPrompt } from "@/types";
 
 import { internal } from "./_generated/api";
-import { Id } from "./_generated/dataModel";
 import { internalAction } from "./_generated/server";
 import { Response } from "./schema";
 
