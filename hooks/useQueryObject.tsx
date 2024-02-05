@@ -7,7 +7,7 @@ export const useQueryQuizProps = ({ quizId }: { quizId: Id<"quiz"> }) => {
     quizId,
   });
 
-  const loading = data === undefined || data?.response === undefined;
+  const loading = data === undefined;
 
   return {
     data,
@@ -37,7 +37,7 @@ export const useQueryChatProps = ({ chatId }: { chatId: Id<"chatbook"> }) => {
     chatId,
   });
 
-  const loading = data === undefined || data?.embeddingId === undefined;
+  const loading = data === undefined;
 
   return {
     data,
