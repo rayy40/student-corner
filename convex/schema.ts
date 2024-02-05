@@ -87,7 +87,9 @@ export default defineSchema({
   chatbook: defineTable({
     userId: v.id("users"),
     url: v.string(),
-    type: v.optional(v.string()),
+    type: v.optional(
+      v.union(v.literal("code"), v.literal("video"), v.literal("doc"))
+    ),
     title: v.optional(v.string()),
     chat: v.optional(v.array(Message)),
     embeddingId: v.optional(v.array(v.id("chatEmbeddings"))),

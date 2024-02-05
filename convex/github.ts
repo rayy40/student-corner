@@ -155,7 +155,7 @@ export const getFilesFromRepo = internalAction({
       chatId: args.chatId,
       chunks,
       title: repo,
-      type: "github",
+      type: "code",
     });
   },
 });

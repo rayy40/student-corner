@@ -86,7 +86,7 @@ export const generateEmbeddings = internalAction({
     chatId: v.id("chatbook"),
     chunks: v.array(v.string()),
     title: v.string(),
-    type: v.string(),
+    type: v.union(v.literal("video"), v.literal("doc"), v.literal("code")),
   },
   handler: async (ctx, args) => {
     const BATCH_SIZE = 100;
@@ -123,7 +123,7 @@ export const addEmbedding = internalMutation({
     content: v.string(),
     embedding: v.array(v.number()),
     title: v.string(),
-    type: v.string(),
+    type: v.union(v.literal("code"), v.literal("doc"), v.literal("video")),
   },
   handler: async (ctx, args) => {
     const chatEmbeddingId = await ctx.db.insert("chatEmbeddings", {

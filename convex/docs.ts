@@ -27,7 +27,7 @@ const extractText = async (url: string) => {
     docs?.[0]?.metadata?.pdf?.info?.Title ??
     "PDF";
 
-  const type: string = docs?.[0]?.metadata?.blobType;
+  const type: "doc" = "doc";
 
   docs.forEach((doc) => {
     document.push(doc.pageContent);
@@ -45,7 +45,7 @@ const extractAudio = async (url: string) => {
 
   const metadata = await getBasicInfo(videoId);
   const title = metadata?.videoDetails?.title;
-  const type = "Youtube Video";
+  const type: "video" = "video";
 
   let transcript: string = "";
   try {
@@ -146,10 +146,8 @@ export const extractTextAndCreateChunks = internalAction({
         chatId: args.id as Id<"chatbook">,
         chunks: chunks.chunks,
         title: chunks.title,
-        type: chunks.type,
+        type: chunks.type as "doc" | "video",
       });
     }
   },
 });
-
-export const extractImportantTexts = () => {};
