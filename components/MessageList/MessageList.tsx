@@ -1,6 +1,20 @@
-import React from "react";
 import Markdown from "markdown-to-jsx";
+import React from "react";
+
 import { MessageType } from "@/types";
+
+import { List, ListItem } from "../Markdown/List";
+import Paragraph from "../Markdown/Paragraph";
+import PreBlock from "../Markdown/PreBlock";
+import Table from "../Markdown/Table";
+import {
+  Header,
+  PrimaryHeader,
+  SecondaryHeader,
+  Strong,
+  TertiaryHeader,
+} from "../Markdown/Tags";
+import Wrapper from "../Markdown/Wrapper";
 
 type Props = {
   messages: MessageType[];
@@ -11,8 +25,33 @@ type Props = {
 const MessageList = ({ messages, isLoading, isStreamingStarted }: Props) => {
   if (!messages) return;
 
-  const FormattedText = ({ text }: { text: string }) => {
-    return <Markdown className="markdown-wrapper">{text}</Markdown>;
+  const markDownToJsxOptions = {
+    forceWrapper: true,
+    wrapper: ({ children }: { children: JSX.Element[] }) => {
+      if (children?.[0]?.type?.name !== "Table") {
+        // Wrap non-table content
+        console.log(children);
+        return <Wrapper>{children}</Wrapper>;
+      } else {
+        // Return tables without the wrapper
+        return children;
+      }
+    },
+    overrides: {
+      pre: PreBlock,
+      table: Table,
+      p: Paragraph,
+      ul: List,
+      ol: List,
+      li: ListItem,
+      strong: Strong,
+      h1: PrimaryHeader,
+      h2: SecondaryHeader,
+      h3: TertiaryHeader,
+      h4: Header,
+      h5: Header,
+      h6: Header,
+    },
   };
 
   return (
@@ -26,10 +65,14 @@ const MessageList = ({ messages, isLoading, isStreamingStarted }: Props) => {
         >
           <div
             className={`${
-              message.role === "user" ? "bg-secondary" : "bg-input"
-            } p-3 rounded-lg shadow-input border border-border max-w-[600px]`}
+              message.role === "user"
+                ? "bg-secondary"
+                : "bg-input text-foreground"
+            } overflow-x-auto border border-border rounded-lg shadow-input max-w-[600px]`}
           >
-            <FormattedText text={message.content} />
+            <Markdown options={markDownToJsxOptions}>
+              {message.content}
+            </Markdown>
           </div>
         </div>
       ))}
