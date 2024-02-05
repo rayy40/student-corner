@@ -166,6 +166,10 @@ export const getEmbeddingId = query({
       throw new ConvexError("No embedding Id found.");
     }
 
+    if (!chat.embeddingId) {
+      return null;
+    }
+
     return embeddingId;
   },
 });
