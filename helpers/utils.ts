@@ -119,10 +119,13 @@ export const getFileExtension = (fileName: string) => {
   return fileName.substring(lastDotIndex);
 };
 
-export const generatePrompt = (content: string, type: string) => {
+export const generatePrompt = (
+  content: string,
+  type: "code" | "video" | "doc"
+) => {
   let template: string;
 
-  if (type === "github") {
+  if (type === "code") {
     template = `
     You are Codebase AI. You are a superintelligent AI that answers questions about codebases.
 
@@ -136,7 +139,13 @@ export const generatePrompt = (content: string, type: string) => {
 
     When the user asks their question, you will answer it by searching the codebase for the answer.
 
+    If the reasoning behind an answer is important, include a step-by-step explanation with the related code.
+
+    Try to include code from the codebase while explaining something. 
+
     And if the user's question is unrelated to the content then apologize but refrain from providing an answer on your own.
+
+    Provide the source with the answer too.
 
     Make sure to format your responses in MARKDOWN for structure, without altering the content.
 
@@ -152,18 +161,18 @@ export const generatePrompt = (content: string, type: string) => {
     Now answer the question using the code file(s) above.`;
   } else {
     template = `
-    You are an analyst. You are a superintelligent AI that answers questions after reviewing the content provided.
+    You are a superintelligent AI that answers questions after reviewing the content from the ${type} provided.
 
     You are:
     - helpful & friendly
-    - good at answering questions by reviewing the contents
+    - good at answering questions by reviewing the content 
     - able to infer the intent of the user's question
     
-    The user will ask a question related to their content, and you will answer it.
-    
-    When the user asks their question, you will answer it by searching and reviewing the content for the answer.
+    The user will ask a question related to their ${type}, and you will answer it.
     
     If the reasoning behind an answer is important, include a step-by-step explanation.
+
+    If the user asks difference, then provide the answer in a table format.
 
     And if the user's question is unrelated to the content then apologize but refrain from providing an answer on your own.
 
