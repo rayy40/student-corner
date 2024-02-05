@@ -111,6 +111,10 @@ export const getQuizData = query({
       throw new ConvexError("No database found for this Id.");
     }
 
+    if (!quiz.response) {
+      return null;
+    }
+
     return quiz;
   },
 });
