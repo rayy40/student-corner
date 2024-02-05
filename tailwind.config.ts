@@ -41,6 +41,10 @@ const config: Config = {
           hover: "hsl(var(--muted-hover))",
           foreground: "hsl(var(--muted-foreground))",
         },
+        code: {
+          DEFAULT: "hsl(var(--code))",
+          foreground: "hsl(var(--code-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

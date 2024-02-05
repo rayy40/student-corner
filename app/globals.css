@@ -16,77 +16,12 @@ textarea::selection {
   background-color: rgba(35, 131, 226, 0.28);
 }
 
-.markdown-wrapper:is(div) {
-  display: flex;
-  flex-direction: column;
-  gap: 6;
-}
-
-.markdown-wrapper h1 {
-  font-size: 1.986rem;
-  font-weight: 700;
-}
-.markdown-wrapper h2 {
-  font-size: 1.488rem;
-  font-weight: 700;
-}
-.markdown-wrapper h3,
-.markdown-wrapper h4,
-.markdown-wrapper h5 .markdown-wrapper h6 {
-  font-size: 1.074rem;
-  font-weight: 500;
-}
-
-.markdown-wrapper p,
-.markdown-wrapper a {
-  font-weight: 400;
-}
-.markdown-wrapper a {
-  text-decoration: none;
-}
-
-.markdown-wrapper ul,
-.markdown-wrapper ol {
-  font-weight: 400;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.markdown-wrapper li {
-  font-weight: 400;
-}
-
-.chat-bot table {
-  table-layout: fixed;
-  width: 100%;
-  border-collapse: collapse;
-  border: 1px solid hsl(var(--muted));
-  border-radius: 1rem;
-}
-
-.chat-bot table thead {
-  border-bottom: 1px solid hsl(var(--muted));
-}
-
-.chat-bot table tbody tr:not(:last-child) {
-  border-bottom: 1px solid hsl(var(--muted));
-}
-
-.chat-bot table tbody tr,
-.chat-bot table thead tr {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-}
-
-.chat-bot table tbody tr td,
-.chat-bot table thead tr th {
-  min-width: 100px;
-  padding: 1rem;
-}
-
-.chat-bot table tbody tr td:not(:last-child),
-.chat-bot table thead tr th:not(:last-child) {
-  border-right: 1px solid hsl(var(--muted));
+:not(pre) > code {
+  background-color: hsl(var(--code));
+  padding: 0.25rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.925rem;
+  color: hsl(var(--code-foreground));
 }
 
 @layer base {
@@ -107,6 +42,9 @@ textarea::selection {
     --muted: 240 2% 84%;
     --muted-hover: 240 6% 80%;
     --muted-foreground: 0 0% 60%;
+
+    --code: 240 2% 82%;
+    --code-foreground: 0 0% 24%;
 
     --error: 0 79% 63%;
 
