@@ -39,8 +39,11 @@ export async function POST(req: Request) {
       messages,
       chatId,
       type,
-    }: { messages: Message[]; chatId: Id<"chatbook">; type: string } =
-      await req.json();
+    }: {
+      messages: Message[];
+      chatId: Id<"chatbook">;
+      type: "code" | "video" | "doc";
+    } = await req.json();
     const previousMessage: string = messages[messages.length - 1].content;
 
     const content = await fetchAction(api.chatbook.similarContent, {
