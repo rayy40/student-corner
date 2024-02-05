@@ -61,7 +61,7 @@ export const createChatbook = mutation({
           url,
           id: chatId,
           isGenerateEmbeddings: true,
-          chunkSize: 600,
+          chunkSize: 800,
           kind: args.storageId ? "pdf" : "audio",
         }
       );
