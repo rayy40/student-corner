@@ -6,17 +6,17 @@ import React, { useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import DropDown from "@/components/DropDown/DropDown";
-import LoadingSpinner from "@/components/Loading/LoadingSpinner";
-import UnAuthenticated from "@/components/UnAuthenticated/UnAuthenticated";
+import DropDown from "@/components/DropDown";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import UnAuthenticated from "@/components/UnAuthenticated";
 import Document from "@/components/Upload/Documents/Documents";
 import Url from "@/components/Upload/Link/Url";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { useUserIdStore } from "@/providers/store";
 import { chatSchema } from "@/schema/chat_schema";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Id } from "@/convex/_generated/dataModel";
 
 type chatSchema = z.infer<typeof chatSchema>;
 

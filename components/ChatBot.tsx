@@ -8,7 +8,7 @@ import { LuArrowUp, LuTrash } from "react-icons/lu";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 
-import MessageList from "../MessageList/MessageList";
+import MessageList from "./MessageList";
 
 type Props = {
   chatId: Id<"chatbook">;

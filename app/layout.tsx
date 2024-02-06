@@ -2,7 +2,7 @@ import "./globals.css";
 
 import { Inter, DM_Sans, Roboto } from "next/font/google";
 
-import Navbar from "@/components/Navbar/Navbar";
+import Navbar from "@/components/Navbar";
 import { ConvexClientProvider } from "@/providers/convex-provider";
 
 import type { Metadata } from "next";

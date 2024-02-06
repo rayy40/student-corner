@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import ErrorBoundary from "@/components/ErrorBoundary/ErrorBoundary";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function Error({ error }: { error: Error }) {
   const pathname = usePathname();

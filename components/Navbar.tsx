@@ -8,7 +8,7 @@ import React from "react";
 import { useUserIdStore } from "@/providers/store";
 import { useAuth, useClerk } from "@clerk/clerk-react";
 
-import logo from "../../assets/logo.svg";
+import logo from "../assets/logo.svg";
 
 const Navbar = () => {
   const { signOut } = useClerk();

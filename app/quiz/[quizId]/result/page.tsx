@@ -4,7 +4,7 @@ import Link from "next/link";
 import React from "react";
 import { LuTrophy } from "react-icons/lu";
 
-import LoadingSpinner from "@/components/Loading/LoadingSpinner";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { Id } from "@/convex/_generated/dataModel";
 import { useQueryQuizProps } from "@/hooks/useQueryObject";
 

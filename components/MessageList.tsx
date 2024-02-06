@@ -3,18 +3,18 @@ import React from "react";
 
 import { MessageType } from "@/types";
 
-import { List, ListItem } from "../Markdown/List";
-import Paragraph from "../Markdown/Paragraph";
-import PreBlock from "../Markdown/PreBlock";
-import Table from "../Markdown/Table";
+import { List, ListItem } from "./Markdown/List";
+import Paragraph from "./Markdown/Paragraph";
+import PreBlock from "./Markdown/PreBlock";
+import Table from "./Markdown/Table";
 import {
   Header,
   PrimaryHeader,
   SecondaryHeader,
   Strong,
   TertiaryHeader,
-} from "../Markdown/Tags";
-import Wrapper from "../Markdown/Wrapper";
+} from "./Markdown/Tags";
+import Wrapper from "./Markdown/Wrapper";
 
 type Props = {
   messages: MessageType[];
@@ -29,11 +29,8 @@ const MessageList = ({ messages, isLoading, isStreamingStarted }: Props) => {
     forceWrapper: true,
     wrapper: ({ children }: { children: JSX.Element[] }) => {
       if (children?.[0]?.type?.name !== "Table") {
-        // Wrap non-table content
-        console.log(children);
         return <Wrapper>{children}</Wrapper>;
       } else {
-        // Return tables without the wrapper
         return children;
       }
     },

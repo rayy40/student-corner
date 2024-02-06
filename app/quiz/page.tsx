@@ -6,16 +6,16 @@ import { useState } from "react";
 import { FieldError, FieldValues, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import DropDown from "@/components/DropDown/DropDown";
-import LoadingSpinner from "@/components/Loading/LoadingSpinner";
-import UnAuthenticated from "@/components/UnAuthenticated/UnAuthenticated";
+import DropDown from "@/components/DropDown";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import UnAuthenticated from "@/components/UnAuthenticated";
+import Document from "@/components/Upload/Documents/Documents";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useUserIdStore } from "@/providers/store";
 import { quizSchema } from "@/schema/quiz_schema";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Document from "@/components/Upload/Documents/Documents";
 
 type quizSchema = z.infer<typeof quizSchema>;
 

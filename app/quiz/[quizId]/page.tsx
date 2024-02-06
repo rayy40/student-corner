@@ -7,8 +7,8 @@ import { useForm } from "react-hook-form";
 import { LuTimer } from "react-icons/lu";
 import { z } from "zod";
 
-import LoadingSpinner from "@/components/Loading/LoadingSpinner";
-import UnAuthenticated from "@/components/UnAuthenticated/UnAuthenticated";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import UnAuthenticated from "@/components/UnAuthenticated";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { calculateScore, numToAlpha } from "@/helpers/utils";

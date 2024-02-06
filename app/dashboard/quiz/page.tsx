@@ -2,8 +2,8 @@
 
 import React from "react";
 
-import DashboardList from "@/components/DashboardList/DashboardList";
-import LoadingSpinner from "@/components/Loading/LoadingSpinner";
+import DashboardList from "@/components/DashboardList";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { useQueryQuizHistoryProps } from "@/hooks/useQueryObject";
 import { useUserIdStore } from "@/providers/store";
 
