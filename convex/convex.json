@@ -1,5 +1,5 @@
 {
   "node": {
-    "externalPackages": ["path", "minimatch"]
+    "externalPackages": ["path", "minimatch", "crypto"]
   }
 }
