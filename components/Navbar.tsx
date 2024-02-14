@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
-import { useUserIdStore } from "@/providers/store";
+import { useUserIdStore } from "@/providers/user-store";
 import { useAuth, useClerk } from "@clerk/clerk-react";
 
 import logo from "../assets/logo.svg";

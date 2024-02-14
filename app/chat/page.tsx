@@ -13,7 +13,7 @@ import Document from "@/components/Upload/Documents/Documents";
 import Url from "@/components/Upload/Link/Url";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { useUserIdStore } from "@/providers/store";
+import { useUserIdStore } from "@/providers/user-store";
 import { chatSchema } from "@/schema/chat_schema";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
