@@ -78,7 +78,7 @@ export const codeTemplate = (
   
   [END OF CODE FILE(S)]
   
-  In your answer, If you are providing the code then include a "filePath" section at the bottom from where you will be providing the code. 
+  In your answer, If you are providing the code then include a "path" section at the bottom from where you will be providing the code. 
   
   Now answer the question using the code file(s) above.`;
 
@@ -129,5 +129,14 @@ export const ragTemplate = (
   return prompt;
 };
 
-export const initialAssistantMessage =
-  "Hey, I am here to help you understand the codebase provided by you. You can ask me a questions related to your codebase and I'll help you with an explanation to that.";
+export const initialAssistantMessage = (type: "code" | "video" | "doc") => {
+  if (type === "code") {
+    return "Hey, I am here to help you understand the codebase provided by you. You can ask me a questions related to your codebase and I'll help you with an explanation to that.";
+  } else {
+    return `Hey, I am here to help you understand the ${
+      type === "doc" ? "document" : "Youtube video"
+    } provided by you, You can ask me any question related to the ${
+      type === "doc" ? "document" : "Youtube video"
+    } and I'll help you by providing an answer to that and explaining it.`;
+  }
+};

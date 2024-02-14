@@ -1,6 +1,7 @@
 import Markdown from "markdown-to-jsx";
 import React from "react";
 
+import { initialAssistantMessage } from "@/helpers/format";
 import { MessageType } from "@/types";
 
 import { List, ListItem } from "./Markdown/List";
@@ -17,23 +18,23 @@ import {
 import Wrapper from "./Markdown/Wrapper";
 
 type Props = {
+  type: "code" | "video" | "doc";
   messages: MessageType[];
   isLoading: boolean;
   isStreamingStarted: boolean;
 };
 
-const MessageList = ({ messages, isLoading, isStreamingStarted }: Props) => {
-  if (!messages) return;
-
+const MessageList = ({
+  messages,
+  isLoading,
+  isStreamingStarted,
+  type,
+}: Props) => {
   const markDownToJsxOptions = {
     forceWrapper: true,
-    wrapper: ({ children }: { children: JSX.Element[] }) => {
-      if (children?.[0]?.type?.name !== "Table") {
-        return <Wrapper>{children}</Wrapper>;
-      } else {
-        return children;
-      }
-    },
+    wrapper: ({ children }: { children: JSX.Element[] }) => (
+      <Wrapper>{children}</Wrapper>
+    ),
     overrides: {
       pre: PreBlock,
       table: Table,
@@ -51,9 +52,14 @@ const MessageList = ({ messages, isLoading, isStreamingStarted }: Props) => {
     },
   };
 
+  if (!messages) return;
+
   return (
     <div className="chat-bot py-3 px-5">
-      {messages.map((message: MessageType, index: number) => (
+      <div className="bg-input text-foreground p-3 pr-4 overflow-x-auto border border-border rounded-lg shadow-input max-w-[600px]">
+        {initialAssistantMessage(type)}
+      </div>
+      {messages?.map((message: MessageType, index: number) => (
         <div
           key={index}
           className={`${
@@ -68,7 +74,7 @@ const MessageList = ({ messages, isLoading, isStreamingStarted }: Props) => {
             } overflow-x-auto border border-border rounded-lg shadow-input max-w-[600px]`}
           >
             <Markdown options={markDownToJsxOptions}>
-              {message.content}
+              {message.content.replaceAll(/```/g, "\n```")}
             </Markdown>
           </div>
         </div>
