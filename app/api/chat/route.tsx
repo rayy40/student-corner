@@ -4,7 +4,8 @@ import OpenAI from "openai";
 
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { generatePrompt, generateRandomString } from "@/helpers/utils";
+import { generateRandomString } from "@/helpers/utils";
+import { codeTemplate, ragTemplate } from "@/helpers/format";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
     } = await req.json();
     const previousMessage: string = messages[messages.length - 1].content;
 
-    const content = await fetchAction(api.chatbook.similarContent, {
+    const content = await fetchAction(api.chatbook.semanticSearch, {
       chatId,
       query: previousMessage,
     });
@@ -58,7 +59,8 @@ export async function POST(req: Request) {
       content,
     })) as { role: "system" | "user" | "assistant"; content: string }[];
 
-    const prompt = generatePrompt(content, type);
+    const prompt =
+      type === "code" ? codeTemplate(content) : ragTemplate(content, type);
 
     formattedMessages.unshift(prompt);
 
