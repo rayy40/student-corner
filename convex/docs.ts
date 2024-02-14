@@ -1,7 +1,6 @@
 "use node";
 
 import { ConvexError, v } from "convex/values";
-import { Document } from "langchain/document";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { YoutubeTranscript } from "youtube-transcript";
@@ -11,32 +10,45 @@ import { internal } from "./_generated/api";
 import { internalAction } from "./_generated/server";
 import { fetchTranscripts } from "./openai";
 import { Id } from "./_generated/dataModel";
+import { Chunk } from "@/types";
 
-const extractText = async (url: string) => {
-  let document: string[] = [];
-
+const extractTextandSplitChunks = async (url: string, size: number) => {
   const response: Response = await fetch(url);
   const blob: Blob = await response.blob();
   const loader: PDFLoader = new PDFLoader(blob, {
     parsedItemSeparator: "",
   });
-  const docs: Document<Record<string, any>>[] = await loader.load();
+  const docs = await loader.load();
 
   const title: string =
     docs?.[0]?.metadata?.pdf?.info?.title ??
     docs?.[0]?.metadata?.pdf?.info?.Title ??
     "PDF";
 
-  const type: "doc" = "doc";
+  const chunkArr: { content: string; source: string }[] = [];
+  const document = docs.map((doc) => doc.pageContent);
 
-  docs.forEach((doc) => {
-    document.push(doc.pageContent);
+  const splitter = new RecursiveCharacterTextSplitter({
+    chunkSize: size,
+    chunkOverlap: 100,
   });
 
-  return { document, title, type };
+  if (size > 1000) {
+    const chunks = splitChunkManually(document, size);
+    return { chunks, title };
+  } else {
+    const chunks = await splitter.splitDocuments(docs);
+    for (const chunk of chunks) {
+      chunkArr.push({
+        content: chunk?.pageContent,
+        source: chunk?.metadata?.loc?.pageNumber.toString() ?? "",
+      });
+    }
+    return { chunkArr, title };
+  }
 };
 
-const extractAudio = async (url: string) => {
+const extractAudioAndSplitChunks = async (url: string, size: number) => {
   const videoId = getURLVideoID(url);
 
   if (!validateID(videoId)) {
@@ -45,7 +57,6 @@ const extractAudio = async (url: string) => {
 
   const metadata = await getBasicInfo(videoId);
   const title = metadata?.videoDetails?.title;
-  const type: "video" = "video";
 
   let transcript: string = "";
   try {
@@ -63,14 +74,19 @@ const extractAudio = async (url: string) => {
 
     transcript = await fetchTranscripts(audioStream);
   }
-  return { transcript, title, type };
+
+  const splitter = new RecursiveCharacterTextSplitter({
+    chunkSize: size,
+    chunkOverlap: 100,
+  });
+  const chunks = await splitter.createDocuments([transcript]);
+
+  const chunkArr = chunks.map((chunk) => chunk.pageContent);
+  return { chunkArr, title };
 };
 
-const splitChunkManually = (
-  docs: string[],
-  size: number,
-  chunkArr: string[]
-) => {
+const splitChunkManually = (docs: string[], size: number) => {
+  const chunkArr: string[] = [];
   let text: string = "";
   for (let i = 0; i < docs.length; i++) {
     text += docs[i];
@@ -83,70 +99,32 @@ const splitChunkManually = (
   return chunkArr;
 };
 
-const createChunks = async (
-  url: string,
-  kind: "pdf" | "audio",
-  size: number
-): Promise<{ chunks: string[]; title: string; type: string } | string> => {
-  const extractTextFn = kind === "pdf" ? extractText : extractAudio;
-  const response = await extractTextFn(url);
-
-  if (typeof response === "string") {
-    throw new ConvexError(response);
-  }
-
-  let docs: string[];
-
-  if ("document" in response) {
-    docs = response.document;
-  } else {
-    docs = [response.transcript];
-  }
-
-  let chunkArr: string[] = [];
-
-  if (size > 1000) {
-    chunkArr = splitChunkManually(docs, size, chunkArr);
-  } else {
-    const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: size,
-      chunkOverlap: 100,
-    });
-    const chunks = await splitter.createDocuments(docs);
-
-    chunkArr = chunks.map((chunk) => chunk.pageContent);
-  }
-
-  return { chunks: chunkArr, title: response.title, type: response.type };
-};
-
-export const extractTextAndCreateChunks = internalAction({
+export const createChunks = internalAction({
   args: {
     url: v.string(),
     isGenerateEmbeddings: v.boolean(),
     chunkSize: v.number(),
     id: v.union(v.id("chatbook"), v.id("quiz")),
-    kind: v.union(v.literal("pdf"), v.literal("audio")),
+    kind: v.union(v.literal("doc"), v.literal("video")),
   },
   handler: async (ctx, args) => {
-    const chunks = await createChunks(args.url, args.kind, args.chunkSize);
-
-    if (typeof chunks === "string") {
-      throw new ConvexError(chunks);
-    }
+    const chunks =
+      args.kind === "doc"
+        ? await extractTextandSplitChunks(args.url, args.chunkSize)
+        : await extractAudioAndSplitChunks(args.url, args.chunkSize);
 
     if (!args.isGenerateEmbeddings) {
       await ctx.scheduler.runAfter(0, internal.quiz.generateSummary, {
         quizId: args.id as Id<"quiz">,
-        chunks: chunks.chunks,
+        chunks: chunks.chunkArr as string[],
         title: chunks.title,
       });
     } else {
       await ctx.scheduler.runAfter(0, internal.chatbook.generateEmbeddings, {
         chatId: args.id as Id<"chatbook">,
-        chunks: chunks.chunks,
+        chunks: chunks.chunkArr as Chunk[],
         title: chunks.title,
-        type: chunks.type as "doc" | "video",
+        type: args.kind,
       });
     }
   },

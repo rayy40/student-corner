@@ -52,17 +52,13 @@ export const createQuiz = mutation({
         throw new ConvexError("No File found for this quiz Id.");
       }
 
-      await ctx.scheduler.runAfter(
-        0,
-        internal.docs.extractTextAndCreateChunks,
-        {
-          url,
-          id: quizId,
-          isGenerateEmbeddings: false,
-          chunkSize: 5000,
-          kind: "pdf",
-        }
-      );
+      await ctx.scheduler.runAfter(0, internal.docs.createChunks, {
+        url,
+        id: quizId,
+        isGenerateEmbeddings: false,
+        chunkSize: 5000,
+        kind: "doc",
+      });
     } else {
       ctx.scheduler.runAfter(0, internal.openai.generateQuiz, {
         quizId,
@@ -170,15 +166,12 @@ export const generateSummary = internalAction({
   handler: async (ctx, args) => {
     let content: string = "";
     for (let i = 0; i < args.chunks.length; i += 1) {
-      const chunk = args.chunks[i];
-      content += await fetchSummary(chunk);
+      content += await fetchSummary(args.chunks[i]);
 
       if (content.length === 0) {
         throw new ConvexError("Unable to generate summary from OpenAI.");
       }
     }
-
-    console.log(content);
 
     await ctx.scheduler.runAfter(0, internal.openai.generateQuiz, {
       quizId: args.quizId,
