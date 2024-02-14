@@ -6,12 +6,12 @@ interface TableProps {
 
 const Table = ({ children }: TableProps) => {
   const TableData = ({ child }: { child: JSX.Element }) => {
-    return <td className="flex-1 p-3">{child["props"]?.["children"]?.[0]}</td>;
+    return <td className="flex-1 p-3">{child["props"]?.["children"]}</td>;
   };
   const TableHead = ({ child }: { child: JSX.Element }) => {
     return (
       <th className="flex-1 font-medium p-3 capitalize ">
-        {child["props"]?.["children"]?.[0]}
+        {child["props"]?.["children"]}
       </th>
     );
   };
@@ -23,6 +23,7 @@ const Table = ({ children }: TableProps) => {
     child: JSX.Element | JSX.Element[];
     type: "head" | "body";
   }) => {
+    console.log(child);
     return (
       <tr className="divide-x divide-[hsl(0_0_84%)] flex justify-start items-start">
         {type === "head" ? (
