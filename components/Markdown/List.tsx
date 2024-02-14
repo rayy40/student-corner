@@ -13,12 +13,12 @@ export const List = ({ children }: ListProps) => {
     <ol className="leading-6 py-3 pl-4 list-decimal">
       {Array.isArray(children) ? (
         children.map((child, index) => (
-          <li className="my-3 first:mt-0" key={index}>
+          <li className="leading-6 my-3 first:mt-0" key={index}>
             {child}
           </li>
         ))
       ) : (
-        <li className="flex my-2">{children}</li>
+        <li className="leading-6 flex my-2">{children}</li>
       )}
     </ol>
   );
