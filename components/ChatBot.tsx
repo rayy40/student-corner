@@ -13,7 +13,7 @@ import MessageList from "./MessageList";
 type Props = {
   chatId: Id<"chatbook">;
   title: string;
-  type?: string;
+  type: "code" | "video" | "doc";
 };
 
 const ChatBot = ({ chatId, title, type }: Props) => {
@@ -62,7 +62,7 @@ const ChatBot = ({ chatId, title, type }: Props) => {
   return (
     <>
       <div className="w-full sticky top-0 h-min mt-[0.75rem] p-4 items-center border-b border-b-border shadow-light">
-        <div className="flex justify-between items-center">
+        <div className="flex px-1 justify-between items-center">
           <h2 className="min-w-[300px] max-w-[80%] whitespace-nowrap overflow-hidden overflow-ellipsis">
             {title}
           </h2>
@@ -79,6 +79,7 @@ const ChatBot = ({ chatId, title, type }: Props) => {
       </div>
       <div ref={messageListRef} className="h-full overflow-y-auto">
         <MessageList
+          type={type}
           messages={messages}
           isLoading={isLoading}
           isStreamingStarted={isStreamingStarted}

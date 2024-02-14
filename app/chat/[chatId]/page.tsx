@@ -41,7 +41,7 @@ const ChatId = ({ params }: { params: { chatId: string } }) => {
         <ChatBot
           chatId={chat?.data?._id!}
           title={chat?.data?.title!}
-          type={chat.data?.type}
+          type={chat.data?.type ?? "doc"}
         />
       </div>
     </div>
