@@ -4,7 +4,7 @@ import { useMutation } from "convex/react";
 import { useCallback, useEffect } from "react";
 
 import { api } from "@/convex/_generated/api";
-import { useUserIdStore } from "@/providers/store";
+import { useUserIdStore } from "@/providers/user-store";
 import { useAuth } from "@clerk/clerk-react";
 
 const Home = () => {
