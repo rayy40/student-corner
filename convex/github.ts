@@ -2,6 +2,7 @@
 
 import { ConvexError, Infer, v } from "convex/values";
 import { TextLoader } from "langchain/document_loaders/fs/text";
+import { Document } from "langchain/document";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { minimatch } from "minimatch";
 import path from "path";
@@ -21,7 +22,7 @@ async function* fetchFilesRecursively(
   owner: string,
   repo: string,
   filePath: string
-): AsyncGenerator<Github, void, undefined> {
+): AsyncGenerator<{ file: Github; doc: Document }, void, undefined> {
   const { data } = await octokit.rest.repos.getContent({
     owner,
     repo,
@@ -39,15 +40,15 @@ async function* fetchFilesRecursively(
 
     if (file.type === "file") {
       try {
-        const doc = await extractCode(file.download_url!);
+        const doc = await extractCode(file.download_url!, file.path);
         const document: Github = {
           name: file.name,
-          url: file.url,
+          url: file._links.html ?? "",
           path: file.path,
           download_url: file.download_url!,
-          content: doc[0].pageContent ?? "",
+          content: doc.pageContent,
         };
-        yield document;
+        yield { file: document, doc: doc };
       } catch (error) {
         console.error(`Error extracting code from ${file.name}:`, error);
         throw new ConvexError((error as Error).message);
@@ -58,22 +59,22 @@ async function* fetchFilesRecursively(
   }
 }
 
-const getAllFiles = async (
+const getAllDocuments = async (
   ignoreFiles: string[],
   owner: string,
   repo: string,
   filePath: string
-): Promise<Github[]> => {
-  const files: Github[] = [];
-  for await (const file of fetchFilesRecursively(
+): Promise<{ file: Github; doc: Document }[]> => {
+  const documents: { file: Github; doc: Document }[] = [];
+  for await (const document of fetchFilesRecursively(
     ignoreFiles,
     owner,
     repo,
     filePath
   )) {
-    files.push(file);
+    documents.push(document);
   }
-  return files;
+  return documents;
 };
 
 const getIgnoreFiles = async (
@@ -103,31 +104,43 @@ const getIgnoreFiles = async (
   }
 };
 
-const extractCode = async (url: string) => {
+const extractCode = async (url: string, path: string) => {
   try {
     const response = await fetch(url);
     const blob = await response.blob();
     const loader = new TextLoader(blob);
     const doc = await loader.load();
-    return doc;
+    const document: Document = {
+      pageContent: doc[0].pageContent,
+      metadata: {
+        source: path,
+      },
+    };
+    return document;
   } catch (error) {
     console.error("Error extracting code:", error);
     throw new ConvexError((error as Error).message);
   }
 };
 
-const splitCode = async (files: Github[]) => {
+const splitCode = async (docs: Document[]) => {
   const splitter = RecursiveCharacterTextSplitter.fromLanguage("js", {
     chunkSize: 1000,
     chunkOverlap: 100,
   });
 
-  const content = files.map((file) => file.content!);
-  const chunks = await splitter.createDocuments(content);
+  const chunks = await splitter.splitDocuments(docs);
 
-  const texts = chunks.map((chunk) => chunk.pageContent);
+  const chunkArr: { content: string; source: string }[] = [];
 
-  return texts;
+  for (const chunk of chunks) {
+    chunkArr.push({
+      content: chunk?.pageContent,
+      source: chunk?.metadata?.source ?? "",
+    });
+  }
+
+  return chunkArr;
 };
 
 export const getFilesFromRepo = internalAction({
@@ -143,13 +156,23 @@ export const getFilesFromRepo = internalAction({
 
     const ignoreFiles = await getIgnoreFiles(owner, repo, args.filePath);
 
-    const files = await getAllFiles(ignoreFiles, owner, repo, args.filePath);
+    const documents = await getAllDocuments(
+      ignoreFiles,
+      owner,
+      repo,
+      args.filePath
+    );
+
+    const files = documents.map((file) => file.file);
 
     await ctx.runMutation(internal.chatbook.patchGithubFiles, {
+      chatId: args.chatId,
       files,
     });
 
-    const chunks = await splitCode(files);
+    const docs = documents.map((file) => file.doc);
+
+    const chunks = await splitCode(docs);
 
     await ctx.scheduler.runAfter(0, internal.chatbook.generateEmbeddings, {
       chatId: args.chatId,
