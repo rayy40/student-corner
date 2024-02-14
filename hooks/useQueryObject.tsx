@@ -61,3 +61,20 @@ export const useQueryChatHistoryProps = ({
     loading,
   };
 };
+
+export const useQueryGithubFileProps = ({
+  chatId,
+}: {
+  chatId: Id<"chatbook">;
+}) => {
+  const data = useQuery(api.chatbook.getGithubFiles, {
+    chatId,
+  });
+
+  const loading = data === undefined;
+
+  return {
+    data,
+    loading,
+  };
+};
