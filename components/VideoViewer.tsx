@@ -18,6 +18,7 @@ const VideoViewer = ({ url }: Props) => {
   return (
     <div className="bg-muted w-full h-full flex items-center justify-center">
       <YouTube
+        loading={"eager"}
         opts={options}
         className="aspect-video max-w-[800px] w-[90%] p-2 border border-muted-foreground"
         iframeClassName="w-full h-full shadow-medium"
