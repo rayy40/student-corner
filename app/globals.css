@@ -24,6 +24,23 @@ textarea::selection {
   color: hsl(var(--code-foreground));
 }
 
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground));
+  border-radius: 12px;
+}
+
+::-webkit-scrollbar:horizontal {
+  height: 8px;
+}
+
 @layer base {
   :root {
     --background: 0 0% 98%;
