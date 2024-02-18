@@ -1,7 +1,7 @@
 "use client";
 
 import { useChat } from "ai/react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import React, { useEffect, useRef, useState } from "react";
 import { LuArrowUp, LuTrash } from "react-icons/lu";
 
@@ -9,22 +9,22 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 
 import MessageList from "./MessageList";
+import { useConversationHistory } from "@/hooks/useQueryObject";
+import { MessageData } from "@/types";
 
 type Props = {
   chatId: Id<"chatbook">;
+  conversationId: Id<"conversations"> | undefined;
   title: string;
   type: "code" | "video" | "doc";
 };
 
-const ChatBot = ({ chatId, title, type }: Props) => {
+const ChatBot = ({ chatId, title, type, conversationId }: Props) => {
   const messageListRef = useRef<HTMLDivElement | null>(null);
-  const deleteHistory = useMutation(api.chatbook.deleteMessageHistory);
+  const deleteHistory = useMutation(api.conversations.deleteConversation);
   const [isStreamingStarted, setIsStreamingStarted] = useState(false);
-
-  const initalMessage = useQuery(
-    api.chatbook.getMessageHistory,
-    chatId !== null ? { chatId } : "skip"
-  );
+  const [error, setError] = useState("");
+  const messageHistory: MessageData[] = useConversationHistory(chatId);
 
   const {
     input,
@@ -39,24 +39,28 @@ const ChatBot = ({ chatId, title, type }: Props) => {
       chatId,
       type,
     },
-    initialMessages: initalMessage
-      ? Array.isArray(initalMessage)
-        ? initalMessage
-        : []
-      : [],
+    initialMessages: messageHistory,
     onResponse: () => {
+      setError("");
       setIsStreamingStarted(true);
     },
     onFinish: () => {
       setIsStreamingStarted(false);
     },
+    onError(error) {
+      console.error(error);
+      setError("Unable to get response from OpenAI. Please try again.");
+      setIsStreamingStarted(false);
+    },
   });
 
   useEffect(() => {
-    messageListRef.current?.scrollTo({
-      top: messageListRef?.current?.scrollHeight,
-      behavior: "smooth",
-    });
+    if (messageListRef.current) {
+      messageListRef.current?.scrollTo({
+        top: messageListRef?.current?.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }, [messages]);
 
   return (
@@ -66,27 +70,36 @@ const ChatBot = ({ chatId, title, type }: Props) => {
           <h2 className="min-w-[300px] max-w-[80%] whitespace-nowrap overflow-hidden overflow-ellipsis">
             {title}
           </h2>
-          <div>
-            <LuTrash
-              onClick={() => {
-                deleteHistory({ chatId });
-                setMessages([]);
-              }}
-              className="text-lg opacity-60 cursor-pointer hover:opacity-100"
-            />
-          </div>
+          {conversationId && (
+            <div>
+              <LuTrash
+                onClick={() => {
+                  deleteHistory({ conversationId });
+                  setMessages([]);
+                }}
+                className="text-lg opacity-60 cursor-pointer hover:opacity-100"
+              />
+            </div>
+          )}
         </div>
       </div>
       <div ref={messageListRef} className="h-full overflow-y-auto">
         <MessageList
           type={type}
+          chatId={chatId}
           messages={messages}
           isLoading={isLoading}
+          error={error}
           isStreamingStarted={isStreamingStarted}
         />
       </div>
       <div className="sticky bottom-0 p-4 w-full">
-        <form onSubmit={handleSubmit}>
+        <form
+          onSubmit={() => {
+            handleSubmit;
+            setError("");
+          }}
+        >
           <div className="flex gap-4 w-full p-2 border bg-input rounded-2xl border-border shadow-input">
             <input
               disabled={isLoading}

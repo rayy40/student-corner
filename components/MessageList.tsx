@@ -1,5 +1,5 @@
 import Markdown from "markdown-to-jsx";
-import React, { memo, useMemo } from "react";
+import React, { memo } from "react";
 
 import { initialAssistantMessage } from "@/helpers/format";
 import { MessageType } from "@/types";
@@ -24,10 +24,11 @@ type Props = {
   messages: MessageType[];
   isLoading: boolean;
   isStreamingStarted: boolean;
+  error: string;
 };
 
 const MessageList = memo(
-  ({ messages, isLoading, isStreamingStarted, type, chatId }: Props) => {
+  ({ messages, isLoading, isStreamingStarted, type, error }: Props) => {
     const markDownToJsxOptions = {
       forceWrapper: true,
       wrapper: ({ children }: { children: JSX.Element[] }) => (
@@ -48,25 +49,6 @@ const MessageList = memo(
         h5: Header,
         h6: Header,
       },
-    };
-
-    const getFormattedMessage = (content: string) => {
-      const filePathIndex = content.indexOf("filePath:");
-
-      const path = content
-        .slice(filePathIndex + 10)
-        .trim()
-        .replace(/[\r\n`]+/gm, "");
-
-      const contentWithoutPath = content
-        .slice(0, filePathIndex)
-        .trim()
-        .replace(/^`[\s\n]*|`[\s\n]*$/g, "");
-      const contentWithoutFinalDelimiters = contentWithoutPath
-        .replaceAll(/```/g, "\n```")
-        .replace(/```[a-zA-Z]+$/, "");
-
-      return `${contentWithoutFinalDelimiters} **Source:** [${path}](${"https://www.ggogle.com"})`;
     };
 
     if (!messages) return;
@@ -90,10 +72,7 @@ const MessageList = memo(
               } overflow-x-auto border border-border rounded-lg shadow-input max-w-[600px]`}
             >
               <Markdown options={markDownToJsxOptions}>
-                {message.role === "assistant" &&
-                message.content.indexOf("filePath") !== -1
-                  ? getFormattedMessage(message.content)
-                  : message.content.replaceAll(/```/g, "\n```")}
+                {message.content.replaceAll(/```/g, "\n```")}
               </Markdown>
             </div>
           </div>
@@ -102,6 +81,11 @@ const MessageList = memo(
           <div className="flex flex-col gap-1 w-full max-w-[500px] animate-pulse">
             <div className="bg-input rounded-md shadow-input border border-border h-8 w-[80%]"></div>
             <div className="bg-input rounded-md shadow-input border border-border h-8 min-w-[200px] w-[40%]"></div>
+          </div>
+        )}
+        {error && (
+          <div className="bg-error mx-auto mt-3 text-center text-primary-foreground font-semibold p-3 rounded-lg shadow-light max-w-[600px]">
+            {error}
           </div>
         )}
       </div>
