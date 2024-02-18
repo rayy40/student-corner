@@ -94,12 +94,11 @@ export default defineSchema({
   }).index("by_chatId", ["chatId"]),
   chatbook: defineTable({
     userId: v.id("users"),
-    conversationId: v.optional(v.string()),
     url: v.string(),
     type: v.optional(
       v.union(v.literal("code"), v.literal("video"), v.literal("doc"))
     ),
     title: v.optional(v.string()),
-    embeddingId: v.optional(v.array(v.id("chatEmbeddings"))),
-  }).index("by_embedding", ["embeddingId"]),
+    hasEmbeddingGenerated: v.boolean(),
+  }),
 });

@@ -12,15 +12,12 @@ export const patchMessages = mutation({
     const existingChat = await ctx.db
       .query("conversations")
       .withIndex("by_chatId", (q) => q.eq("chatId", args.chatId))
-      .first();
+      .unique();
 
     if (!existingChat) {
-      const conversationId = (await ctx.db.insert("conversations", {
+      await ctx.db.insert("conversations", {
         chatId: args.chatId,
         messages: [args.message],
-      })) as string;
-      await ctx.db.patch(args.chatId, {
-        conversationId,
       });
     } else {
       const messages = existingChat?.messages || [];
@@ -60,8 +57,15 @@ export const getChatsHistory = query({
 });
 
 export const deleteConversation = mutation({
-  args: { conversationId: v.id("conversations") },
+  args: { chatId: v.id("chatbook") },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.conversationId, { messages: undefined });
+    const conversation = await ctx.db
+      .query("conversations")
+      .withIndex("by_chatId", (q) => q.eq("chatId", args.chatId))
+      .unique();
+    if (!conversation) {
+      throw new ConvexError("No conversations found.");
+    }
+    await ctx.db.patch(conversation?._id, { messages: undefined });
   },
 });
