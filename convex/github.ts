@@ -1,8 +1,8 @@
 "use node";
 
 import { ConvexError, Infer, v } from "convex/values";
-import { TextLoader } from "langchain/document_loaders/fs/text";
 import { Document } from "langchain/document";
+import { TextLoader } from "langchain/document_loaders/fs/text";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { minimatch } from "minimatch";
 import path from "path";
@@ -174,7 +174,7 @@ export const getFilesFromRepo = internalAction({
 
     const chunks = await splitCode(docs);
 
-    await ctx.scheduler.runAfter(0, internal.chatbook.generateEmbeddings, {
+    await ctx.scheduler.runAfter(0, internal.embedding.generateEmbeddings, {
       chatId: args.chatId,
       chunks,
       title: repo,
