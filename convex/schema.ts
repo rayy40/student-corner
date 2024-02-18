@@ -69,29 +69,37 @@ export default defineSchema({
     ),
   }),
   github: defineTable({
+    chatId: v.id("chatbook"),
     name: v.string(),
     path: v.string(),
     url: v.string(),
     content: v.optional(v.string()),
     download_url: v.optional(v.string()),
-  }),
+  }).index("by_chatId", ["chatId"]),
   chatEmbeddings: defineTable({
     embedding: v.array(v.float64()),
     content: v.string(),
+    source: v.optional(v.string()),
     chatId: v.id("chatbook"),
-  }).vectorIndex("by_embedding", {
-    vectorField: "embedding",
-    dimensions: 1536,
-    filterFields: ["chatId"],
-  }),
+  })
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1536,
+      filterFields: ["chatId"],
+    })
+    .index("by_chatId", ["chatId"]),
+  conversations: defineTable({
+    chatId: v.id("chatbook"),
+    messages: v.optional(v.array(Message)),
+  }).index("by_chatId", ["chatId"]),
   chatbook: defineTable({
     userId: v.id("users"),
+    conversationId: v.optional(v.string()),
     url: v.string(),
     type: v.optional(
       v.union(v.literal("code"), v.literal("video"), v.literal("doc"))
     ),
     title: v.optional(v.string()),
-    chat: v.optional(v.array(Message)),
     embeddingId: v.optional(v.array(v.id("chatEmbeddings"))),
   }).index("by_embedding", ["embeddingId"]),
 });
