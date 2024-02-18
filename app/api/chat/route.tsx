@@ -24,7 +24,7 @@ export const patchMessages = async ({
   role,
   content,
 }: PatchMessage) => {
-  await fetchMutation(api.chatbook.patchMessages, {
+  await fetchMutation(api.conversations.patchMessages, {
     chatId,
     message: {
       id: generateRandomString(),
