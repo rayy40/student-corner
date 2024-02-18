@@ -1,19 +1,25 @@
+import { WithoutSystemFields } from "convex/server";
 import { ConvexError, v } from "convex/values";
+
+import { extractPathFromUrl, isValidQuizId } from "@/helpers/utils";
+
+import { internal } from "./_generated/api";
+import { Doc } from "./_generated/dataModel";
 import {
   action,
-  internalAction,
   internalMutation,
   internalQuery,
   mutation,
   query,
 } from "./_generated/server";
-import { internal } from "./_generated/api";
 import { fetchEmbedding } from "./openai";
-import { Github, Message } from "./schema";
-import { Doc } from "./_generated/dataModel";
-import { extractPathFromUrl, isValidQuizId } from "@/helpers/utils";
+import { Github } from "./schema";
 
 export type Result = Doc<"chatbook"> & { _score: number };
+export type EmbeddingArray = WithoutSystemFields<Doc<"chatEmbeddings">> & {
+  title: string;
+  type: "doc" | "code" | "video";
+};
 
 export const createChatbook = mutation({
   args: {
@@ -54,17 +60,13 @@ export const createChatbook = mutation({
         chatId,
       });
     } else {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.docs.extractTextAndCreateChunks,
-        {
-          url,
-          id: chatId,
-          isGenerateEmbeddings: true,
-          chunkSize: 800,
-          kind: args.storageId ? "pdf" : "audio",
-        }
-      );
+      await ctx.scheduler.runAfter(0, internal.docs.createChunks, {
+        url,
+        id: chatId,
+        isGenerateEmbeddings: true,
+        chunkSize: 800,
+        kind: args.storageId ? "doc" : "video",
+      });
     }
 
     return chatId;
@@ -81,70 +83,7 @@ export const readChatData = internalQuery({
   },
 });
 
-export const generateEmbeddings = internalAction({
-  args: {
-    chatId: v.id("chatbook"),
-    chunks: v.array(v.string()),
-    title: v.string(),
-    type: v.union(v.literal("video"), v.literal("doc"), v.literal("code")),
-  },
-  handler: async (ctx, args) => {
-    const BATCH_SIZE = 100;
-    for (
-      let batchStart = 0;
-      batchStart < args.chunks.length;
-      batchStart += BATCH_SIZE
-    ) {
-      const batchEnd = batchStart + BATCH_SIZE;
-      const batch = args.chunks.slice(batchStart, batchEnd);
-
-      const response = await fetchEmbedding(batch);
-
-      if (typeof response === "string") {
-        throw new ConvexError(response);
-      }
-
-      for (let i = 0; i < response.data.length; i++) {
-        await ctx.runMutation(internal.chatbook.addEmbedding, {
-          chatId: args.chatId,
-          content: args.chunks[i],
-          embedding: response.data[i].embedding,
-          title: args.title,
-          type: args.type,
-        });
-      }
-    }
-  },
-});
-
-export const addEmbedding = internalMutation({
-  args: {
-    chatId: v.id("chatbook"),
-    content: v.string(),
-    embedding: v.array(v.number()),
-    title: v.string(),
-    type: v.union(v.literal("code"), v.literal("doc"), v.literal("video")),
-  },
-  handler: async (ctx, args) => {
-    const chatEmbeddingId = await ctx.db.insert("chatEmbeddings", {
-      embedding: args.embedding,
-      content: args.content,
-      chatId: args.chatId,
-    });
-    const existingChatDocument = await ctx.db.get(args.chatId);
-    const embeddingIds = existingChatDocument?.embeddingId || [];
-
-    embeddingIds.push(chatEmbeddingId);
-
-    await ctx.db.patch(args.chatId, {
-      embeddingId: embeddingIds,
-      title: args.title,
-      type: args.type,
-    });
-  },
-});
-
-export const getEmbeddingId = query({
+export const getChatDetails = query({
   args: { chatId: v.id("chatbook") },
   handler: async (ctx, args) => {
     if (!isValidQuizId(args.chatId)) {
@@ -157,92 +96,32 @@ export const getEmbeddingId = query({
       throw new ConvexError("No dataset found for this Id.");
     }
 
-    const embeddingId = ctx.db
-      .query("chatbook")
-      .filter((q) => q.and(q.eq(q.field("_id"), chat?._id)))
-      .unique();
-
-    if (!embeddingId) {
-      throw new ConvexError("No embedding Id found.");
-    }
-
     if (!chat.embeddingId) {
-      return null;
+      return undefined;
     }
 
-    return embeddingId;
-  },
-});
-
-export const patchMessages = mutation({
-  args: {
-    chatId: v.id("chatbook"),
-    message: Message,
-  },
-  handler: async (ctx, args) => {
-    const existingChat = await ctx.db.get(args.chatId);
-
-    if (!existingChat) {
-      throw new ConvexError("No chat history found for this Id.");
-    }
-
-    const messages = existingChat?.chat || [];
-
-    await ctx.db.patch(args.chatId, {
-      chat: messages.concat([args.message]),
-    });
-  },
-});
-
-export const getMessageHistory = query({
-  args: { chatId: v.id("chatbook") },
-  handler: async (ctx, args) => {
-    const chat = await ctx.db.get(args.chatId);
-
-    return !chat?.chat ? null : chat?.chat;
-  },
-});
-
-export const getChatHistory = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
-    const chats = await ctx.db
-      .query("chatbook")
-      .filter((q) => q.eq(q.field("userId"), args.userId))
-      .collect();
-
-    if (chats.length === 0) {
-      throw new ConvexError("No chat history found.");
-    }
-    return chats;
-  },
-});
-
-export const deleteMessageHistory = mutation({
-  args: { chatId: v.id("chatbook") },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.chatId, { chat: undefined });
+    return chat;
   },
 });
 
 export const fetchResults = internalQuery({
   args: {
     embeddingIds: v.array(v.id("chatEmbeddings")),
+    chatId: v.id("chatbook"),
   },
   handler: async (ctx, args) => {
-    const results: Array<Doc<"chatEmbeddings">> = [];
-    for (const embeddingId of args.embeddingIds) {
-      const content = await ctx.db.get(embeddingId);
-      if (content === null) {
-        continue;
-      }
-      results.push(content);
-    }
+    const content = await ctx.db
+      .query("chatEmbeddings")
+      .withIndex("by_chatId", (q) => q.eq("chatId", args.chatId))
+      .collect();
+    const results = content
+      .filter((c) => args.embeddingIds.includes(c._id))
+      .map((c) => c);
     return results;
   },
 });
 
-export const similarContent = action({
+export const semanticSearch = action({
   args: { chatId: v.id("chatbook"), query: v.string() },
   handler: async (ctx, args) => {
     const embed = await fetchEmbedding([args.query]);
@@ -266,6 +145,7 @@ export const similarContent = action({
       internal.chatbook.fetchResults,
       {
         embeddingIds: filteredResults.map((result) => result._id),
+        chatId: args.chatId,
       }
     );
 
@@ -273,12 +153,20 @@ export const similarContent = action({
       return "Unable to find any content related to the file provided.";
     }
 
-    return chunks.map((d: Doc<"chatEmbeddings">) => d.content).join("\n\n");
+    const chunkWithSource: { content: string; source: string }[] = [];
+    for (const chunk of chunks) {
+      chunkWithSource.push({
+        content: chunk.content,
+        source: chunk.source ?? "",
+      });
+    }
+
+    return chunkWithSource;
   },
 });
 
 export const patchGithubFiles = internalMutation({
-  args: { files: v.array(Github) },
+  args: { files: v.array(Github), chatId: v.id("chatbook") },
   handler: async (ctx, args) => {
     const files = args.files;
 
@@ -287,6 +175,7 @@ export const patchGithubFiles = internalMutation({
         files.map(
           async (file) =>
             await ctx.db.insert("github", {
+              chatId: args.chatId,
               name: file.name,
               path: file.path,
               url: file.url,
@@ -300,3 +189,45 @@ export const patchGithubFiles = internalMutation({
     }
   },
 });
+
+export const getGithubFiles = query({
+  args: { chatId: v.id("chatbook") },
+  handler: async (ctx, args) => {
+    const files = await ctx.db
+      .query("github")
+      .withIndex("by_chatId" as never, (q: any) => q.eq("chatId", args.chatId))
+      .collect();
+    return files;
+  },
+});
+
+export const getFilePathUrl = query({
+  args: { chatId: v.id("chatbook"), path: v.string() },
+  handler: async (ctx, args) => {
+    const file = await ctx.db
+      .query("github")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("chatId"), args.chatId),
+          q.eq(q.field("path"), args.path)
+        )
+      )
+      .first();
+
+    return file;
+  },
+});
+
+// export const deleteData = mutation({
+//   args: { chatId: v.id("chatbook") },
+//   handler: async (ctx, args) => {
+//     const files = await ctx.db
+//       .query("chatEmbeddings")
+//       .filter((q) => q.neq(q.field("chatId"), args.chatId))
+//       .take(50);
+
+//     for (const file of files) {
+//       await ctx.db.delete(file._id);
+//     }
+//   },
+// });
