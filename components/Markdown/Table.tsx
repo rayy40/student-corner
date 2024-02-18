@@ -23,17 +23,20 @@ const Table = ({ children }: TableProps) => {
     child: JSX.Element | JSX.Element[];
     type: "head" | "body";
   }) => {
-    console.log(child);
     return (
       <tr className="divide-x divide-[hsl(0_0_84%)] flex justify-start items-start">
         {type === "head" ? (
           Array.isArray(child) ? (
-            child.map((item, index) => <TableHead key={index} child={item} />)
+            child.map((item, index) => (
+              <TableHead key={`table-head-${index}`} child={item} />
+            ))
           ) : (
             <TableHead child={child} />
           )
         ) : Array.isArray(child) ? (
-          child.map((item, index) => <TableData key={index} child={item} />)
+          child.map((item, index) => (
+            <TableData key={`table-body-${index}`} child={item} />
+          ))
         ) : (
           <TableData child={child} />
         )}
@@ -49,7 +52,7 @@ const Table = ({ children }: TableProps) => {
             <TableRow
               child={item["props"]?.["children"]}
               type={"head"}
-              key={index}
+              key={`head-${index}`}
             />
           ))
         ) : (
@@ -67,7 +70,7 @@ const Table = ({ children }: TableProps) => {
             <TableRow
               child={item["props"]?.["children"]}
               type={"body"}
-              key={index}
+              key={`body-${index}`}
             />
           ))
         ) : (
