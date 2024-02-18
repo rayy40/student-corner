@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "convex/react";
+import { useConvexAuth, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
@@ -15,7 +15,6 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useUserIdStore } from "@/providers/user-store";
 import { chatSchema } from "@/schema/chat_schema";
-import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 type chatSchema = z.infer<typeof chatSchema>;
@@ -33,7 +32,7 @@ const Chat = () => {
     resolver: zodResolver(chatSchema),
     mode: "onBlur",
   });
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoading, isAuthenticated } = useConvexAuth();
   const { userId } = useUserIdStore();
   const router = useRouter();
 
@@ -59,8 +58,6 @@ const Chat = () => {
   };
 
   const onSubmit = async (data: FieldValues) => {
-    console.log(data);
-
     try {
       setIsUploading(true);
       let chatId;
@@ -92,7 +89,7 @@ const Chat = () => {
     }
   };
 
-  if (!isLoaded && isSignedIn !== true) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
@@ -100,7 +97,7 @@ const Chat = () => {
     );
   }
 
-  if (!isSignedIn) {
+  if (!isAuthenticated) {
     return <UnAuthenticated />;
   }
 
@@ -115,7 +112,7 @@ const Chat = () => {
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="flex flex-col items-start gap-4">
-            <h1 className="text-4xl font-semibold font-dmSans">Chatbook</h1>
+            <h1 className="text-4xl font-semibold">Chatbook</h1>
             <DropDown
               kind="chat"
               reset={reset}

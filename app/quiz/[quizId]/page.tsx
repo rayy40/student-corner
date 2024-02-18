@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "convex/react";
+import { useConvexAuth, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -15,7 +15,6 @@ import { calculateScore, numToAlpha } from "@/helpers/utils";
 import { useQueryQuizProps } from "@/hooks/useQueryObject";
 import { answerSchema } from "@/schema/quiz_schema";
 import { QuizData } from "@/types";
-import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 type answerSchema = z.infer<typeof answerSchema>;
@@ -29,7 +28,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     [key: number]: string;
   }>({});
   const [isCalculatingScore, setIsCalculatingScore] = useState(false);
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoading, isAuthenticated } = useConvexAuth();
   const router = useRouter();
 
   const game = useQueryQuizProps({ quizId: params.quizId as Id<"quiz"> });
@@ -38,15 +37,16 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
 
   const onSubmit = async () => {
     setIsCalculatingScore(true);
+
     const values = getValues();
 
-    if (!game?.data?.response) {
+    if (!game?.quiz?.response) {
       throw new Error("Unable to get response from OpenAI.");
     }
 
-    const result = calculateScore(game?.data?.response?.questions, values);
+    const result = calculateScore(game?.quiz?.response?.questions, values);
 
-    const updatedgame = (game?.data?.response?.questions).map(
+    const updatedgame = (game?.quiz?.response?.questions).map(
       (item, index) => ({
         ...item,
         yourAnswer: values[index + 1] as string,
@@ -142,14 +142,30 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     );
   };
 
-  if (isLoaded && !isSignedIn) {
-    return <UnAuthenticated />;
-  }
-
-  if (game.loading || isCalculatingScore) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <UnAuthenticated />;
+  }
+
+  if (game.loading || game.quiz === undefined || isCalculatingScore) {
+    return (
+      <div className="flex items-center justify-center w-full h-screen">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (game.quiz === null) {
+    return (
+      <div className="flex items-center justify-center w-full h-screen">
+        <p>No response generated from OpenAI.</p>
       </div>
     );
   }
@@ -159,7 +175,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2 text-lg">
           <span className="font-medium text-muted-foreground">Topic: </span>
-          <p>{game?.data?.response?.title}</p>
+          <p>{game?.quiz?.response?.title}</p>
         </div>
         <div className="flex gap-0.5 font-semibold item-center text-muted-foreground">
           <LuTimer size="1.5rem" /> {19}s
@@ -170,7 +186,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
         action="/"
         className="flex flex-col w-full gap-6"
       >
-        {game?.data?.response?.questions?.map((item, id) => (
+        {game?.quiz?.response?.questions?.map((item, id) => (
           <div
             className={`${
               id + 1 === questionNumber ? "flex" : "hidden"
@@ -181,16 +197,16 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
               <span className="w-[50px] font-semibold whitespace-nowrap text-muted-foreground">
                 {id + 1} /{" "}
                 <span className="text-secondary-foreground">
-                  {game?.data?.questionNumber}
+                  {game?.quiz?.questionNumber}
                 </span>
               </span>
               <p>{item.question}</p>
             </div>
-            {game?.data?.format === "mcq" && (
+            {game?.quiz?.format === "mcq" && (
               <MCQFormatQuiz item={item} id={id} />
             )}
-            {game?.data?.format === "name" && <NameFormatQuiz id={id} />}
-            {game?.data?.format === "true_false" && <TrueFalseQuiz id={id} />}
+            {game?.quiz?.format === "name" && <NameFormatQuiz id={id} />}
+            {game?.quiz?.format === "true_false" && <TrueFalseQuiz id={id} />}
           </div>
         ))}
         <div className="flex items-center justify-between w-full pt-4">
@@ -202,7 +218,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
           >
             Previous
           </button>
-          {questionNumber === game?.data?.questionNumber ? (
+          {questionNumber === game?.quiz?.questionNumber ? (
             <button
               className="p-2 px-3 font-semibold transition-colors border rounded-md shadow-button border-border bg-primary hover:bg-primary-hover text-primary-foreground"
               onClick={handleSubmit(onSubmit)}

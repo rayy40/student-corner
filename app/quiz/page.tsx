@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "convex/react";
+import { useConvexAuth, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FieldError, FieldValues, useForm } from "react-hook-form";
@@ -12,7 +12,7 @@ import UnAuthenticated from "@/components/UnAuthenticated";
 import Document from "@/components/Upload/Documents/Documents";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { useUserIdStore } from "@/providers/store";
+import { useUserIdStore } from "@/providers/user-store";
 import { quizSchema } from "@/schema/quiz_schema";
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,7 +33,7 @@ const Quiz = () => {
     mode: "onBlur",
   });
 
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoading, isAuthenticated } = useConvexAuth();
   const { userId } = useUserIdStore();
 
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
@@ -57,7 +57,6 @@ const Quiz = () => {
     } else if (by === "document") {
       content = "document";
     }
-    console.log(data);
     try {
       if (content === "document") {
         const uploadUrl = await generateUploadUrl();
@@ -209,7 +208,7 @@ const Quiz = () => {
     );
   };
 
-  if (!isLoaded && isSignedIn !== true) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
@@ -217,7 +216,7 @@ const Quiz = () => {
     );
   }
 
-  if (!isSignedIn) {
+  if (!isAuthenticated) {
     return <UnAuthenticated />;
   }
 
