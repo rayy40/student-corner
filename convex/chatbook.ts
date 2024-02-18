@@ -51,6 +51,7 @@ export const createChatbook = mutation({
     const chatId = await ctx.db.insert("chatbook", {
       userId: args.userId,
       url,
+      hasEmbeddingGenerated: false,
     });
 
     if (args.type === "github") {
@@ -96,7 +97,7 @@ export const getChatDetails = query({
       throw new ConvexError("No dataset found for this Id.");
     }
 
-    if (!chat.embeddingId) {
+    if (!chat.hasEmbeddingGenerated) {
       return undefined;
     }
 
