@@ -78,7 +78,7 @@ export const codeTemplate = (
   
   [END OF CODE FILE(S)]
   
-  In your answer, If you are providing the code then include a "path" section at the bottom from where you will be providing the code. 
+  In your answer, If you are providing the code then include a "path" at the bottom from where you will be providing the code. 
   
   Now answer the question using the code file(s) above.`;
 
@@ -105,8 +105,6 @@ export const ragTemplate = (
       The user will ask a question related to their ${type}, and you will answer it.
   
       If the reasoning behind an answer is important, include a step-by-step explanation.
-  
-      If the user asks difference, then provide the answer in a table format.
   
       And if the user's question is unrelated to the content then apologize but refrain from providing an answer on your own.
   
