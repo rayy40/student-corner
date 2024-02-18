@@ -1,20 +1,43 @@
 "use client";
 
+import { useConvexAuth } from "convex/react";
 import Link from "next/link";
 import React from "react";
 import { LuTrophy } from "react-icons/lu";
 
 import LoadingSpinner from "@/components/LoadingSpinner";
+import UnAuthenticated from "@/components/UnAuthenticated";
 import { Id } from "@/convex/_generated/dataModel";
 import { useQueryQuizProps } from "@/hooks/useQueryObject";
 
 const Result = ({ params }: { params: { quizId: string } }) => {
+  const { isLoading, isAuthenticated } = useConvexAuth();
   const game = useQueryQuizProps({ quizId: params.quizId as Id<"quiz"> });
 
-  if (!game) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <UnAuthenticated />;
+  }
+
+  if (game.loading || game.quiz === undefined) {
+    return (
+      <div className="flex items-center justify-center w-full h-screen">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (game.quiz === null) {
+    return (
+      <div className="flex items-center justify-center w-full h-screen">
+        <p>Result cannot be calculated for an invalid Quiz Id.</p>
       </div>
     );
   }
@@ -25,10 +48,10 @@ const Result = ({ params }: { params: { quizId: string } }) => {
         <LuTrophy className="text-[4rem]" />
         <div className="flex flex-col items-center justify-center gap-1 text-lg">
           <p>
-            You got {game?.data?.result?.correctAnswer} out of{" "}
-            {game?.data?.questionNumber}
+            You got {game?.quiz?.result?.correctAnswer} out of{" "}
+            {game?.quiz?.questionNumber}
           </p>
-          <p>Score - {game?.data?.result?.score}</p>
+          <p>Score - {game?.quiz?.result?.score}</p>
         </div>
       </div>
       <div className="flex flex-col items-center justify-center w-full gap-4">
@@ -55,7 +78,7 @@ const Result = ({ params }: { params: { quizId: string } }) => {
               </tr>
             </thead>
             <tbody>
-              {game?.data?.response?.questions?.map((q, id) => (
+              {game?.quiz?.response?.questions?.map((q, id) => (
                 <tr key={id}>
                   <td className="border-b-border text-tertiary-foreground border-b p-3 px-2 w-[5%]">
                     {id + 1}

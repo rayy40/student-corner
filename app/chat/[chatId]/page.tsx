@@ -1,29 +1,46 @@
 "use client";
 
+import { useConvexAuth } from "convex/react";
 import React from "react";
 
 import ChatBot from "@/components/ChatBot";
+import CodeViewer from "@/components/CodeViewer";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PDFViewer from "@/components/PDFViewer";
 import UnAuthenticated from "@/components/UnAuthenticated";
 import VideoViewer from "@/components/VideoViewer";
 import { Id } from "@/convex/_generated/dataModel";
-import { useQueryChatProps } from "@/hooks/useQueryObject";
-import { useAuth } from "@clerk/clerk-react";
-import CodeViewer from "@/components/CodeViewer";
+import { useQueryEmbeddingProps } from "@/hooks/useQueryObject";
 
 const ChatId = ({ params }: { params: { chatId: string } }) => {
-  const { isLoaded, isSignedIn } = useAuth();
-  const chat = useQueryChatProps({ chatId: params.chatId as Id<"chatbook"> });
+  const chatId = params.chatId as Id<"chatbook">;
+  const { isLoading, isAuthenticated } = useConvexAuth();
+  const chat = useQueryEmbeddingProps({ chatId });
 
-  if (isLoaded && !isSignedIn) {
-    return <UnAuthenticated />;
-  }
-
-  if (chat.loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (!isLoading && !isAuthenticated) {
+    return <UnAuthenticated />;
+  }
+
+  if (chat.loading || chat.data === undefined) {
+    return (
+      <div className="flex items-center justify-center w-full h-screen">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (chat.data === null) {
+    return (
+      <div className="flex items-center justify-center w-full h-screen">
+        <p>No database found for this Id.</p>
       </div>
     );
   }
@@ -41,7 +58,8 @@ const ChatId = ({ params }: { params: { chatId: string } }) => {
         <ChatBot
           chatId={chat?.data?._id!}
           title={chat?.data?.title!}
-          type={chat.data?.type ?? "doc"}
+          conversationId={undefined}
+          type={chat?.data?.type ?? "doc"}
         />
       </div>
     </div>

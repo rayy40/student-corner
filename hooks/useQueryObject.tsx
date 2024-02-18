@@ -1,16 +1,18 @@
-import { useQuery } from "convex/react";
+import { useConvex, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { useMemo, useState } from "react";
+import { MessageData } from "@/types";
 
 export const useQueryQuizProps = ({ quizId }: { quizId: Id<"quiz"> }) => {
-  const data = useQuery(api.quiz.getQuizData, {
+  const quiz = useQuery(api.quiz.getQuizData, {
     quizId,
   });
 
-  const loading = data === undefined || data === null;
+  const loading = quiz === undefined;
 
   return {
-    data,
+    quiz,
     loading,
   };
 };
@@ -32,25 +34,12 @@ export const useQueryQuizHistoryProps = ({
   };
 };
 
-export const useQueryChatProps = ({ chatId }: { chatId: Id<"chatbook"> }) => {
-  const data = useQuery(api.chatbook.getEmbeddingId, {
-    chatId,
-  });
-
-  const loading = data === undefined || data === null;
-
-  return {
-    data,
-    loading,
-  };
-};
-
 export const useQueryChatHistoryProps = ({
   userId,
 }: {
   userId: Id<"users">;
 }) => {
-  const data = useQuery(api.chatbook.getChatHistory, {
+  const data = useQuery(api.conversations.getChatsHistory, {
     userId,
   });
 
@@ -62,14 +51,12 @@ export const useQueryChatHistoryProps = ({
   };
 };
 
-export const useQueryGithubFileProps = ({
+export const useQueryEmbeddingProps = ({
   chatId,
 }: {
   chatId: Id<"chatbook">;
 }) => {
-  const data = useQuery(api.chatbook.getGithubFiles, {
-    chatId,
-  });
+  const data = useQuery(api.chatbook.getChatDetails, { chatId });
 
   const loading = data === undefined;
 
@@ -77,4 +64,44 @@ export const useQueryGithubFileProps = ({
     data,
     loading,
   };
+};
+
+export const useQueryGithubRepoProps = ({
+  chatId,
+}: {
+  chatId: Id<"chatbook">;
+}) => {
+  const data = useQuery(api.chatbook.getGithubFiles, { chatId });
+
+  const loading = data === undefined;
+
+  return {
+    data,
+    loading,
+  };
+};
+
+export const useConversationHistory = (chatId: Id<"chatbook">) => {
+  const convex = useConvex();
+  const [conversationHistory, setConversationHistory] = useState<MessageData[]>(
+    []
+  );
+
+  useMemo(() => {
+    if (!chatId) return;
+
+    const fetchData = async () => {
+      const response = await convex.query(api.conversations.getConversation, {
+        chatId,
+      });
+      if (!response) {
+        setConversationHistory([]);
+      } else {
+        setConversationHistory(response);
+      }
+    };
+    fetchData();
+  }, [chatId, convex]);
+
+  return conversationHistory;
 };
