@@ -9,7 +9,7 @@ import {
 } from "react-hook-form";
 import { z } from "zod";
 
-import { Response } from "./convex/schema";
+import { Github, Response } from "./convex/schema";
 import { chatSchema } from "./schema/chat_schema";
 import { quizSchema } from "./schema/quiz_schema";
 import { Dispatch } from "react";
@@ -30,6 +30,11 @@ export type SelectedOptions = {
 
 export type ResponseData = Infer<typeof Response>;
 export type MessageData = Infer<typeof Message>;
+export type GithubFilesData = Infer<typeof Github> & {
+  _id: Id<"github">;
+  chatId: Id<"chatbook">;
+  _creationTime: number;
+};
 
 export interface GameData {
   _id: Id<"quiz">;
@@ -65,7 +70,7 @@ export interface ChatData {
   _id: Id<"chatbook">;
   _creationTime: number;
   url: string;
-  type?: string;
+  type?: "doc" | "code" | "video";
   title?: string;
   chat?: MessageType[];
   userId: Id<"users">;
@@ -75,6 +80,7 @@ export interface ChatData {
 export interface MessageType {
   tool_call_id?: string;
   ui?: any;
+  url?: string;
   content: string;
   id: string;
   role: "function" | "system" | "user" | "assistant" | "data" | "tool";
@@ -121,7 +127,35 @@ export interface UrlType<K extends string> {
   errors: K extends "quiz" ? FieldErrors<quizSchema> : FieldErrors<chatSchema>;
 }
 
+export interface AddEmbedding {
+  chatId: Id<"chatbook">;
+  content: string;
+  source: string;
+  embedding: number[];
+  title: string;
+  type: "code" | "video" | "doc";
+}
 export interface DashboardType<K extends string> {
   type: K;
   data: K extends "quiz" ? GameData[] : ChatData[];
 }
+
+export interface Document {
+  pageContent: string;
+  metadata: string;
+}
+
+export interface Chunk {
+  content: string;
+  source: string;
+}
+
+export interface FilePath {
+  id: string;
+  path: string;
+  content: string;
+}
+
+export type TreeStructure = {
+  [key: string]: TreeStructure | {}; // Recursive type definition
+};
