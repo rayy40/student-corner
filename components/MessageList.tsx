@@ -4,7 +4,7 @@ import React, { memo } from "react";
 import { initialAssistantMessage } from "@/helpers/format";
 import { MessageType } from "@/types";
 
-import { List, ListItem } from "./Markdown/List";
+import { ListItem, OrderedList, UnorderedList } from "./Markdown/List";
 import Paragraph from "./Markdown/Paragraph";
 import PreBlock from "./Markdown/PreBlock";
 import Table from "./Markdown/Table";
@@ -19,7 +19,7 @@ import Wrapper from "./Markdown/Wrapper";
 import { Id } from "@/convex/_generated/dataModel";
 
 type Props = {
-  type: "code" | "video" | "doc";
+  type: "codebase" | "youtube" | "files" | "documentation";
   chatId: Id<"chatbook">;
   messages: MessageType[];
   isLoading: boolean;
@@ -38,8 +38,8 @@ const MessageList = memo(
         pre: PreBlock,
         table: Table,
         p: Paragraph,
-        ul: List,
-        ol: List,
+        ul: UnorderedList,
+        ol: OrderedList,
         li: ListItem,
         strong: Strong,
         h1: PrimaryHeader,
@@ -54,7 +54,7 @@ const MessageList = memo(
     if (!messages) return;
     return (
       <div className="chat-bot py-3 px-5">
-        <div className="bg-input text-foreground p-3 pr-4 overflow-x-auto border border-border rounded-lg shadow-input max-w-[600px]">
+        <div className="bg-input text-foreground p-3 mb-2 pr-4 overflow-x-auto border border-border rounded-lg shadow-input max-w-[600px]">
           {initialAssistantMessage(type)}
         </div>
         {messages?.map((message: MessageType, index: number) => (
