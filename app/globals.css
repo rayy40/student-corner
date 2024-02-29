@@ -31,6 +31,7 @@ textarea::selection {
   border-radius: 4px;
   font-size: 0.925rem;
   color: hsl(var(--code-foreground));
+  max-width: fit-content;
 }
 
 ::-webkit-scrollbar {
@@ -48,6 +49,26 @@ textarea::selection {
 
 ::-webkit-scrollbar:horizontal {
   height: 8px;
+}
+
+.tree-branch-wrapper,
+.tree-node__leaf {
+  outline: none;
+  outline: none;
+}
+
+.tree-node {
+  cursor: pointer;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.tree-node:hover:not(.tree-node--focused, .tree-node--selected) {
+  background: hsl(var(--input));
+}
+
+.tree-node--focused,
+.tree-node--selected {
+  background: hsl(var(--border));
 }
 
 @layer base {
