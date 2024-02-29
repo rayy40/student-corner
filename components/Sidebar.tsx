@@ -70,8 +70,6 @@ const Sidebar = ({
 
   if (!treeStructure) return null;
 
-  console.log(treeStructure);
-
   const FileIcon = ({ fileName }: { fileName: string }) => {
     const extension = fileName.slice(fileName.lastIndexOf(".") + 1);
     switch (extension) {
