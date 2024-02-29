@@ -24,7 +24,7 @@ export const patchMessages = async ({
   role,
   content,
 }: PatchMessage) => {
-  await fetchMutation(api.conversations.patchMessages, {
+  await fetchMutation(api.chatbook.conversations.patchMessages, {
     chatId,
     message: {
       id: generateRandomString(),
@@ -47,10 +47,16 @@ export async function POST(req: Request) {
     } = await req.json();
     const previousMessage: string = messages[messages.length - 1].content;
 
-    const content = await fetchAction(api.chatbook.semanticSearch, {
+    const content = await fetchAction(api.search.semanticSearch, {
       chatId,
       query: previousMessage,
     });
+
+    if (typeof content === "string") {
+      return new Response("Manual message: Content is a string.", {
+        status: 200,
+      });
+    }
 
     const lastThreeMessages = messages.slice(-3);
 
