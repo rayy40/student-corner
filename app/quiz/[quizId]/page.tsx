@@ -33,7 +33,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
 
   const game = useQueryQuizProps({ quizId: params.quizId as Id<"quiz"> });
 
-  const patchAnswer = useMutation(api.quiz.patchAnswer);
+  const patchAnswer = useMutation(api.quiz.index.patchAnswer);
 
   const onSubmit = async () => {
     setIsCalculatingScore(true);
@@ -154,7 +154,7 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     return <UnAuthenticated />;
   }
 
-  if (game.loading || game.quiz === undefined || isCalculatingScore) {
+  if (game.loading || isCalculatingScore) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
@@ -162,10 +162,10 @@ const QuizId = ({ params }: { params: { quizId: string } }) => {
     );
   }
 
-  if (game.quiz === null) {
+  if (game.quiz?.status === "failed") {
     return (
       <div className="flex items-center justify-center w-full h-screen">
-        <p>No response generated from OpenAI.</p>
+        {game.quiz.error}
       </div>
     );
   }
