@@ -5,11 +5,15 @@ import { useMemo, useState } from "react";
 import { MessageData } from "@/types";
 
 export const useQueryQuizProps = ({ quizId }: { quizId: Id<"quiz"> }) => {
-  const quiz = useQuery(api.quiz.getQuizData, {
+  let loading = true;
+
+  const quiz = useQuery(api.quiz.index.getQuizData, {
     quizId,
   });
 
-  const loading = quiz === undefined;
+  if (quiz?.status !== "inProgress" && quiz !== null && quiz !== undefined) {
+    loading = false;
+  }
 
   return {
     quiz,
@@ -22,11 +26,15 @@ export const useQueryQuizHistoryProps = ({
 }: {
   userId: Id<"users">;
 }) => {
-  const data = useQuery(api.quiz.getQuizHistory, {
+  let loading = true;
+
+  const data = useQuery(api.quiz.index.getQuizHistory, {
     userId,
   });
 
-  const loading = data === undefined;
+  if (data !== null && data !== undefined) {
+    loading = false;
+  }
 
   return {
     data,
@@ -39,11 +47,15 @@ export const useQueryChatHistoryProps = ({
 }: {
   userId: Id<"users">;
 }) => {
-  const data = useQuery(api.conversations.getChatsHistory, {
+  let loading = true;
+
+  const data = useQuery(api.chatbook.conversations.getChatsHistory, {
     userId,
   });
 
-  const loading = data === undefined;
+  if (data !== null && data !== undefined) {
+    loading = false;
+  }
 
   return {
     data,
@@ -51,14 +63,18 @@ export const useQueryChatHistoryProps = ({
   };
 };
 
-export const useQueryEmbeddingProps = ({
+export const useQueryChatDetailsProps = ({
   chatId,
 }: {
   chatId: Id<"chatbook">;
 }) => {
-  const data = useQuery(api.chatbook.getChatDetails, { chatId });
+  let loading = true;
 
-  const loading = data === undefined;
+  const data = useQuery(api.chatbook.index.getChatDetails, { chatId });
+
+  if (data?.status !== "inProgress" && data !== null && data !== undefined) {
+    loading = false;
+  }
 
   return {
     data,
@@ -71,9 +87,17 @@ export const useQueryGithubRepoProps = ({
 }: {
   chatId: Id<"chatbook">;
 }) => {
-  const data = useQuery(api.chatbook.getGithubFiles, { chatId });
+  let loading = true;
 
-  const loading = data === undefined;
+  const data = useQuery(api.chatbook.index.getGithubFiles, { chatId });
+
+  if (data !== null && data !== undefined) {
+    loading = false;
+  }
+
+  if (data?.length == 0) {
+    return { data: "No files found for this repo.", loading: false };
+  }
 
   return {
     data,
@@ -91,9 +115,12 @@ export const useConversationHistory = (chatId: Id<"chatbook">) => {
     if (!chatId) return;
 
     const fetchData = async () => {
-      const response = await convex.query(api.conversations.getConversation, {
-        chatId,
-      });
+      const response = await convex.query(
+        api.chatbook.conversations.getConversation,
+        {
+          chatId,
+        }
+      );
       if (!response) {
         setConversationHistory([]);
       } else {
