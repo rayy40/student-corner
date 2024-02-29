@@ -131,11 +131,16 @@ export const getYouTubeVideoId = (url: string) => {
   return null;
 };
 
-export const extractPathFromUrl = (url: string) => {
-  const pathWithoutDomain = url.replace(
-    /^https:\/\/github\.com\/[^/]+\/[^/]+\//,
-    ""
-  );
-  const path = pathWithoutDomain.split(/[?#]/)[0];
-  return path === url ? "" : `/${path}`;
+export const isYoutubeUrl = (url: string) => {
+  const youtubeRegex =
+    /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})$/;
+
+  return youtubeRegex.test(url);
+};
+
+export const isDocsUrl = (url: string) => {
+  const docsRegex =
+    /^(https?:\/\/)?([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z]{2,}\/.*docs.*$/;
+
+  return docsRegex.test(url);
 };
