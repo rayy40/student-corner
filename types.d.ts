@@ -7,15 +7,11 @@ import {
   UseFormSetValue,
   UseFormTrigger,
 } from "react-hook-form";
-import { z } from "zod";
 
 import { Github, Response } from "./convex/schema";
 import { chatSchema } from "./schema/chat_schema";
 import { quizSchema } from "./schema/quiz_schema";
 import { Dispatch } from "react";
-
-type quizSchema = z.infer<typeof quizSchema>;
-type chatSchema = z.infer<typeof chatSchema>;
 
 export type UserAnswers = {
   [key: string]: string;
@@ -89,8 +85,8 @@ export interface MessageType {
 export interface DocumentType<K extends string> {
   kind: K;
   format: K extends "quiz"
-    ? "topic" | "paragraph" | "document"
-    : "link" | "document";
+    ? "topic" | "paragraph" | "files"
+    : "files" | "youtube" | "codebase" | "documentation";
   isSubmitted: boolean;
   register: K extends "quiz"
     ? UseFormRegister<quizSchema>
@@ -113,19 +109,6 @@ export interface DropDownType<K extends string> {
     : UseFormTrigger<chatSchema>;
   setError: React.Dispatch<React.SetStateAction<string>>;
 }
-export interface UrlType<K extends string> {
-  kind: K;
-  repo: K extends "quiz" ? null : "public" | "private";
-  format: K extends "quiz"
-    ? "topic" | "paragraph" | "document"
-    : "youtube" | "github" | "document";
-  isSubmitted: boolean;
-  setValue?: K extends "quiz" ? null : UseFormSetValue<chatSchema>;
-  register: K extends "quiz"
-    ? UseFormRegister<quizSchema>
-    : UseFormRegister<chatSchema>;
-  errors: K extends "quiz" ? FieldErrors<quizSchema> : FieldErrors<chatSchema>;
-}
 
 export interface AddEmbedding {
   chatId: Id<"chatbook">;
@@ -145,17 +128,46 @@ export interface Document {
   metadata: string;
 }
 
-export interface Chunk {
-  content: string;
-  source: string;
-}
-
 export interface FilePath {
   id: string;
   path: string;
   content: string;
 }
 
-export type TreeStructure = {
-  [key: string]: TreeStructure | {}; // Recursive type definition
+export interface GithubFileObject {
+  name: string;
+  content: string;
+  path: string;
+  html_url: string | undefined;
+  download_url: string | undefined;
+}
+
+type Node = {
+  name: string;
+  children: Node[];
+  metadata: {
+    path: string;
+    id: string;
+  };
 };
+
+export type TreeStructure = Node;
+
+export type ScheduledFunctionsStatus =
+  | {
+      kind: "pending";
+    }
+  | {
+      kind: "inProgress";
+    }
+  | {
+      kind: "success";
+    }
+  | {
+      kind: "failed";
+      error: string;
+    }
+  | {
+      kind: "canceled";
+    }
+  | null;
