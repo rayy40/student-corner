@@ -9,7 +9,7 @@ const QuizFormat = v.union(
 const QuizKind = v.union(
   v.literal("topic"),
   v.literal("paragraph"),
-  v.literal("document")
+  v.literal("files")
 );
 const Role = v.union(
   v.literal("system"),
@@ -42,7 +42,7 @@ export const Message = v.object({
 export const Github = v.object({
   name: v.string(),
   path: v.string(),
-  url: v.string(),
+  html_url: v.optional(v.string()),
   content: v.optional(v.string()),
   download_url: v.optional(v.string()),
 });
@@ -60,6 +60,11 @@ export default defineSchema({
     content: v.string(),
     format: QuizFormat,
     kind: QuizKind,
+    status: v.union(
+      v.literal("inProgress"),
+      v.literal("completed"),
+      v.literal("failed")
+    ),
     response: v.optional(Response),
     result: v.optional(
       v.object({
@@ -67,27 +72,34 @@ export default defineSchema({
         score: v.number(),
       })
     ),
+    error: v.optional(v.string()),
   }),
   github: defineTable({
     chatId: v.id("chatbook"),
     name: v.string(),
     path: v.string(),
-    url: v.string(),
+    html_url: v.optional(v.string()),
     content: v.optional(v.string()),
     download_url: v.optional(v.string()),
   }).index("by_chatId", ["chatId"]),
+  chatbookChunks: defineTable({
+    chatId: v.id("chatbook"),
+    content: v.string(),
+    embeddingId: v.optional(v.id("chatEmbeddings")),
+  })
+    .index("by_chatId", ["chatId"])
+    .index("by_embeddingId", ["embeddingId"]),
   chatEmbeddings: defineTable({
     embedding: v.array(v.float64()),
-    content: v.string(),
-    source: v.optional(v.string()),
+    chunkId: v.id("chatbookChunks"),
     chatId: v.id("chatbook"),
   })
+    .index("by_chunkId", ["chunkId"])
     .vectorIndex("by_embedding", {
       vectorField: "embedding",
       dimensions: 1536,
       filterFields: ["chatId"],
-    })
-    .index("by_chatId", ["chatId"]),
+    }),
   conversations: defineTable({
     chatId: v.id("chatbook"),
     messages: v.optional(v.array(Message)),
@@ -95,10 +107,18 @@ export default defineSchema({
   chatbook: defineTable({
     userId: v.id("users"),
     url: v.string(),
-    type: v.optional(
-      v.union(v.literal("code"), v.literal("video"), v.literal("doc"))
+    type: v.union(
+      v.literal("codebase"),
+      v.literal("youtube"),
+      v.literal("files"),
+      v.literal("documentation")
     ),
     title: v.optional(v.string()),
-    hasEmbeddingGenerated: v.boolean(),
+    status: v.union(
+      v.literal("inProgress"),
+      v.literal("completed"),
+      v.literal("failed")
+    ),
+    error: v.optional(v.string()),
   }),
 });
