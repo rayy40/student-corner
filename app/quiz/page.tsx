@@ -14,7 +14,6 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useUserIdStore } from "@/providers/user-store";
 import { quizSchema } from "@/schema/quiz_schema";
-import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 type quizSchema = z.infer<typeof quizSchema>;
@@ -39,8 +38,8 @@ const Quiz = () => {
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
   const [error, setError] = useState("");
 
-  const createQuiz = useMutation(api.quiz.createQuiz);
-  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const createQuiz = useMutation(api.quiz.index.createQuiz);
+  const generateUploadUrl = useMutation(api.helper.utils.generateUploadUrl);
 
   const router = useRouter();
   const format = watch("format", "mcq");
@@ -60,13 +59,11 @@ const Quiz = () => {
     try {
       if (content === "document") {
         const uploadUrl = await generateUploadUrl();
-
         const result = await fetch(uploadUrl as string, {
           method: "POST",
           headers: { "Content-Type": data?.document?.[0]!.type },
           body: data?.document?.[0],
         });
-
         const { storageId } = await result.json();
         storage = storageId;
       }
@@ -220,6 +217,8 @@ const Quiz = () => {
     return <UnAuthenticated />;
   }
 
+  console.log(errors);
+
   return (
     <div className="flex font-sans max-w-[500px] -my-12 mx-auto h-screen items-center justify-center p-4 pt-20">
       {isCreatingQuiz ? (
@@ -244,13 +243,13 @@ const Quiz = () => {
           </div>
           {by === "topic" && <Topic />}
           {by === "paragraph" && <Paragraph />}
-          {by === "document" && (
+          {by === "files" && (
             <Document
-              isSubmitted={isSubmitted}
+              kind="quiz"
+              format="files"
               errors={errors}
               register={register}
-              kind="quiz"
-              format="document"
+              isSubmitted={isSubmitted}
             />
           )}
           <Questions />

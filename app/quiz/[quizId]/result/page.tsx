@@ -26,18 +26,10 @@ const Result = ({ params }: { params: { quizId: string } }) => {
     return <UnAuthenticated />;
   }
 
-  if (game.loading || game.quiz === undefined) {
+  if (game.loading) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (game.quiz === null) {
-    return (
-      <div className="flex items-center justify-center w-full h-screen">
-        <p>Result cannot be calculated for an invalid Quiz Id.</p>
       </div>
     );
   }
