@@ -29,7 +29,7 @@ const QuizDashboard = () => {
     return <UnAuthenticated />;
   }
 
-  if (quizHistory.loading || quizHistory.data === undefined) {
+  if (quizHistory.loading) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
@@ -46,7 +46,7 @@ const QuizDashboard = () => {
         </form> */}
       </div>
       <div className="w-full py-4">
-        <DashboardList data={quizHistory?.data} type="quiz" />
+        <DashboardList data={quizHistory?.data!} type="quiz" />
       </div>
     </div>
   );

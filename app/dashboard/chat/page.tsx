@@ -29,7 +29,7 @@ const ChatDashboard = () => {
     return <UnAuthenticated />;
   }
 
-  if (chatHistory.loading || chatHistory.data === undefined) {
+  if (chatHistory.loading) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
@@ -46,7 +46,7 @@ const ChatDashboard = () => {
         </form> */}
       </div>
       <div className="w-full py-4">
-        <DashboardList data={chatHistory?.data} type="chat" />
+        <DashboardList data={chatHistory?.data!} type="chat" />
       </div>
     </div>
   );
