@@ -17,7 +17,7 @@ const Document = <K extends string>({
         <div className="cursor-pointer relative bg-input rounded-md border-2 bg-light-gray border-dotted border-dark-gray w-full h-full flex items-center justify-center shadow-[inset_0_0_6px_-2px_rgba(15,15,15,0.25)]">
           <label
             className="flex items-center justify-center w-full h-full rounded-md"
-            htmlFor="document"
+            htmlFor="files"
           >
             <div className="flex items-center gap-2 p-2 px-3 text-sm border rounded-md border-border bg-muted shadow-light">
               <LuFileUp /> Upload PDFs
@@ -25,15 +25,15 @@ const Document = <K extends string>({
           </label>
           <input
             type="file"
-            id="document"
+            id="files"
             className="absolute w-0 h-0 opacity-0 -z-10"
-            {...register("document")}
+            {...register("files")}
           />
         </div>
       </div>
-      {isSubmitted && format === "document" && (
+      {isSubmitted && format === "files" && (
         <p className="mt-2 text-[0.95rem] text-center text-error">
-          {(errors as { document?: FieldError }).document?.message}
+          {(errors as { files?: FieldError }).files?.message}
         </p>
       )}
     </div>

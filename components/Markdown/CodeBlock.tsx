@@ -12,13 +12,10 @@ const CodeBlock = ({ className, children }: CodeBlockProps) => {
   if (className && className.startsWith("lang-")) {
     lang = className.replace("lang-", "");
   }
+
   return (
     <div className="w-full rounded-lg flex flex-col border border-border">
-      <div className="flex gap-2 bg-[hsl(0_0_88%)] p-3 rounded-t-lg">
-        <p>components</p>
-        <span>/</span>
-        <p>Matrix.tsx</p>
-      </div>
+      <div className="flex gap-2 bg-code p-1 rounded-t-lg"></div>
       <div className="rounded-b-lg text-sm">
         <SyntaxHighlighter className="!mt-0" language={lang} style={CodeStyle}>
           {children}

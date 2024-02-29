@@ -5,7 +5,7 @@ interface WrapperProps {
 }
 
 const Wrapper = ({ children }: WrapperProps) => {
-  return <div className="flex flex-col gap-4 p-3 pr-4">{children}</div>;
+  return <div className="wrapper leading-7 p-3 pr-4">{children}</div>;
 };
 
 export default Wrapper;
