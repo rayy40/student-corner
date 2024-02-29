@@ -57,9 +57,9 @@ const paragraphSchema = z.object({
   format: z.enum(["mcq", "name", "true_false"]).default("mcq"),
 });
 
-const documentSchema = z.object({
-  by: z.enum(["topic", "paragraph", "document"]).default("topic"),
-  document: File,
+const filesSchema = z.object({
+  by: z.enum(["topic", "paragraph", "files"]).default("topic"),
+  files: File,
   questions: z
     .number()
     .min(3, { message: "Minimum 3 questions to be generated" })
@@ -69,10 +69,10 @@ const documentSchema = z.object({
 });
 
 export const quizSchema = z
-  .union([topicSchema, paragraphSchema, documentSchema])
+  .union([topicSchema, paragraphSchema, filesSchema])
   .transform((data) => {
-    if (data.by === "document") {
-      return documentSchema.parse(data);
+    if (data.by === "files") {
+      return filesSchema.parse(data);
     } else if (data.by === "paragraph") {
       return paragraphSchema.parse(data);
     } else if (data.by === "topic") {

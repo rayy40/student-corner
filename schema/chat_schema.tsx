@@ -1,6 +1,7 @@
-import z, { ZodObject } from "zod";
+import z from "zod";
 
 import isGithubUrl from "is-github-url";
+import { isDocsUrl, isYoutubeUrl } from "@/helpers/utils";
 
 const File = z.custom<FileList>().superRefine((files, ctx) => {
   if (files?.length === 0) {
@@ -30,29 +31,55 @@ const File = z.custom<FileList>().superRefine((files, ctx) => {
   return true;
 });
 
-const documentSchema = z.object({
-  by: z.enum(["youtube", "github", "document"]).default("document"),
-  document: File,
-});
-
 const youtubeSchema = z.object({
-  by: z.enum(["youtube", "github", "document"]).default("document"),
-  youtube: z.string().url({ message: "Invalid Url" }),
+  by: z
+    .enum(["youtube", "codebase", "documentation", "files"])
+    .default("files"),
+  youtube: z
+    .string()
+    .url({ message: "Invalid Url" })
+    .refine((val) => isYoutubeUrl(val), { message: "Invalid Youtube url." }),
 });
 
 const githubSchema = z.object({
-  by: z.enum(["youtube", "github", "document"]).default("document"),
-  github: z
+  by: z
+    .enum(["youtube", "codebase", "documentation", "files"])
+    .default("files"),
+  codebase: z
     .string()
     .url({ message: "Invalid Url" })
     .refine((val) => isGithubUrl(val, { repository: true }), {
-      message: "Please enter a repository Url.",
+      message: "Invalid Github repository url.",
     }),
   repo: z.enum(["public", "private"]).default("public"),
 });
 
-export const chatSchema = z.union([
-  youtubeSchema,
-  documentSchema,
-  githubSchema,
-]);
+const docsSchema = z.object({
+  by: z
+    .enum(["youtube", "codebase", "documentation", "files"])
+    .default("files"),
+  documentation: z.string().url({ message: "Invalid Url" }),
+});
+
+const documentSchema = z.object({
+  by: z
+    .enum(["youtube", "codebase", "documentation", "files"])
+    .default("files"),
+  files: File,
+});
+
+export const chatSchema = z
+  .union([youtubeSchema, githubSchema, docsSchema, documentSchema])
+  .transform((data) => {
+    if (data.by === "documentation") {
+      return docsSchema.parse(data);
+    } else if (data.by === "youtube") {
+      return youtubeSchema.parse(data);
+    } else if (data.by === "codebase") {
+      return githubSchema.parse(data);
+    } else if (data.by === "files") {
+      return documentSchema.parse(data);
+    } else {
+      throw new Error("Invalid option selected for 'by");
+    }
+  });
