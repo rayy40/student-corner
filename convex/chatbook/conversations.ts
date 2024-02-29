@@ -1,7 +1,7 @@
 import { ConvexError, v } from "convex/values";
 
-import { mutation, query } from "./_generated/server";
-import { Message } from "./schema";
+import { mutation, query } from "../_generated/server";
+import { Message } from "../schema";
 
 export const patchMessages = mutation({
   args: {

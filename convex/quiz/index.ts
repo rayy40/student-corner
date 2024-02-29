@@ -1,18 +1,16 @@
 import { ConvexError, v } from "convex/values";
 
-import { isValidQuizId } from "@/helpers/utils";
-
-import { internal } from "./_generated/api";
-import { Id } from "./_generated/dataModel";
+import { internal } from "../_generated/api";
+import { Id } from "../_generated/dataModel";
 import {
   internalAction,
   internalMutation,
   internalQuery,
   mutation,
   query,
-} from "./_generated/server";
-import { Questions, Response } from "./schema";
-import { fetchSummary } from "./openai";
+} from "../_generated/server";
+import { Questions, Response } from "../schema";
+import { fetchSummary } from "../openai";
 
 export const createQuiz = mutation({
   args: {
@@ -27,7 +25,7 @@ export const createQuiz = mutation({
     kind: v.union(
       v.literal("topic"),
       v.literal("paragraph"),
-      v.literal("document")
+      v.literal("files")
     ),
   },
   handler: async (ctx, args) => {
@@ -43,24 +41,22 @@ export const createQuiz = mutation({
       content: args.content,
       kind: args.kind,
       format: args.format,
+      status: "inProgress",
     });
 
-    if (args?.kind === "document") {
+    if (args?.kind === "files") {
       let url = await ctx.storage.getUrl(args?.content as Id<"_storage">);
 
       if (!url) {
         throw new ConvexError("No File found for this quiz Id.");
       }
 
-      await ctx.scheduler.runAfter(0, internal.docs.createChunks, {
+      await ctx.scheduler.runAfter(0, internal.quiz.chunks.createChunks, {
         url,
-        id: quizId,
-        isGenerateEmbeddings: false,
-        chunkSize: 5000,
-        kind: "doc",
+        quizId,
       });
     } else {
-      ctx.scheduler.runAfter(0, internal.openai.generateQuiz, {
+      await ctx.scheduler.runAfter(0, internal.openai.generateQuiz, {
         quizId,
       });
     }
@@ -68,16 +64,21 @@ export const createQuiz = mutation({
   },
 });
 
-export const readQuizData = internalQuery({
+export const updateQuizStatus = internalMutation({
   args: {
     quizId: v.id("quiz"),
+    status: v.union(
+      v.literal("inProgress"),
+      v.literal("completed"),
+      v.literal("failed")
+    ),
+    error: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const quiz = await ctx.db.get(args.quizId);
-    if (!quiz) {
-      throw new ConvexError("No database found for this Id.");
-    }
-    return quiz;
+    await ctx.db.patch(args.quizId, {
+      status: "failed",
+      error: args.error,
+    });
   },
 });
 
@@ -91,6 +92,7 @@ export const patchResponse = internalMutation({
     await ctx.db.patch(args.quizId, {
       response: args.response,
       title: args.title,
+      status: "completed",
     });
   },
 });
@@ -98,9 +100,6 @@ export const patchResponse = internalMutation({
 export const getQuizData = query({
   args: { quizId: v.string() },
   handler: async (ctx, args) => {
-    if (!isValidQuizId(args.quizId)) {
-      throw new ConvexError("Invalid Id.");
-    }
     const quiz = await ctx.db.get(args.quizId as Id<"quiz">);
 
     if (!quiz) {
@@ -110,6 +109,15 @@ export const getQuizData = query({
     if (!quiz.response) {
       return null;
     }
+
+    return quiz;
+  },
+});
+
+export const readQuizData = internalQuery({
+  args: { quizId: v.id("quiz") },
+  handler: async (ctx, args) => {
+    const quiz = await ctx.db.get(args.quizId);
 
     return quiz;
   },
@@ -164,18 +172,26 @@ export const generateSummary = internalAction({
     title: v.string(),
   },
   handler: async (ctx, args) => {
-    let content: string = "";
-    for (let i = 0; i < args.chunks.length; i += 1) {
-      content += await fetchSummary(args.chunks[i]);
+    try {
+      let content: string = "";
+      for (let i = 0; i < args.chunks.length; i += 1) {
+        content += await fetchSummary(args.chunks[i]);
 
-      if (content.length === 0) {
-        throw new ConvexError("Unable to generate summary from OpenAI.");
+        if (content.length === 0) {
+          throw new ConvexError("Unable to generate summary from OpenAI.");
+        }
       }
-    }
 
-    await ctx.scheduler.runAfter(0, internal.openai.generateQuiz, {
-      quizId: args.quizId,
-      content,
-    });
+      await ctx.scheduler.runAfter(0, internal.openai.generateQuiz, {
+        quizId: args.quizId,
+        content,
+      });
+    } catch (error) {
+      await ctx.runMutation(internal.quiz.index.updateQuizStatus, {
+        quizId: args.quizId,
+        status: "failed",
+        error: (error as Error).message,
+      });
+    }
   },
 });

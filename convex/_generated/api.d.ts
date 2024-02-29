@@ -14,12 +14,19 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as chatbook from "../chatbook.js";
-import type * as docs from "../docs.js";
-import type * as files from "../files.js";
-import type * as github from "../github.js";
+import type * as chatbook_chunks_codebase from "../chatbook/chunks/codebase.js";
+import type * as chatbook_chunks_documentation from "../chatbook/chunks/documentation.js";
+import type * as chatbook_chunks_files from "../chatbook/chunks/files.js";
+import type * as chatbook_chunks_youtube from "../chatbook/chunks/youtube.js";
+import type * as chatbook_conversations from "../chatbook/conversations.js";
+import type * as chatbook_embedding from "../chatbook/embedding.js";
+import type * as chatbook_index from "../chatbook/index.js";
+import type * as helper_chunks from "../helper/chunks.js";
+import type * as helper_utils from "../helper/utils.js";
 import type * as openai from "../openai.js";
-import type * as quiz from "../quiz.js";
+import type * as quiz_chunks from "../quiz/chunks.js";
+import type * as quiz_index from "../quiz/index.js";
+import type * as search from "../search.js";
 import type * as users from "../users.js";
 
 /**
@@ -31,12 +38,19 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  chatbook: typeof chatbook;
-  docs: typeof docs;
-  files: typeof files;
-  github: typeof github;
+  "chatbook/chunks/codebase": typeof chatbook_chunks_codebase;
+  "chatbook/chunks/documentation": typeof chatbook_chunks_documentation;
+  "chatbook/chunks/files": typeof chatbook_chunks_files;
+  "chatbook/chunks/youtube": typeof chatbook_chunks_youtube;
+  "chatbook/conversations": typeof chatbook_conversations;
+  "chatbook/embedding": typeof chatbook_embedding;
+  "chatbook/index": typeof chatbook_index;
+  "helper/chunks": typeof helper_chunks;
+  "helper/utils": typeof helper_utils;
   openai: typeof openai;
-  quiz: typeof quiz;
+  "quiz/chunks": typeof quiz_chunks;
+  "quiz/index": typeof quiz_index;
+  search: typeof search;
   users: typeof users;
 }>;
 export declare const api: FilterApi<
