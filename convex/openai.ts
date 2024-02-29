@@ -52,26 +52,34 @@ export const generateQuiz = internalAction({
     content: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const quiz = await ctx.runQuery(internal.quiz.readQuizData, {
-      quizId: args.quizId,
-    });
+    try {
+      const quiz = await ctx.runQuery(internal.quiz.index.readQuizData, {
+        quizId: args.quizId,
+      });
 
-    if (!quiz) {
-      throw new ConvexError("No dataset found for this quiz Id.");
+      if (!quiz) {
+        throw new ConvexError("No dataset found for this quiz Id.");
+      }
+      const response = await getResponseFromOpenAI({
+        format: quiz?.format,
+        questionNumber: quiz?.questionNumber,
+        content:
+          quiz?.kind === "files" ? (args.content as string) : quiz?.content,
+        kind: quiz?.kind,
+      });
+
+      await ctx.runMutation(internal.quiz.index.patchResponse, {
+        quizId: args.quizId,
+        title: response.title ?? "Untitled",
+        response,
+      });
+    } catch (error) {
+      await ctx.runMutation(internal.quiz.index.updateQuizStatus, {
+        quizId: args.quizId,
+        status: "failed",
+        error: (error as Error).message,
+      });
     }
-    const response = await getResponseFromOpenAI({
-      format: quiz?.format,
-      questionNumber: quiz?.questionNumber,
-      content:
-        quiz?.kind === "document" ? (args.content as string) : quiz?.content,
-      kind: quiz?.kind,
-    });
-
-    await ctx.runMutation(internal.quiz.patchResponse, {
-      quizId: args.quizId,
-      title: response.title ?? "Untitled",
-      response: response,
-    });
   },
 });
 
