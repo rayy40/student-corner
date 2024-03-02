@@ -31,20 +31,20 @@ const File = z.custom<FileList>().superRefine((files, ctx) => {
   return true;
 });
 
-const youtubeSchema = z.object({
+export const youtubeSchema = z.object({
   by: z
     .enum(["youtube", "codebase", "documentation", "files"])
-    .default("files"),
+    .default("youtube"),
   youtube: z
     .string()
     .url({ message: "Invalid Url" })
     .refine((val) => isYoutubeUrl(val), { message: "Invalid Youtube url." }),
 });
 
-const githubSchema = z.object({
+export const codebaseSchema = z.object({
   by: z
     .enum(["youtube", "codebase", "documentation", "files"])
-    .default("files"),
+    .default("codebase"),
   codebase: z
     .string()
     .url({ message: "Invalid Url" })
@@ -54,32 +54,16 @@ const githubSchema = z.object({
   repo: z.enum(["public", "private"]).default("public"),
 });
 
-const docsSchema = z.object({
+export const documentationSchema = z.object({
   by: z
     .enum(["youtube", "codebase", "documentation", "files"])
-    .default("files"),
+    .default("documentation"),
   documentation: z.string().url({ message: "Invalid Url" }),
 });
 
-const documentSchema = z.object({
+export const filesSchema = z.object({
   by: z
     .enum(["youtube", "codebase", "documentation", "files"])
     .default("files"),
   files: File,
 });
-
-export const chatSchema = z
-  .union([youtubeSchema, githubSchema, docsSchema, documentSchema])
-  .transform((data) => {
-    if (data.by === "documentation") {
-      return docsSchema.parse(data);
-    } else if (data.by === "youtube") {
-      return youtubeSchema.parse(data);
-    } else if (data.by === "codebase") {
-      return githubSchema.parse(data);
-    } else if (data.by === "files") {
-      return documentSchema.parse(data);
-    } else {
-      throw new Error("Invalid option selected for 'by");
-    }
-  });

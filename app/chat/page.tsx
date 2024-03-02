@@ -3,8 +3,7 @@
 import { useConvexAuth, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { FieldError, FieldValues, useForm } from "react-hook-form";
-import { z } from "zod";
+import { FieldError, FieldValues } from "react-hook-form";
 
 import DropDown from "@/components/DropDown";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -12,25 +11,22 @@ import UnAuthenticated from "@/components/UnAuthenticated";
 import Document from "@/components/Upload/Documents/Documents";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import useFormWithDynamicSchema from "@/hooks/useFormWithDynamicSchema";
 import { useUserIdStore } from "@/providers/user-store";
-import { chatSchema } from "@/schema/chat_schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-
-type chatSchema = z.infer<typeof chatSchema>;
+import { ChatSchemaSelection } from "@/types";
 
 const Chat = () => {
+  const [formSchema, setFormSchema] = useState<ChatSchemaSelection>("youtube");
+
   const {
+    register,
+    handleSubmit,
+    errors,
+    isSubmitted,
     reset,
     watch,
-    trigger,
-    register,
     setValue,
-    handleSubmit,
-    formState: { errors, isSubmitted },
-  } = useForm<chatSchema>({
-    resolver: zodResolver(chatSchema),
-    mode: "onBlur",
-  });
+  } = useFormWithDynamicSchema({ kind: "chat", selectedSchema: formSchema });
   const { isLoading, isAuthenticated } = useConvexAuth();
   const { userId } = useUserIdStore();
   const router = useRouter();
@@ -42,7 +38,6 @@ const Chat = () => {
   const [error, setError] = useState("");
 
   const repo = watch("repo", "public");
-  const by = watch("by", "youtube");
 
   const uploadDocument = async (document: File) => {
     const uploadUrl = await generateUploadUrl();
@@ -57,11 +52,10 @@ const Chat = () => {
   };
 
   const onSubmit = async (data: FieldValues) => {
-    console.log(data);
     try {
       setIsUploading(true);
       let chatId;
-      if (by === "files") {
+      if (formSchema === "files") {
         const storageId = await uploadDocument(data.files[0]);
         chatId = await createChatbook({
           userId: userId as Id<"users">,
@@ -71,7 +65,7 @@ const Chat = () => {
       } else {
         chatId = await createChatbook({
           userId: userId as Id<"users">,
-          url: data?.[by],
+          url: data?.[formSchema],
           type: data.by,
         });
       }
@@ -84,7 +78,7 @@ const Chat = () => {
       reset({
         by: data.by,
         repo: "public",
-        [data.by]: data.by === "document" ? null : "",
+        [data.by]: data.by === "files" ? null : "",
       });
     }
   };
@@ -92,19 +86,22 @@ const Chat = () => {
   const Docs = () => {
     return (
       <div className="flex flex-col gap-1">
-        <label className="font-semibold text-label capitalize" htmlFor="Docs">
+        <label
+          className="font-semibold text-label capitalize"
+          htmlFor="Documentation"
+        >
           Docs Url
         </label>
         <input
           type="url"
           className="w-full p-2 border border-gray-200 rounded-md bg-input shadow-input"
           placeholder="Paste your link."
-          id="Docs"
-          {...register("files")}
+          id="Documentation"
+          {...register("documentation")}
         />
-        {isSubmitted && by === "files" && (
+        {isSubmitted && (
           <p className="mt-2 text-center text-error">
-            {(errors as { files?: FieldError }).files?.message}
+            {(errors as { documentation?: FieldError }).documentation?.message}
           </p>
         )}
       </div>
@@ -127,7 +124,7 @@ const Chat = () => {
           id="Youtube"
           {...register("youtube")}
         />
-        {isSubmitted && by === "youtube" && (
+        {isSubmitted && (
           <p className="mt-2 text-center text-error">
             {(errors as { youtube?: FieldError }).youtube?.message}
           </p>
@@ -170,7 +167,7 @@ const Chat = () => {
             </button>
           </div>
         </div>
-        {isSubmitted && by === "codebase" && (
+        {isSubmitted && (
           <p className="mt-2 text-center text-error">
             {(errors as { codebase?: FieldError }).codebase?.message}
           </p>
@@ -178,8 +175,6 @@ const Chat = () => {
       </div>
     );
   };
-
-  console.log(errors);
 
   if (isLoading) {
     return (
@@ -208,14 +203,14 @@ const Chat = () => {
             <DropDown
               kind="chat"
               reset={reset}
-              trigger={trigger}
-              value={by}
+              value={formSchema}
               lists={["youtube", "codebase", "documentation", "files"]}
-              setValue={setValue}
               setError={setError}
+              setValue={setValue}
+              setFormSchema={setFormSchema}
             />
           </div>
-          {by === "files" && (
+          {formSchema === "files" && (
             <Document
               kind="chat"
               format="files"
@@ -224,9 +219,9 @@ const Chat = () => {
               isSubmitted={isSubmitted}
             />
           )}
-          {by === "documentation" && <Docs />}
-          {by === "codebase" && <Github />}
-          {by === "youtube" && <Youtube />}
+          {formSchema === "documentation" && <Docs />}
+          {formSchema === "codebase" && <Github />}
+          {formSchema === "youtube" && <Youtube />}
           <button
             className="p-2 font-semibold transition-colors rounded-md bg-primary text-primary-foreground hover:bg-primary-hover"
             type="submit"

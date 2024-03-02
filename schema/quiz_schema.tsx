@@ -28,7 +28,7 @@ const File = z.custom<FileList>().superRefine((files, ctx) => {
   return true;
 });
 
-const topicSchema = z.object({
+export const topicSchema = z.object({
   by: z.enum(["topic", "paragraph", "document"]).default("topic"),
   topic: z
     .string()
@@ -41,7 +41,7 @@ const topicSchema = z.object({
   format: z.enum(["mcq", "name", "true_false"]).default("mcq"),
 });
 
-const paragraphSchema = z.object({
+export const paragraphSchema = z.object({
   by: z.enum(["topic", "paragraph", "document"]).default("topic"),
   paragraph: z
     .string()
@@ -57,7 +57,7 @@ const paragraphSchema = z.object({
   format: z.enum(["mcq", "name", "true_false"]).default("mcq"),
 });
 
-const filesSchema = z.object({
+export const filesSchema = z.object({
   by: z.enum(["topic", "paragraph", "files"]).default("topic"),
   files: File,
   questions: z
@@ -67,20 +67,6 @@ const filesSchema = z.object({
     .default(5),
   format: z.enum(["mcq", "name", "true_false"]).default("mcq"),
 });
-
-export const quizSchema = z
-  .union([topicSchema, paragraphSchema, filesSchema])
-  .transform((data) => {
-    if (data.by === "files") {
-      return filesSchema.parse(data);
-    } else if (data.by === "paragraph") {
-      return paragraphSchema.parse(data);
-    } else if (data.by === "topic") {
-      return topicSchema.parse(data);
-    } else {
-      throw new Error("Invalid option selected for 'by");
-    }
-  });
 
 export const answerSchema = z.object({
   answers: z.array(z.string()).optional(),

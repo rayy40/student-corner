@@ -2,6 +2,7 @@ import { Message } from "ai";
 import { Infer } from "convex/values";
 import {
   FieldErrors,
+  FieldValues,
   UseFormRegister,
   UseFormReset,
   UseFormSetValue,
@@ -9,15 +10,40 @@ import {
 } from "react-hook-form";
 
 import { Github, Response } from "./convex/schema";
-import { chatSchema } from "./schema/chat_schema";
 import { quizSchema } from "./schema/quiz_schema";
-import { Dispatch } from "react";
+import { Dispatch, SetStateAction } from "react";
+import {
+  youtubeSchema,
+  codebaseSchema,
+  filesSchema as ChatFilesSchema,
+  documentationSchema,
+} from "./schema/chat_schema";
+import {
+  topicSchema,
+  paragraphSchema,
+  filesSchema as QuizFilesSchema,
+} from "./schema/quiz_schema";
+
+export type CodebaseSchema = z.infer<typeof codebaseSchema>;
+export type YoutubeSchema = z.infer<typeof youtubeSchema>;
+export type DocumentationSchema = z.infer<typeof documentationSchema>;
+export type ChatFilesSchema = z.infer<typeof ChatFilesSchema>;
+export type TopicSchema = z.infer<typeof topicSchema>;
+export type ParagraphSchema = z.infer<typeof paragraphSchema>;
+export type QuizFilesSchema = z.infer<typeof QuizFilesSchema>;
+
+export type ChatSchemaSelection =
+  | "codebase"
+  | "files"
+  | "documentation"
+  | "youtube";
+export type QuizSchemaSelection = "topic" | "paragraph" | "files";
+
+export type FormatType = "mcq" | "name" | "true_false";
 
 export type UserAnswers = {
   [key: string]: string;
 };
-
-export type FormatType = "mcq" | "name" | "true_false";
 
 export type SelectedOptions = {
   key: number;
@@ -84,30 +110,35 @@ export interface MessageType {
 
 export interface DocumentType<K extends string> {
   kind: K;
-  format: K extends "quiz"
-    ? "topic" | "paragraph" | "files"
-    : "files" | "youtube" | "codebase" | "documentation";
+  format: K extends "quiz" ? QuizSchemaSelection : ChatSchemaSelection;
   isSubmitted: boolean;
   register: K extends "quiz"
-    ? UseFormRegister<quizSchema>
-    : UseFormRegister<chatSchema>;
-  errors: K extends "quiz" ? FieldErrors<quizSchema> : FieldErrors<chatSchema>;
+    ? UseFormRegister<TopicSchema | ParagraphSchema | QuizFilesSchema>
+    : UseFormRegister<
+        YoutubeSchema | DocumentationSchema | ChatFilesSchema | CodebaseSchema
+      >;
+  errors: K extends "quiz"
+    ? FieldErrors<TopicSchema | ParagraphSchema | QuizFilesSchema>
+    : FieldErrors<
+        YoutubeSchema | DocumentationSchema | ChatFilesSchema | CodebaseSchema
+      >;
 }
 
 export interface DropDownType<K extends string> {
   kind: K;
-  value: string;
+  value: K extends "quiz" ? QuizSchemaSelection : ChatSchemaSelection;
   lists: string[];
-  reset?: K extends "quiz"
-    ? UseFormReset<quizSchema>
-    : UseFormReset<chatSchema>;
-  setValue?: K extends "quiz"
-    ? UseFormSetValue<quizSchema>
-    : UseFormSetValue<chatSchema>;
-  trigger?: K extends "quiz"
-    ? UseFormTrigger<quizSchema>
-    : UseFormTrigger<chatSchema>;
-  setError: React.Dispatch<React.SetStateAction<string>>;
+  reset: UseFormReset<FieldValues>;
+  setError: Dispatch<SetStateAction<string>>;
+  setValue: UseFormSetValue<FieldValues>;
+  setFormSchema: K extends "quiz"
+    ? Dispatch<SetStateAction<QuizSchemaSelection>>
+    : Dispatch<SetStateAction<ChatSchemaSelection>>;
+}
+
+export interface DynamicFormType<K extends string> {
+  kind: K;
+  selectedSchema: K extends "quiz" ? QuizSchemaSelection : ChatSchemaSelection;
 }
 
 export interface AddEmbedding {

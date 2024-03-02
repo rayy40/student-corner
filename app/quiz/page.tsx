@@ -3,8 +3,7 @@
 import { useConvexAuth, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FieldError, FieldValues, useForm } from "react-hook-form";
-import { z } from "zod";
+import { FieldError, FieldValues } from "react-hook-form";
 
 import DropDown from "@/components/DropDown";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -12,25 +11,25 @@ import UnAuthenticated from "@/components/UnAuthenticated";
 import Document from "@/components/Upload/Documents/Documents";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import useFormWithDynamicSchema from "@/hooks/useFormWithDynamicSchema";
 import { useUserIdStore } from "@/providers/user-store";
-import { quizSchema } from "@/schema/quiz_schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-
-type quizSchema = z.infer<typeof quizSchema>;
+import { QuizSchemaSelection } from "@/types";
 
 const Quiz = () => {
+  const [formSchema, setFormSchema] = useState<QuizSchemaSelection>("topic");
+
   const {
-    reset,
-    watch,
-    trigger,
     register,
-    setValue,
     handleSubmit,
-    formState: { errors, isSubmitted },
-  } = useForm<quizSchema>({
-    resolver: zodResolver(quizSchema),
-    mode: "onBlur",
-  });
+    errors,
+    isSubmitted,
+    reset,
+    trigger,
+    setValue,
+    watch,
+  } = useFormWithDynamicSchema({ kind: "quiz", selectedSchema: formSchema });
+
+  const format = watch("format", "mcq");
 
   const { isLoading, isAuthenticated } = useConvexAuth();
   const { userId } = useUserIdStore();
@@ -42,27 +41,17 @@ const Quiz = () => {
   const generateUploadUrl = useMutation(api.helper.utils.generateUploadUrl);
 
   const router = useRouter();
-  const format = watch("format", "mcq");
-  const by = watch("by", "topic");
 
   const onSubmit = async (data: FieldValues) => {
     setIsCreatingQuiz(true);
-    let content = "",
-      storage = "";
-    if (by === "topic") {
-      content = "topic";
-    } else if (by === "paragraph") {
-      content = "paragraph";
-    } else if (by === "document") {
-      content = "document";
-    }
+    let storage = "";
     try {
-      if (content === "document") {
+      if (formSchema === "files") {
         const uploadUrl = await generateUploadUrl();
         const result = await fetch(uploadUrl as string, {
           method: "POST",
-          headers: { "Content-Type": data?.document?.[0]!.type },
-          body: data?.document?.[0],
+          headers: { "Content-Type": data?.files?.[0]!.type },
+          body: data?.files?.[0],
         });
         const { storageId } = await result.json();
         storage = storageId;
@@ -70,7 +59,7 @@ const Quiz = () => {
       const quizId = await createQuiz({
         userId: userId as Id<"users">,
         questionNumber: data.questions,
-        content: content === "document" ? storage : data?.[content],
+        content: formSchema === "files" ? storage : data?.[formSchema],
         format: data.format,
         kind: data.by,
       });
@@ -84,7 +73,7 @@ const Quiz = () => {
         by: data.by,
         format: "mcq",
         questions: 5,
-        [data.by]: data.by === "document" ? null : "",
+        [data.by]: data.by === "files" ? null : "",
       });
     }
   };
@@ -102,7 +91,7 @@ const Quiz = () => {
           placeholder="Enter topic"
           {...register("topic")}
         />
-        {isSubmitted && by === "topic" && (
+        {isSubmitted && (
           <p className="mt-1 text-[0.95rem] text-error">
             {(errors as { topic?: FieldError }).topic?.message}
           </p>
@@ -127,7 +116,7 @@ const Quiz = () => {
           placeholder="Enter text"
           {...register("paragraph")}
         />
-        {isSubmitted && by === "paragraph" && (
+        {isSubmitted && (
           <p className="mt-1 text-[0.95rem] text-error">
             {(errors as { paragraph?: FieldError }).paragraph?.message}
           </p>
@@ -158,7 +147,7 @@ const Quiz = () => {
         />
         {errors.questions && (
           <p className="mt-1 text-[0.95rem] text-error">
-            {errors.questions?.message}
+            {(errors as { questions?: FieldError }).questions?.message}
           </p>
         )}
       </div>
@@ -217,8 +206,6 @@ const Quiz = () => {
     return <UnAuthenticated />;
   }
 
-  console.log(errors);
-
   return (
     <div className="flex font-sans max-w-[500px] -my-12 mx-auto h-screen items-center justify-center p-4 pt-20">
       {isCreatingQuiz ? (
@@ -234,16 +221,16 @@ const Quiz = () => {
             <DropDown
               kind="quiz"
               reset={reset}
-              trigger={trigger}
-              value={by}
-              lists={["topic", "paragraph", "document"]}
+              value={formSchema}
+              lists={["topic", "paragraph", "files"]}
               setValue={setValue}
               setError={setError}
+              setFormSchema={setFormSchema}
             />
           </div>
-          {by === "topic" && <Topic />}
-          {by === "paragraph" && <Paragraph />}
-          {by === "files" && (
+          {formSchema === "topic" && <Topic />}
+          {formSchema === "paragraph" && <Paragraph />}
+          {formSchema === "files" && (
             <Document
               kind="quiz"
               format="files"

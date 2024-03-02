@@ -2,18 +2,18 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { LuCheck, LuChevronsUpDown } from "react-icons/lu";
-import { DropDownType } from "@/types";
+import { ChatSchemaSelection, DropDownType } from "@/types";
 
 const DropDown = <K extends string>({
   lists,
   value,
   reset,
-  setValue,
   setError,
-  trigger,
+  setFormSchema,
+  setValue,
 }: DropDownType<K>) => {
   const [openDropDown, setOpenDropDown] = useState(false);
-  const [category, setCategory] = useState(value);
+  const [category, setCategory] = useState<string>(value);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,12 +32,21 @@ const DropDown = <K extends string>({
     }
   };
 
+  const handleItemClick = (item: ChatSchemaSelection) => {
+    setOpenDropDown(false);
+    setCategory(item);
+    reset();
+    setError("");
+    setValue("by", item);
+    setFormSchema(item);
+  };
+
   return (
     <div ref={dropdownRef} className="relative text-sm ">
       <button
         type="button"
         onClick={() => setOpenDropDown((prev) => !prev)}
-        className="w-[152px] flex capitalize items-center gap-2 p-2 border rounded-md border-border shadow-light bg-secondary hover:bg-secondary-hover"
+        className="w-[160px] flex capitalize items-center gap-2 p-2 border rounded-md border-border shadow-light bg-secondary hover:bg-secondary-hover"
       >
         <span className="text-muted-foreground">By:</span>
         {category}
@@ -48,14 +57,11 @@ const DropDown = <K extends string>({
           <ul>
             {lists.map((item, i) => (
               <li
-                onClick={() => {
-                  setOpenDropDown(false);
-                  setCategory(item);
-                  trigger && trigger(item as any);
-                  reset && reset();
-                  setValue && setValue("by", item as any);
-                  setError("");
-                }}
+                onClick={() =>
+                  handleItemClick(
+                    item as "youtube" | "codebase" | "files" | "documentation"
+                  )
+                }
                 className="flex items-center justify-between p-2 capitalize rounded-md cursor-pointer bg-secondary hover:bg-secondary-hover"
                 key={i}
               >
