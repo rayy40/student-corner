@@ -19,12 +19,12 @@ export const addChunks = internalMutation({
 });
 
 export const getChunks = internalQuery({
-  args: { chatId: v.id("chatbook") },
+  args: { chatId: v.id("chatbook"), cursor: v.any() },
   handler: async (ctx, args) => {
     const chunks = await ctx.db
       .query("chatbookChunks")
       .withIndex("by_chatId", (q) => q.eq("chatId", args.chatId))
-      .collect();
+      .paginate({ cursor: args.cursor, numItems: 50 });
     return chunks;
   },
 });

@@ -1,4 +1,4 @@
-import { WithoutSystemFields } from "convex/server";
+import { PaginationResult, WithoutSystemFields } from "convex/server";
 import { v } from "convex/values";
 
 import { internal } from "../_generated/api";
@@ -16,9 +16,20 @@ export const generateEmbeddings = internalAction({
   },
   handler: async (ctx, args) => {
     try {
-      const chunks = await ctx.runQuery(internal.helper.chunks.getChunks, {
-        chatId: args.chatId,
-      });
+      let isDone = false;
+      let cursor: null | string = null;
+      const chunks = [];
+
+      while (!isDone) {
+        const result: PaginationResult<Doc<"chatbookChunks">> =
+          await ctx.runQuery(internal.helper.chunks.getChunks, {
+            chatId: args.chatId,
+            cursor,
+          });
+        isDone = result.isDone;
+        cursor = result.continueCursor;
+        chunks.push(...result.page);
+      }
 
       for (let batchStart = 0; batchStart < chunks.length; batchStart += 100) {
         const embeddingObjects: EmbeddingArray[] = [];
@@ -43,6 +54,7 @@ export const generateEmbeddings = internalAction({
         });
       }
     } catch (error) {
+      console.log(error);
       await ctx.runMutation(internal.chatbook.index.updateChatbookStatus, {
         chatId: args.chatId,
         status: "failed",
