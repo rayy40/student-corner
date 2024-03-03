@@ -34,12 +34,14 @@ export const createChatbook = mutation({
     if (!url) {
       throw new ConvexError("No URL found.");
     }
+    const { origin } = new URL(url);
 
     const chatId = await ctx.db.insert("chatbook", {
       userId: args.userId,
       url,
       status: "inProgress",
       type: args.type,
+      domain: args.type === "documentation" ? origin : undefined,
     });
 
     if (args.type === "codebase") {
@@ -53,14 +55,32 @@ export const createChatbook = mutation({
         }
       );
     } else if (args.type === "documentation") {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.chatbook.chunks.documentation.scrapeWebsite,
-        {
-          chatId,
-          url,
-        }
-      );
+      const existingDocumentation = await ctx.db
+        .query("chatbook")
+        .withIndex("by_domain_type_status", (q) =>
+          q
+            .eq("domain", origin)
+            .eq("status", "completed")
+            .eq("type", "documentation")
+        )
+        .first();
+
+      if (existingDocumentation) {
+        await ctx.db.patch(chatId, {
+          dupChatId: existingDocumentation._id,
+          status: "completed",
+          title: existingDocumentation.title,
+        });
+      } else {
+        await ctx.scheduler.runAfter(
+          0,
+          internal.chatbook.chunks.documentation.scrapeWebsite,
+          {
+            chatId,
+            url,
+          }
+        );
+      }
     } else if (args.type === "youtube") {
       await ctx.scheduler.runAfter(
         0,
@@ -99,6 +119,25 @@ export const getChatDetails = query({
     }
 
     return chat;
+  },
+});
+
+export const isDocumentationExists = query({
+  args: { url: v.string() },
+  handler: async (ctx, args) => {
+    const url = new URL(args.url);
+
+    const existingDocumentation = await ctx.db
+      .query("chatbook")
+      .withIndex("by_domain_type_status", (q) =>
+        q
+          .eq("domain", url.origin)
+          .eq("status", "completed")
+          .eq("type", "documentation")
+      )
+      .first();
+
+    return existingDocumentation;
   },
 });
 

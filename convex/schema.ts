@@ -95,6 +95,7 @@ export default defineSchema({
     chatId: v.id("chatbook"),
   })
     .index("by_chunkId", ["chunkId"])
+    .index("by_chatId", ["chatId"])
     .vectorIndex("by_embedding", {
       vectorField: "embedding",
       dimensions: 1536,
@@ -106,7 +107,9 @@ export default defineSchema({
   }).index("by_chatId", ["chatId"]),
   chatbook: defineTable({
     userId: v.id("users"),
+    dupChatId: v.optional(v.id("chatbook")),
     url: v.string(),
+    domain: v.optional(v.string()),
     type: v.union(
       v.literal("codebase"),
       v.literal("youtube"),
@@ -120,5 +123,5 @@ export default defineSchema({
       v.literal("failed")
     ),
     error: v.optional(v.string()),
-  }),
+  }).index("by_domain_type_status", ["domain", "status", "type"]),
 });
