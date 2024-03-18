@@ -13,15 +13,17 @@ import { useConversationHistory } from "@/hooks/useQueryObject";
 import { MessageData } from "@/types";
 
 type Props = {
+  dupChatId?: Id<"chatbook">;
   chatId: Id<"chatbook">;
-  conversationId: Id<"conversations"> | undefined;
   title: string;
-  type: "code" | "video" | "doc";
+  type: "codebase" | "youtube" | "files" | "documentation";
 };
 
-const ChatBot = ({ chatId, title, type, conversationId }: Props) => {
+const ChatBot = ({ chatId, title, type, dupChatId }: Props) => {
   const messageListRef = useRef<HTMLDivElement | null>(null);
-  const deleteHistory = useMutation(api.conversations.deleteConversation);
+  const deleteHistory = useMutation(
+    api.chatbook.conversations.deleteConversation
+  );
   const [isStreamingStarted, setIsStreamingStarted] = useState(false);
   const [error, setError] = useState("");
   const messageHistory: MessageData[] = useConversationHistory(chatId);
@@ -36,6 +38,7 @@ const ChatBot = ({ chatId, title, type, conversationId }: Props) => {
   } = useChat({
     api: "/api/chat",
     body: {
+      dupChatId,
       chatId,
       type,
     },
@@ -70,20 +73,21 @@ const ChatBot = ({ chatId, title, type, conversationId }: Props) => {
           <h2 className="min-w-[300px] max-w-[80%] whitespace-nowrap overflow-hidden overflow-ellipsis">
             {title}
           </h2>
-          {conversationId && (
-            <div>
-              <LuTrash
-                onClick={() => {
-                  deleteHistory({ conversationId });
-                  setMessages([]);
-                }}
-                className="text-lg opacity-60 cursor-pointer hover:opacity-100"
-              />
-            </div>
-          )}
+          <div>
+            <LuTrash
+              onClick={() => {
+                deleteHistory({ chatId });
+                setMessages([]);
+              }}
+              className="text-lg opacity-60 cursor-pointer hover:opacity-100"
+            />
+          </div>
         </div>
       </div>
-      <div ref={messageListRef} className="h-full overflow-y-auto">
+      <div
+        ref={messageListRef}
+        className="message-wrapper lg:h-full h-screen overflow-y-auto"
+      >
         <MessageList
           type={type}
           chatId={chatId}
@@ -95,8 +99,8 @@ const ChatBot = ({ chatId, title, type, conversationId }: Props) => {
       </div>
       <div className="sticky bottom-0 p-4 w-full">
         <form
-          onSubmit={() => {
-            handleSubmit;
+          onSubmit={(e) => {
+            handleSubmit(e);
             setError("");
           }}
         >
