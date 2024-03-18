@@ -1,4 +1,4 @@
-export default {
+const auth = {
   providers: [
     {
       domain: "https://caring-grizzly-77.clerk.accounts.dev",
@@ -6,3 +6,5 @@ export default {
     },
   ],
 };
+
+export default auth;
