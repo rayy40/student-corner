@@ -1,4 +1,3 @@
-import { Chunk } from "@/types";
 export const MCQformat = {
   title: "Star Wars",
   questions: [
@@ -32,23 +31,7 @@ export const TrueFalseformat = {
   ],
 };
 
-export const codeTemplate = (
-  content: string | { content: string; source: string }[]
-) => {
-  let source: string = "";
-  if (typeof content !== "string") {
-    for (const chunk of content as Chunk[]) {
-      source += `
-      Code file: 
-      ${chunk.content}
-      File path:
-      ${chunk.source}
-      
-      `;
-    }
-  } else {
-    source = content;
-  }
+export const codeTemplate = (content: string | string[]) => {
   const template = `You are Codebase AI. You are a superintelligent AI that answers questions about codebases.
   
   You are:
@@ -74,11 +57,9 @@ export const codeTemplate = (
   Here is the code file(s) with their path, where you will find the answer to the question:
   
   Code file(s):
-  ${source}
+  ${content}
   
   [END OF CODE FILE(S)]
-  
-  In your answer, If you are providing the code then include a "path" at the bottom from where you will be providing the code. 
   
   Now answer the question using the code file(s) above.`;
 
@@ -90,11 +71,10 @@ export const codeTemplate = (
 };
 
 export const ragTemplate = (
-  content: string | { content: string; source: string }[],
+  content: string | string[],
   type: "video" | "doc"
 ) => {
-  let template: string;
-  template = `
+  const template = `
       You are a superintelligent AI that answers questions after reviewing the content from the ${type} provided.
   
       You are:
@@ -111,6 +91,8 @@ export const ragTemplate = (
       Make sure to format your responses in MARKDOWN for structure, without altering the content.
   
       Do not apologize for previous responses.
+
+      STRICTLY ANSWER FROM ONLY THE CONTENT AND NOT BY YOUR OWN.
   
       Here is the content(s), where you will find the answer to the question:
   
@@ -127,14 +109,16 @@ export const ragTemplate = (
   return prompt;
 };
 
-export const initialAssistantMessage = (type: "code" | "video" | "doc") => {
-  if (type === "code") {
-    return "Hey, I am here to help you understand the codebase provided by you. You can ask me a questions related to your codebase and I'll help you with an explanation to that.";
+export const initialAssistantMessage = (
+  type: "codebase" | "youtube" | "files" | "documentation"
+) => {
+  if (type === "codebase") {
+    return "Hey, I am here to help you understand the codebase provided by you. You can ask me any question related to your codebase and I'll help you with an explanation to that.";
   } else {
     return `Hey, I am here to help you understand the ${
-      type === "doc" ? "document" : "Youtube video"
+      type === "files" ? "files" : "Youtube video"
     } provided by you, You can ask me any question related to the ${
-      type === "doc" ? "document" : "Youtube video"
+      type === "files" ? "files" : "Youtube video"
     } and I'll help you by providing an answer to that and explaining it.`;
   }
 };

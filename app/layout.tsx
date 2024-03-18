@@ -1,6 +1,6 @@
 import "./globals.css";
 
-import { Inter, DM_Sans, Roboto } from "next/font/google";
+import { Roboto } from "next/font/google";
 
 import Navbar from "@/components/Navbar";
 import { ConvexClientProvider } from "@/providers/convex-provider";
@@ -9,7 +9,6 @@ import type { Metadata } from "next";
 const roboto = Roboto({
   subsets: ["latin"],
   weight: ["300", "400", "500", "700", "900"],
-  variable: "--font-roboto",
 });
 
 export const metadata: Metadata = {
@@ -24,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={roboto.variable}>
+      <body className={roboto.className}>
         <ConvexClientProvider>
           <Navbar />
           {children}

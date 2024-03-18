@@ -38,22 +38,24 @@ export async function POST(req: Request) {
   try {
     const {
       messages,
+      dupChatId,
       chatId,
       type,
     }: {
       messages: Message[];
+      dupChatId?: Id<"chatbook">;
       chatId: Id<"chatbook">;
       type: "code" | "video" | "doc";
     } = await req.json();
     const previousMessage: string = messages[messages.length - 1].content;
 
     const content = await fetchAction(api.search.semanticSearch, {
-      chatId,
+      chatId: dupChatId ? dupChatId : chatId,
       query: previousMessage,
     });
 
     if (typeof content === "string") {
-      return new Response("Manual message: Content is a string.", {
+      return new Response(content, {
         status: 200,
       });
     }

@@ -23,8 +23,11 @@ const Navbar = () => {
         ["/sign-in", "/sign-up"].includes(pathname) ? "hidden" : "flex"
       } items-center justify-between w-full p-3 bg-white shadow-medium`}
     >
-      <Link href={"/"}>
+      <Link className="flex gap-3 items-center" href={"/"}>
         <Image priority width={40} height={40} src={logo} alt="logo" />
+        <h3 className=" hover:underline underline-offset-2 font-medium">
+          Student Corner
+        </h3>
       </Link>
       <button
         onClick={() =>

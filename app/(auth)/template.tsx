@@ -9,7 +9,7 @@ const Template = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="font-sans relative max-w-[1400px] mx-auto w-full h-screen">
-      <div className="absolute flex flex-col items-end gap-2 top-10 right-10">
+      <div className="absolute flex flex-col items-end gap-2 top-5 lg:top-10 right-5 lg:right-10">
         <p className="text-muted-foreground">
           {pathname === "/sign-in"
             ? "Don't have an account?"
