@@ -10,12 +10,13 @@ import PDFViewer from "@/components/PDFViewer";
 import UnAuthenticated from "@/components/UnAuthenticated";
 import VideoViewer from "@/components/VideoViewer";
 import { Id } from "@/convex/_generated/dataModel";
-import { useQueryEmbeddingProps } from "@/hooks/useQueryObject";
+import { useQueryChatDetailsProps } from "@/hooks/useQueryObject";
+import Link from "next/link";
 
 const ChatId = ({ params }: { params: { chatId: string } }) => {
   const chatId = params.chatId as Id<"chatbook">;
   const { isLoading, isAuthenticated } = useConvexAuth();
-  const chat = useQueryEmbeddingProps({ chatId });
+  const chat = useQueryChatDetailsProps({ chatId });
 
   if (isLoading) {
     return (
@@ -25,11 +26,11 @@ const ChatId = ({ params }: { params: { chatId: string } }) => {
     );
   }
 
-  if (!isLoading && !isAuthenticated) {
+  if (!isAuthenticated) {
     return <UnAuthenticated />;
   }
 
-  if (chat.loading || chat.data === undefined) {
+  if (chat.loading) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
         <LoadingSpinner />
@@ -37,31 +38,51 @@ const ChatId = ({ params }: { params: { chatId: string } }) => {
     );
   }
 
-  if (chat.data === null) {
+  if (chat.data?.status === "failed") {
     return (
-      <div className="flex items-center justify-center w-full h-screen">
-        <p>No database found for this Id.</p>
+      <div className="flex flex-col font-sans gap-1 text-lg items-center justify-center w-full h-screen">
+        {chat.data.error}
+        <p className="underline text-secondary-foreground hover:text-foreground cursor-pointer underline-offset-2">
+          <Link href={"/chat"}>Retry again.</Link>
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="h-[calc(100vh-56px)] mt-14 font-sans flex">
-      <div className="h-full w-[60%] border-r border-r-border">
-        {chat?.data?.type === "code" && (
-          <CodeViewer url={chat?.data?.url} chatId={chat?.data?._id} />
-        )}
-        {chat?.data?.type === "video" && <VideoViewer url={chat?.data?.url} />}
-        {chat?.data?.type === "doc" && <PDFViewer url={chat?.data?.url!} />}
-      </div>
-      <div className="flex w-[40%] justify-between flex-col h-full min-w-[450px]">
-        <ChatBot
-          chatId={chat?.data?._id!}
-          title={chat?.data?.title!}
-          conversationId={undefined}
-          type={chat?.data?.type ?? "doc"}
-        />
-      </div>
+    <div className="h-[calc(100vh-56px)] mt-14 font-sans flex flex-col lg:flex-row">
+      {chat?.data?.type === "documentation" ? (
+        <div className="w-full flex flex-col justify-between h-full mx-auto max-w-[1140px]">
+          <ChatBot
+            dupChatId={chat?.data?.dupChatId}
+            chatId={chat?.data?._id!}
+            title={chat?.data?.title!}
+            type={chat?.data?.type!}
+          />
+        </div>
+      ) : (
+        <>
+          <div className="h-full w-full lg:w-[60%] border-r border-r-border">
+            {chat?.data?.type === "codebase" && (
+              <CodeViewer url={chat?.data?.url} chatId={chat?.data?._id} />
+            )}
+            {chat?.data?.type === "youtube" && (
+              <VideoViewer url={chat?.data?.url} />
+            )}
+            {chat?.data?.type === "files" && (
+              <PDFViewer url={chat?.data?.url!} />
+            )}
+          </div>
+          <div className="flex w-full lg:w-[40%] justify-between flex-col h-full lg:min-w-[450px]">
+            <ChatBot
+              dupChatId={chat?.data?.dupChatId}
+              chatId={chat?.data?._id!}
+              title={chat?.data?.title!}
+              type={chat?.data?.type!}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 };

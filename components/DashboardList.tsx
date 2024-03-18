@@ -5,7 +5,7 @@ import { getDate, isGameData } from "@/helpers/utils";
 
 const DashboardList = <K extends string>({ data, type }: DashboardType<K>) => {
   return (
-    <div className="w-full">
+    <div className="w-full overflow-x-auto no-scrollbar">
       <table className="w-full border-collapse table-auto">
         <thead>
           <tr className="border-b border-b-border text-tertiary-foreground">

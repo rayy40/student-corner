@@ -44,7 +44,7 @@ const CodeViewer = ({ url, chatId }: Props) => {
     }));
 
   return (
-    <div className="relative pt-[0.75rem] w-full h-full flex flex-col">
+    <div className="relative pt-[0.75rem] w-full h-full hidden lg:flex flex-col">
       <div className=" shadow-light border-b border-b-border p-4 flex gap-4 items-center w-full">
         <LuText
           onClick={() => setIsSideBarOpen((v) => !v)}
