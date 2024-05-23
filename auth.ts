@@ -1,16 +1,35 @@
-import { ConvexAdapter } from "@/app/ConvexAdapter";
+import { importPKCS8, SignJWT } from "jose";
 import NextAuth from "next-auth";
-import { SignJWT, importPKCS8 } from "jose";
+import Github from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
+import Resend from "next-auth/providers/resend";
 
-import authConfig from "@/auth.config";
-import { Id } from "./convex/_generated/dataModel";
-import { getUserByEmail, updateUserEmailVerification } from "@/db/user";
-import { generateToken } from "./helpers/tokens";
+import { ConvexAdapter } from "@/app/ConvexAdapter";
+
+import { sendVerificationRequest as send } from "./helpers/mail";
+
+//TOOD: Look into other email providers and fix resend
 
 const CONVEX_SITE_URL = process.env.NEXT_PUBLIC_CONVEX_URL!.replace(
   /.cloud$/,
   ".site"
 );
+
+const providers = [
+  Google,
+  Github,
+  Resend({
+    name: "email",
+    sendVerificationRequest({
+      identifier,
+      url,
+      token,
+      provider: { server, from },
+    }) {
+      send({ identifier, url, token, server, from });
+    },
+  }),
+];
 
 export const {
   handlers: { GET, POST },
@@ -18,46 +37,21 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
-  debug: true,
+  providers,
+  adapter: ConvexAdapter,
   pages: {
-    signIn: "/auth/login",
-    error: "/auth/error",
-  },
-  events: {
-    async linkAccount({ user }) {
-      await updateUserEmailVerification(user.id as Id<"users">);
-    },
+    signIn: "/login",
+    error: "/error",
+    verifyRequest: "/verify",
   },
   callbacks: {
-    async signIn({ user, account }) {
-      console.log("USER", user);
-      console.log("ACCOUNT", account);
-      if (account?.provider !== "credentials") return true;
-
-      if (!user.email) return false;
-
-      const existingUser = await getUserByEmail(user.email);
-
-      if (!existingUser?.emailVerified) return false;
-
-      return true;
-    },
-    // async jwt({ user }) {
-    //   const session = await ConvexAdapter?.createSession?.({
-    //     sessionToken:
-    //       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
-    //     userId: user.id!,
-    //     expires: new Date(Date.now() + 3600 * 1000),
-    //   });
-
-    //   return { id: session?.sessionToken };
-    // },
-    async session({ session, token, user }) {
+    async session({ session }) {
       const privateKey = await importPKCS8(
         process.env.CONVEX_AUTH_PRIVATE_KEY!,
         "RS256"
       );
       const convexToken = await new SignJWT({
+        email: session.user.email,
         sub: session.userId,
       })
         .setProtectedHeader({ alg: "RS256" })
@@ -69,32 +63,10 @@ export const {
       return { ...session, convexToken };
     },
   },
-  // jwt: {
-  //   async encode({ token }) {
-  //     return token?.id as unknown as string;
-  //   },
-  //   async decode() {
-  //     return null;
-  //   },
-  // },
-  adapter: ConvexAdapter,
-  ...authConfig,
 });
 
 declare module "next-auth" {
   interface Session {
-    expires: string;
-    userId: Id<"users">;
     convexToken: string;
-    sessionToken: string;
-    user: {
-      _creationTime: number;
-      _id: Id<"users">;
-      email: string;
-      emailVerified?: number;
-      image?: string;
-      name?: string;
-      id: string;
-    };
   }
 }

@@ -1,7 +1,7 @@
 import z from "zod";
 
-export const signUpSchema = z.object({
-  email: z.string().email({message: "Invalid email address"}),
+export const registerSchema = z.object({
+  email: z.string().email({ message: "Invalid email address" }),
   password: z
     .string()
     .regex(new RegExp(".*[A-Z].*"), "Missing uppercase character")
@@ -12,9 +12,11 @@ export const signUpSchema = z.object({
       "Missing special character"
     )
     .min(8, "Must be at least 8 characters in length"),
+  code: z.string().min(6, "Must be 6 digits").optional(),
 });
 
-export const signInSchema = z.object({
-  email: z.string().email(),
-  password: z.string()
+export const loginSchema = z.object({
+  email: z.string().email({
+    message: "Email is required",
+  }),
 });
