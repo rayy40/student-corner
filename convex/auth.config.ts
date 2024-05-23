@@ -1,7 +1,7 @@
 const auth = {
   providers: [
     {
-      domain: "https://caring-grizzly-77.clerk.accounts.dev",
+      domain: process.env.CONVEX_SITE_URL,
       applicationID: "convex",
     },
   ],

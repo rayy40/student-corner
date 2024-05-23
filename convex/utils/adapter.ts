@@ -4,14 +4,14 @@ import {
   customQuery,
 } from "convex-helpers/server/customFunctions";
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query } from "@/convex/_generated/server";
 import {
   accountSchema,
   authenticatorSchema,
   sessionSchema,
   userSchema,
   verificationTokenSchema,
-} from "./schema";
+} from "@/convex/schema";
 
 const adapterQuery = customQuery(query, {
   args: { secret: v.string() },
@@ -172,7 +172,7 @@ export const getUserByEmail = adapterQuery({
   handler: async (ctx, { email }) => {
     return await ctx.db
       .query("users")
-      .withIndex("email", (q) => q.eq("email", email))
+      .withIndex("byEmail", (q) => q.eq("email", email))
       .unique();
   },
 });
