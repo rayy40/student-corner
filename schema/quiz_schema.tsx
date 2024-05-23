@@ -29,20 +29,19 @@ const File = z.custom<FileList>().superRefine((files, ctx) => {
 });
 
 export const topicSchema = z.object({
-  by: z.enum(["topic", "paragraph", "document"]).default("topic"),
   topic: z
     .string()
-    .min(3, { message: "Topic should be of atleast 3 characters in length" }),
+    .min(3, { message: "Topic should be of atleast 3 characters in length" })
+    .default(""),
   questions: z
     .number()
     .min(3, { message: "Minimum 3 questions to be generated" })
     .max(10, { message: "Maximum 10 questions can be generated" })
     .default(5),
-  format: z.enum(["mcq", "name", "true_false"]).default("mcq"),
+  format: z.enum(["mcq", "name the following", "true/false"]).default("mcq"),
 });
 
 export const paragraphSchema = z.object({
-  by: z.enum(["topic", "paragraph", "document"]).default("topic"),
   paragraph: z
     .string()
     .min(150, {
@@ -54,18 +53,17 @@ export const paragraphSchema = z.object({
     .min(3, { message: "Minimum 3 questions to be generated" })
     .max(10, { message: "Maximum 10 questions can be generated" })
     .default(5),
-  format: z.enum(["mcq", "name", "true_false"]).default("mcq"),
+  format: z.enum(["mcq", "name the following", "true/false"]).default("mcq"),
 });
 
 export const filesSchema = z.object({
-  by: z.enum(["topic", "paragraph", "files"]).default("topic"),
   files: File,
   questions: z
     .number()
     .min(3, { message: "Minimum 3 questions to be generated" })
     .max(10, { message: "Maximum 10 questions can be generated" })
     .default(5),
-  format: z.enum(["mcq", "name", "true_false"]).default("mcq"),
+  format: z.enum(["mcq", "name the following", "true/false"]).default("mcq"),
 });
 
 export const answerSchema = z.object({
