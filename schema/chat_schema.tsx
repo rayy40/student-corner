@@ -32,9 +32,6 @@ const File = z.custom<FileList>().superRefine((files, ctx) => {
 });
 
 export const youtubeSchema = z.object({
-  by: z
-    .enum(["youtube", "codebase", "documentation", "files"])
-    .default("youtube"),
   youtube: z
     .string()
     .url({ message: "Invalid Url" })
@@ -42,9 +39,6 @@ export const youtubeSchema = z.object({
 });
 
 export const codebaseSchema = z.object({
-  by: z
-    .enum(["youtube", "codebase", "documentation", "files"])
-    .default("codebase"),
   codebase: z
     .string()
     .url({ message: "Invalid Url" })
@@ -55,15 +49,15 @@ export const codebaseSchema = z.object({
 });
 
 export const documentationSchema = z.object({
-  by: z
-    .enum(["youtube", "codebase", "documentation", "files"])
-    .default("documentation"),
   documentation: z.string().url({ message: "Invalid Url" }),
 });
 
 export const filesSchema = z.object({
-  by: z
-    .enum(["youtube", "codebase", "documentation", "files"])
-    .default("files"),
   files: File,
+});
+
+export const conversationSchema = z.object({
+  conversation: z
+    .string()
+    .max(2500, { message: "Cannot have more than 2500 characters" }),
 });
