@@ -3,15 +3,19 @@
 import React, { useEffect, useRef, useState } from "react";
 import { LuCheck, LuChevronsUpDown } from "react-icons/lu";
 import { ChatSchemaSelection, DropDownType } from "@/types";
+import useFormWithDynamicSchema from "@/hooks/useFormWithDynamicSchema";
+import { useRouter } from "@/hooks/useRouter";
 
 const DropDown = <K extends string>({
+  kind,
   lists,
   value,
-  reset,
-  setError,
-  setFormSchema,
-  setValue,
 }: DropDownType<K>) => {
+  const router = useRouter();
+  const { reset } = useFormWithDynamicSchema({
+    kind,
+    selectedSchema: value,
+  });
   const [openDropDown, setOpenDropDown] = useState(false);
   const [category, setCategory] = useState<string>(value);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -36,9 +40,9 @@ const DropDown = <K extends string>({
     setOpenDropDown(false);
     setCategory(item);
     reset();
-    setError("");
-    setValue("by", item);
-    setFormSchema(item);
+    console.log(item);
+    // Update query params for different form types
+    router.push(`/quiz/${item.toLowerCase().trim()}`);
   };
 
   return (
