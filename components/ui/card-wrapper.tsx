@@ -1,4 +1,4 @@
-import { cn } from "@/helpers/utils";
+import { cn } from "@/lib/utils";
 import { HTMLAttributes } from "react";
 
 interface Props extends HTMLAttributes<HTMLDivElement> {

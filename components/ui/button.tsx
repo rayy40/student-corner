@@ -1,4 +1,4 @@
-import { cn } from "@/helpers/utils";
+import { cn } from "@/lib/utils";
 import React, { ButtonHTMLAttributes, FC, ReactNode, forwardRef } from "react";
 import { LuLoader2 } from "react-icons/lu";
 
@@ -22,7 +22,7 @@ const SubmitButton: FC<ButtonProps> = forwardRef<
       type="submit"
       disabled={isDisabled}
       className={cn(
-        "flex items-center justify-center w-full gap-2 p-2 mt-2 font-semibold transition-colors rounded-md cursor-pointer enabled:hover:bg-primary-hover bg-primary text-primary-foreground shadow-button disabled:opacity-40",
+        "flex items-center justify-center w-full gap-[10px] p-[10px] mt-2 font-semibold transition-colors rounded-md cursor-pointer enabled:hover:bg-primary-hover bg-primary text-primary-foreground shadow-button disabled:opacity-40",
         className
       )}
     >
@@ -48,11 +48,10 @@ const NextPrevButton: FC<ButtonProps> = forwardRef<
         type={type}
         disabled={isDisabled}
         className={cn(
-          "p-2 px-3 border rounded-md disabled:opacity-40 bg-muted enabled:hover:bg-muted-hover shadow-button border-border",
+          "p-[10px] px-3 border rounded-md disabled:opacity-40 bg-muted enabled:hover:bg-muted-hover shadow-button border-border",
           className
         )}
         {...props}
-        // onClick={() => setQuestionNumber((prev) => prev - 1)}
       >
         {children}
       </button>

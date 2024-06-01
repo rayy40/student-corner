@@ -1,5 +1,13 @@
 {
   "node": {
-    "externalPackages": ["path", "minimatch", "crypto"]
+    "externalPackages": [
+      "path",
+      "minimatch",
+      "crypto",
+      "pdf-parse",
+      "pdf.js-extract",
+      "canvas",
+      "langchain/util/convex"
+    ]
   }
 }

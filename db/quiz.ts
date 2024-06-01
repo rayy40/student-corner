@@ -1,7 +1,7 @@
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { CreateQuizProps, updateUserAnswerProps } from "@/lib/types";
-import { fetchMutation, preloadQuery } from "convex/nextjs";
+import { fetchMutation, fetchQuery, preloadQuery } from "convex/nextjs";
 
 export const createQuiz = ({
   userId,
@@ -33,4 +33,12 @@ export const updateUserAnswers = ({
 
 export const getPreloadedQuiz = (id: Id<"quiz">) => {
   return preloadQuery(api.quizify.quiz.getQuiz, { id });
+};
+
+export const getQuiz = (id: Id<"quiz">) => {
+  return fetchQuery(api.quizify.quiz.getQuiz, { id });
+};
+
+export const getQuizHistory = (userId: Id<"users">) => {
+  return fetchQuery(api.quizify.quiz.getQuizHistory, { userId });
 };

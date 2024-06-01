@@ -1,15 +1,15 @@
+"use client";
+
 import React from "react";
-import { FieldError } from "react-hook-form";
+import { FieldError, useFormContext } from "react-hook-form";
 import { LuFileUp } from "react-icons/lu";
 
-import { DocumentType } from "@/types";
+const Document = () => {
+  const {
+    register,
+    formState: { errors, isSubmitted },
+  } = useFormContext();
 
-const Document = <K extends string>({
-  format,
-  isSubmitted,
-  errors,
-  register,
-}: DocumentType<K>) => {
   return (
     <div className="flex flex-col gap-1">
       <div className="font-semibold text-label">Document</div>
@@ -31,7 +31,7 @@ const Document = <K extends string>({
           />
         </div>
       </div>
-      {isSubmitted && format === "files" && (
+      {isSubmitted && (
         <p className="mt-2 text-[0.95rem] text-center text-error">
           {(errors as { files?: FieldError }).files?.message}
         </p>

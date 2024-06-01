@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { updateAnswers } from "@/actions/quiz";
 import {
@@ -13,6 +13,7 @@ import { NextPrevButton } from "./ui/button";
 import { Id } from "@/convex/_generated/dataModel";
 import { Preloaded, usePreloadedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import Loading from "@/app/loading";
 
 type Props = {
   format?: QuizFormat;
@@ -35,7 +36,7 @@ export const QuizGameForm = ({
 
   const [questionNumber, setQuestionNumber] = useState(0);
   const [isSubmitting, startTransition] = useTransition();
-  const [question] = useState(success?.response?.questions);
+  const [question, setQuestion] = useState(success?.response?.questions);
   const [error, setError] = useState<string | undefined>(convexError);
   const [userAnswers, setUserAnswers] = useState<
     QuizGameQuestionProps[] | undefined
@@ -58,13 +59,15 @@ export const QuizGameForm = ({
       : setQuestionNumber((prev) => prev + 1);
   };
 
+  useEffect(() => {
+    if (success?.response?.questions) {
+      setQuestion(success?.response?.questions);
+    }
+  }, [success]);
+
   if (loading) {
     // TODO: add loading
-    return <div>Loading...</div>;
-  }
-
-  if (!question) {
-    throw new Error("No quiz found.");
+    return <Loading />;
   }
 
   if (error) {
@@ -77,9 +80,11 @@ export const QuizGameForm = ({
         <div className="flex items-center gap-2">
           <span className="w-[50px] font-semibold whitespace-nowrap text-muted-foreground">
             {questionNumber + 1} /{" "}
-            <span className="text-secondary-foreground">{question.length}</span>
+            <span className="text-secondary-foreground">
+              {question?.length}
+            </span>
           </span>
-          <p>{question[questionNumber].question}</p>
+          <p>{question?.[questionNumber].question}</p>
         </div>
       </div>
       {format === "name the following" ? (
@@ -91,7 +96,7 @@ export const QuizGameForm = ({
       ) : (
         <MCQOrTrueFalseFormat
           questionNumber={questionNumber}
-          item={question[questionNumber]}
+          item={question?.[questionNumber]}
           setUserAnswers={setUserAnswers}
         />
       )}
@@ -102,7 +107,7 @@ export const QuizGameForm = ({
         >
           Previous
         </NextPrevButton>
-        {questionNumber === question.length - 1 ? (
+        {question && questionNumber === question.length - 1 ? (
           <NextPrevButton
             isDisabled={isSubmitting}
             className="font-semibold bg-primary enabled:hover:bg-primary-hover text-primary-foreground"
@@ -113,7 +118,7 @@ export const QuizGameForm = ({
         ) : (
           <NextPrevButton
             onClick={() => updateQuestionNumber("next")}
-            isDisabled={questionNumber === question.length - 1}
+            isDisabled={question && questionNumber === question.length - 1}
           >
             Next
           </NextPrevButton>

@@ -6,7 +6,7 @@ import Resend from "next-auth/providers/resend";
 
 import { ConvexAdapter } from "@/app/ConvexAdapter";
 
-import { sendVerificationRequest as send } from "./helpers/mail";
+import { sendVerificationRequest as send } from "./lib/mail";
 
 //TOOD: Look into other email providers and fix resend
 

@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 
-import { cn, numToChar } from "@/helpers/utils";
+import { cn, numToChar } from "@/lib/utils";
 import { QuizGameFormats, QuizGameQuestionProps } from "@/lib/types";
 
 const handleOptionChange = (

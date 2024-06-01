@@ -25,7 +25,7 @@ export const Status = v.union(
   v.literal("failed")
 );
 export const ChatKind = v.union(
-  v.literal("codebase"),
+  v.literal("github"),
   v.literal("youtube"),
   v.literal("files"),
   v.literal("documentation")
@@ -45,10 +45,9 @@ export const Response = v.object({
 
 export const Message = v.object({
   id: v.string(),
-  tool_call_id: v.optional(v.string()),
-  content: v.string(),
-  ui: v.optional(v.union(v.string(), v.null(), v.any())),
   role: Role,
+  content: v.string(),
+  createdAt: v.number(),
 });
 
 export const Github = v.object({
@@ -112,7 +111,7 @@ export const authenticatorSchema = {
   counter: v.number(),
   credentialDeviceType: v.string(),
   credentialBackedUp: v.boolean(),
-  transports: v.optional(v.string()),
+  transports: v.optional(v.union(v.string(), v.null())),
 };
 
 const authTables = {
@@ -138,7 +137,7 @@ const authTables = {
 const quizSchema = {
   userId: v.id("users"),
   numberOfQuestions: v.number(),
-  content: v.string(),
+  content: v.union(v.string(), v.id("_storage")),
   format: QuizFormat,
   kind: QuizKind,
   status: Status,
@@ -158,7 +157,6 @@ const githubSchema = {
 
 const chatbookSchema = {
   userId: v.id("users"),
-  dupChatId: v.optional(v.id("chatbook")),
   url: v.string(),
   domain: v.optional(v.string()),
   type: ChatKind,
@@ -167,33 +165,33 @@ const chatbookSchema = {
   error: v.optional(v.string()),
 };
 
-const chatEmbeddingsSchema = {
+const embeddingsSchema = {
   embedding: v.array(v.float64()),
-  chunkId: v.id("chatbookChunks"),
+  chunkId: v.id("chunks"),
   chatId: v.id("chatbook"),
 };
 
-const chatbookChunksSchema = {
+const chunksSchema = {
   chatId: v.id("chatbook"),
   content: v.string(),
-  embeddingId: v.optional(v.id("chatEmbeddings")),
+  embeddingId: v.optional(v.id("embeddings")),
 };
 
 export default defineSchema({
   ...authTables,
 
-  quiz: defineTable(quizSchema).index("by_userId", ["userId"]),
+  quiz: defineTable(quizSchema).index("byUserId", ["userId"]),
 
-  github: defineTable(githubSchema).index("by_chatId", ["chatId"]),
+  github: defineTable(githubSchema).index("byChatId", ["chatId"]),
 
-  chatbookChunks: defineTable(chatbookChunksSchema)
-    .index("by_chatId", ["chatId"])
-    .index("by_embeddingId", ["embeddingId"]),
+  chunks: defineTable(chunksSchema)
+    .index("byChatId", ["chatId"])
+    .index("byEmbeddingId", ["embeddingId"]),
 
-  chatEmbeddings: defineTable(chatEmbeddingsSchema)
-    .index("by_chunkId", ["chunkId"])
-    .index("by_chatId", ["chatId"])
-    .vectorIndex("by_embedding", {
+  embeddings: defineTable(embeddingsSchema)
+    .index("byChunkId", ["chunkId"])
+    .index("byChatId", ["chatId"])
+    .vectorIndex("byEmbedding", {
       vectorField: "embedding",
       dimensions: 1536,
       filterFields: ["chatId"],
@@ -202,11 +200,10 @@ export default defineSchema({
   conversations: defineTable({
     chatId: v.id("chatbook"),
     messages: v.optional(v.array(Message)),
-  }).index("by_chatId", ["chatId"]),
+  }).index("byChatId", ["chatId"]),
 
-  chatbook: defineTable(chatbookSchema).index("by_domain_type_status", [
-    "domain",
-    "status",
-    "type",
-  ]),
+  chatbook: defineTable(chatbookSchema)
+    .index("byUrlAndStatus", ["url", "status"])
+    .index("byDomainAndStatus", ["domain", "status"])
+    .index("byUserId", ["userId"]),
 });

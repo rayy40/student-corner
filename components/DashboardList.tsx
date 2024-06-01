@@ -1,7 +1,7 @@
 import Link from "next/link";
-import React from "react";
-import { DashboardType } from "@/types";
-import { getDate, isGameData } from "@/helpers/utils";
+
+import { DashboardType, isQuizData } from "@/lib/types";
+import { getDate } from "@/lib/utils";
 
 const DashboardList = <K extends string>({ data, type }: DashboardType<K>) => {
   return (
@@ -9,23 +9,21 @@ const DashboardList = <K extends string>({ data, type }: DashboardType<K>) => {
       <table className="w-full border-collapse table-auto">
         <thead>
           <tr className="border-b border-b-border text-tertiary-foreground">
-            <th className="pr-4 font-medium pl-2 py-2 text-left w-5">No.</th>
-            <th className="px-4 font-medium py-2 text-left w-1/5">
+            <th className="pr-4 font-medium pl-2 py-2 text-left min-w-5 w-[10%] ">
+              No.
+            </th>
+            <th className="w-1/5 px-4 py-2 font-medium text-left whitespace-nowrap">
               Created at
             </th>
-            <th className="px-6 font-medium py-2 text-left w-2/5">Title</th>
+            <th className="w-2/5 px-6 py-2 font-medium min-w-[160px] text-left">
+              Title
+            </th>
+            <th className="w-1/5 px-6 py-2 font-medium text-left">Status</th>
             {type === "quiz" ? (
-              <>
-                <th className="px-4 font-medium py-2 text-center w-1/5">
-                  Score
-                </th>
-                <th className="px-4 font-medium py-2 text-center w-1/5">
-                  Correct Answers
-                </th>
-              </>
+              <th className="w-1/5 px-4 py-2 font-medium text-center">Score</th>
             ) : (
               <>
-                <th className="px-4 font-medium py-2 text-left w-2/5">
+                <th className="w-2/5 px-4 py-2 font-medium text-left">
                   Content
                 </th>
               </>
@@ -33,36 +31,34 @@ const DashboardList = <K extends string>({ data, type }: DashboardType<K>) => {
           </tr>
         </thead>
         <tbody>
-          {data?.map((item, index) => (
+          {data?.reverse().map((item, index) => (
             <tr className="border-b border-b-border" key={item?._id}>
-              <td className="text-tertiary-foreground font-medium pr-4 pl-2 py-4 w-5">
+              <td className="text-tertiary-foreground font-medium pr-4 pl-2 py-4 min-w-5 w-[10%]">
                 {index + 1}.
               </td>
-              <td className="px-4 py-4 w-1/5">
+              <td className="w-1/5 px-4 py-4">
                 {getDate(item?._creationTime)}
               </td>
-              <td className="px-6 py-4 w-2/5">
+              <td className="w-2/5 px-6 py-4 min-w-[160px]">
                 <Link
                   className="hover:underline"
                   href={`/${type}/${item?._id ?? ""}`}
                 >
-                  {item.title}
+                  {isQuizData(item)
+                    ? item.response?.title
+                    : item.title ?? "Untitled"}
                 </Link>
               </td>
-              {isGameData(item) ? (
-                <>
-                  <td className="text-center px-4 py-4 w-1/5">
-                    {item?.result?.score ?? "-"}
-                  </td>
-                  <td className="text-center px-4 py-4 w-1/5">
-                    {item?.result?.correctAnswer ?? "-"}
-                  </td>
-                </>
+              <td className="w-1/5 px-6 py-4 capitalize">{item.status}</td>
+              {isQuizData(item) ? (
+                <td className="w-1/5 px-4 py-4 text-center">
+                  {item?.score ?? "-"}
+                </td>
               ) : (
-                <td className="px-4 py-4 w-2/5">
+                <td className="w-2/5 px-4 py-4">
                   <Link
                     target="_blank"
-                    className="text-secondary-foreground hover:text-foreground hover:underline transition-all"
+                    className="transition-all text-secondary-foreground hover:text-foreground hover:underline"
                     href={item?.url}
                   >
                     {item?.url}

@@ -24,6 +24,18 @@ export default auth((request) => {
     return;
   }
 
+  if (nextUrl.pathname.startsWith("/quiz")) {
+    if (nextUrl.pathname === "/quiz") {
+      return Response.redirect(new URL("/quiz/topic", nextUrl));
+    }
+  }
+
+  if (nextUrl.pathname.startsWith("/chat")) {
+    if (nextUrl.pathname === "/chat") {
+      return Response.redirect(new URL("/chat/youtube", nextUrl));
+    }
+  }
+
   if (!isLoggedIn && !isPublicRoute) {
     return Response.redirect(new URL("/login", nextUrl));
   }

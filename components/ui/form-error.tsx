@@ -1,21 +1,23 @@
 import React from "react";
 
-import { cn } from "@/helpers/utils";
+import { cn } from "@/lib/utils";
 import { FieldError } from "react-hook-form";
 
 interface Props extends React.HTMLAttributes<HTMLParagraphElement> {
   error?: FieldError | string;
+  className?: string;
 }
 
-export const FormError = ({ error, ...props }: Props) => {
+export const FormError = ({ error, className, ...props }: Props) => {
   if (!error) return null;
 
-  //maybe add background and danger email
   return (
     <p
-      className={cn("mt-1 text-center text-error", {
-        ...props,
-      })}
+      className={cn(
+        "mt-1 p-4 w-full rounded-md bg-red-100 font-medium text-center text-error",
+        className
+      )}
+      {...props}
     >
       {typeof error === "string" ? error : error.message}
     </p>

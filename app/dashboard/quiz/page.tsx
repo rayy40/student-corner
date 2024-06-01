@@ -1,41 +1,20 @@
-"use client";
-
-import { useConvexAuth } from "convex/react";
-import React from "react";
-
 import DashboardList from "@/components/DashboardList";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import UnAuthenticated from "@/components/UnAuthenticated";
 import { Id } from "@/convex/_generated/dataModel";
-import { useQueryQuizHistoryProps } from "@/hooks/useQueryObject";
-import { useUserIdStore } from "@/providers/user-store";
+import { getQuizHistory } from "@/db/quiz";
+import { auth } from "@/auth";
 
-const QuizDashboard = () => {
-  const { isLoading, isAuthenticated } = useConvexAuth();
-  const { userId } = useUserIdStore();
-  const quizHistory = useQueryQuizHistoryProps({
-    userId: userId as Id<"users">,
-  });
+const Page = async () => {
+  const session = await auth();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center w-full h-screen">
-        <LoadingSpinner />
-      </div>
-    );
+  if (!session?.user?.id) {
+    //TODO: handle unauthenticated
+
+    return;
   }
 
-  if (!isAuthenticated) {
-    return <UnAuthenticated />;
-  }
+  const userId = session.user.id as Id<"users">;
 
-  if (quizHistory.loading) {
-    return (
-      <div className="flex items-center justify-center w-full h-screen">
-        <LoadingSpinner />
-      </div>
-    );
-  }
+  const quizHistory = await getQuizHistory(userId);
 
   return (
     <div className="p-4 mt-16 font-sans ">
@@ -43,13 +22,13 @@ const QuizDashboard = () => {
         <h1 className="text-2xl">Dashboard</h1>
         {/* <form className="border border-border" action="/">
           <input type="search" value={"Enter search..."} />
-        </form> */}
+        </InputForm> */}
       </div>
       <div className="w-full py-4">
-        <DashboardList data={quizHistory?.data!} type="quiz" />
+        <DashboardList data={quizHistory} type="quiz" />
       </div>
     </div>
   );
 };
 
-export default QuizDashboard;
+export default Page;

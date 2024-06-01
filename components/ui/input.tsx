@@ -1,4 +1,4 @@
-import { cn } from "@/helpers/utils";
+import { cn } from "@/lib/utils";
 import {
   FC,
   InputHTMLAttributes,
@@ -26,7 +26,7 @@ const Input: FC<InputProps> = forwardRef<HTMLInputElement, InputProps>(
         ref={ref}
         disabled={isDisabled}
         className={cn(
-          "p-2 border rounded-md border-border shadow-input bg-secondary",
+          "p-[10px] border rounded-md border-border shadow-input bg-secondary",
           className
         )}
         {...props}
@@ -47,7 +47,7 @@ const TextArea: FC<TextAreaProps> = forwardRef<
       cols={cols}
       disabled={isDisabled}
       className={cn(
-        "p-2 border rounded-md border-border shadow-input bg-secondary",
+        "p-[10px] border rounded-md border-border shadow-input bg-secondary",
         className
       )}
       {...props}

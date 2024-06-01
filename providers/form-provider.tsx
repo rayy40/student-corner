@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  codebaseSchema,
+  githubSchema,
   documentationSchema,
   youtubeSchema,
   filesSchema as chatFilesSchema,
@@ -53,7 +53,7 @@ export function YoutubeProvider({ children }: Props) {
 
 export function GithubProvider({ children }: Props) {
   const methods = useForm({
-    resolver: zodResolver(codebaseSchema),
+    resolver: zodResolver(githubSchema),
   });
 
   return <FormProvider {...methods}>{children}</FormProvider>;

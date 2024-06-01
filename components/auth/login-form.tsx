@@ -11,9 +11,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { SubmitButton } from "../ui/button";
 import { FormError } from "../ui/form-error";
-import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import Social from "./social";
+import { Input } from "../ui/input";
 
 type SignInSchema = z.infer<typeof loginSchema>;
 
@@ -40,8 +40,8 @@ const LoginForm = () => {
 
     startTransition(() => {
       email(values).then((data) => {
-        setError(data?.error);
         reset();
+        setError(data?.error);
       });
     });
   };
@@ -66,7 +66,7 @@ const LoginForm = () => {
           />
           <FormError error={errors.email} />
         </div>
-        <FormError className="mt-0" error={error || urlError} />
+        <FormError className="p-[10px] mt-0" error={error || urlError} />
         <SubmitButton isDisabled={isSubmitting}>Sign In</SubmitButton>
       </form>
       <Social />

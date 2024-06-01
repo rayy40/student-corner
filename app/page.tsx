@@ -1,42 +1,12 @@
-"use client";
-
-import { useMutation } from "convex/react";
-import { useCallback, useEffect } from "react";
-
-import { api } from "@/convex/_generated/api";
-import { useUserIdStore } from "@/providers/user-store";
-import { useAuth } from "@clerk/clerk-react";
 import Link from "next/link";
-import Image from "next/image";
-import ChatGif from "../assets/chat.gif";
-import QuizGif from "../assets/quiz.gif";
 
-const Home = () => {
-  const { isLoaded, isSignedIn } = useAuth();
-  const { setUserId } = useUserIdStore();
-
-  const storeUser = useMutation(api.users.store);
-
-  const createUser = useCallback(async () => {
-    const id = await storeUser();
-    setUserId(id);
-  }, [storeUser, setUserId]);
-
-  useEffect(() => {
-    if (!isSignedIn) return;
-    createUser();
-  }, [isSignedIn, createUser]);
-
-  if (!isLoaded) {
-    return <h1>Loading...</h1>;
-  }
-
+const Page = () => {
   return (
-    <main className="p-4 pt-20 font-sans flex items-center justify-center h-screen w-full">
-      <div className="flex space-x-40 max-w-[1200px] mx-auto">
-        <div className="flex max-w-[500px] border border-border p-4 rounded-md w-[50%] h-[200px] flex-col justify-between">
+    <main className="flex items-center justify-center w-full h-screen p-4 font-sans">
+      <div className="flex flex-col w-full lg:flex-row gap-6 items-center lg:justify-between max-w-[1200px] mx-auto">
+        <div className="flex max-w-[500px] border border-border p-4 rounded-md w-full lg:w-[50%] gap-4 lg:gap-2 h-fit lg:h-[200px] flex-col justify-between">
           <div>
-            <h3 className="text-2xl pb-2 font-medium">Quizify</h3>
+            <h3 className="pb-2 text-2xl font-medium">Quizify</h3>
             <p className="text-[#333]">
               Need help preparing for an exam? Play our quiz by uploading your
               pdfs, paragraphs or just a topic.
@@ -48,13 +18,13 @@ const Home = () => {
             </button>
           </Link>
         </div>
-        <div className="flex max-w-[500px] border border-border p-4 rounded-md w-[50%] h-[200px] flex-col justify-between">
+        <div className="flex max-w-[500px] border border-border p-4 rounded-md w-full lg:w-[50%] gap-4 lg:gap-2 h-fit lg:h-[200px] flex-col justify-between">
           <div>
-            <h3 className="text-2xl pb-2 font-medium">Chatbook</h3>
+            <h3 className="pb-2 text-2xl font-medium">Chatbook</h3>
             <p className="text-[#333]">
-              Want to ask a documentation website, on how does a certain thing
-              is done? You can chat with a documentation website, codebase,
-              youtube or a pdf.
+              Want to interact with a website (preferably a documentation) or a
+              github repo, you can do so with ease with the help of AI. You can
+              chat with youtube videos and your files too.
             </p>
           </div>
           <Link href={"/chat"}>
@@ -68,4 +38,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Page;

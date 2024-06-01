@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 
 import { internal } from "../_generated/api";
 import {
@@ -8,6 +8,7 @@ import {
   query,
 } from "../_generated/server";
 import { Questions, QuizFormat, QuizKind, Response, Status } from "../schema";
+import { Id } from "../_generated/dataModel";
 
 export const createQuiz = mutation({
   args: {
@@ -29,16 +30,21 @@ export const createQuiz = mutation({
       status: "inProgress",
     });
 
+    if (!id) {
+      throw new ConvexError("Quiz creation failed.");
+    }
+
     if (kind === "files") {
-      //TODO: add logic for files
-      // let url = await ctx.storage.getUrl(content as Id<"_storage">);
-      // if (!url) {
-      //   throw new ConvexError("No File found for this quiz Id.");
-      // }
-      // await ctx.scheduler.runAfter(0, internal.quiz.chunks.createChunks, {
-      //   url,
-      //   id,
-      // });
+      const url = await ctx.storage.getUrl(content as Id<"_storage">);
+
+      if (!url) {
+        throw new ConvexError("No File found for this quiz Id.");
+      }
+
+      await ctx.scheduler.runAfter(0, internal.ai.gemini.summarizePDF, {
+        id,
+        url,
+      });
     } else {
       await ctx.scheduler.runAfter(0, internal.ai.gemini.generateQuiz, {
         id,
@@ -133,5 +139,29 @@ export const updateAnswers = mutation({
       response: updatedResponse,
       score,
     });
+  },
+});
+
+export const updateQuizWithSummary = internalMutation({
+  args: {
+    id: v.id("quiz"),
+    summary: v.string(),
+  },
+  handler: async (ctx, { id, summary }) => {
+    await ctx.db.patch(id, {
+      content: summary,
+    });
+  },
+});
+
+export const getQuizHistory = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    const quizHistory = await ctx.db
+      .query("quiz")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .collect();
+
+    return quizHistory;
   },
 });

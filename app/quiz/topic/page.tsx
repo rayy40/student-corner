@@ -2,7 +2,7 @@ import React from "react";
 
 import { Format, Questions, Topic } from "@/components/quiz-form";
 import Form from "@/components/input-form";
-import { quizes } from "@/helpers/constants";
+import { quizes } from "@/lib/constants";
 import { TopicProvider } from "@/providers/form-provider";
 
 type Props = {};

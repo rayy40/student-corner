@@ -19,54 +19,54 @@ type Authenticator = AdapterAuthenticator & { userId: Id<"users"> };
 // 1. Simplest form, a plain object.
 export const ConvexAdapter: Adapter = {
   async createAuthenticator(authenticator: Authenticator) {
-    await callMutation(api.utils.adapter.createAuthenticator, {
+    await callMutation(api.lib.adapter.createAuthenticator, {
       authenticator,
     });
     return authenticator;
   },
   async createSession(session: Session) {
-    const id = await callMutation(api.utils.adapter.createSession, {
+    const id = await callMutation(api.lib.adapter.createSession, {
       session: toDB(session),
     });
     return { ...session, id };
   },
   async createUser({ id: _, ...user }: User) {
-    const id = await callMutation(api.utils.adapter.createUser, {
+    const id = await callMutation(api.lib.adapter.createUser, {
       user: toDB(user),
     });
     return { ...user, id };
   },
   async createVerificationToken(verificationToken: VerificationToken) {
-    await callMutation(api.utils.adapter.createVerificationToken, {
+    await callMutation(api.lib.adapter.createVerificationToken, {
       verificationToken: toDB(verificationToken),
     });
     return verificationToken;
   },
   async deleteSession(sessionToken) {
     return maybeSessionFromDB(
-      await callMutation(api.utils.adapter.deleteSession, {
+      await callMutation(api.lib.adapter.deleteSession, {
         sessionToken,
       })
     );
   },
   async deleteUser(id: Id<"users">) {
     return maybeUserFromDB(
-      await callMutation(api.utils.adapter.deleteUser, { id })
+      await callMutation(api.lib.adapter.deleteUser, { id })
     );
   },
   async getAccount(providerAccountId, provider) {
-    return await callQuery(api.utils.adapter.getAccount, {
+    return await callQuery(api.lib.adapter.getAccount, {
       provider,
       providerAccountId,
     });
   },
   async getAuthenticator(credentialID) {
-    return await callQuery(api.utils.adapter.getAuthenticator, {
+    return await callQuery(api.lib.adapter.getAuthenticator, {
       credentialID,
     });
   },
   async getSessionAndUser(sessionToken) {
-    const result = await callQuery(api.utils.adapter.getSessionAndUser, {
+    const result = await callQuery(api.lib.adapter.getSessionAndUser, {
       sessionToken,
     });
     if (result === null) {
@@ -76,11 +76,11 @@ export const ConvexAdapter: Adapter = {
     return { user: userFromDB(user), session: sessionFromDB(session) };
   },
   async getUser(id: Id<"users">) {
-    return maybeUserFromDB(await callQuery(api.utils.adapter.getUser, { id }));
+    return maybeUserFromDB(await callQuery(api.lib.adapter.getUser, { id }));
   },
   async getUserByAccount({ provider, providerAccountId }) {
     return maybeUserFromDB(
-      await callQuery(api.utils.adapter.getUserByAccount, {
+      await callQuery(api.lib.adapter.getUserByAccount, {
         provider,
         providerAccountId,
       })
@@ -88,43 +88,43 @@ export const ConvexAdapter: Adapter = {
   },
   async getUserByEmail(email) {
     return maybeUserFromDB(
-      await callQuery(api.utils.adapter.getUserByEmail, { email })
+      await callQuery(api.lib.adapter.getUserByEmail, { email })
     );
   },
   async linkAccount(account: Account) {
-    return await callMutation(api.utils.adapter.linkAccount, { account });
+    return await callMutation(api.lib.adapter.linkAccount, { account });
   },
   async listAuthenticatorsByUserId(userId: Id<"users">) {
-    return await callQuery(api.utils.adapter.listAuthenticatorsByUserId, {
+    return await callQuery(api.lib.adapter.listAuthenticatorsByUserId, {
       userId,
     });
   },
   async unlinkAccount({ provider, providerAccountId }) {
     return (
-      (await callMutation(api.utils.adapter.unlinkAccount, {
+      (await callMutation(api.lib.adapter.unlinkAccount, {
         provider,
         providerAccountId,
       })) ?? undefined
     );
   },
   async updateAuthenticatorCounter(credentialID, newCounter) {
-    return await callMutation(api.utils.adapter.updateAuthenticatorCounter, {
+    return await callMutation(api.lib.adapter.updateAuthenticatorCounter, {
       credentialID,
       newCounter,
     });
   },
   async updateSession(session: Session) {
-    return await callMutation(api.utils.adapter.updateSession, {
+    return await callMutation(api.lib.adapter.updateSession, {
       session: toDB(session),
     });
   },
   async updateUser(user: User) {
-    await callMutation(api.utils.adapter.updateUser, { user: toDB(user) });
+    await callMutation(api.lib.adapter.updateUser, { user: toDB(user) });
     return user;
   },
   async useVerificationToken({ identifier, token }) {
     return maybeVerificationTokenFromDB(
-      await callMutation(api.utils.adapter.useVerificationToken, {
+      await callMutation(api.lib.adapter.useVerificationToken, {
         identifier,
         token,
       })

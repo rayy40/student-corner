@@ -3,8 +3,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
 
-import { useUserIdStore } from "@/providers/user-store";
-
 import logo from "../assets/logo.svg";
 import { auth } from "@/auth";
 import { fetchQuery } from "convex/nextjs";
@@ -23,7 +21,7 @@ const Navbar = () => {
     <div
       className={`font-sans fixed top-0 z-10 items-center justify-between w-full p-3 bg-white shadow-medium`}
     >
-      <Link className="flex items-center gap-3" href={"/"}>
+      <Link className="flex w-fit items-center gap-3" href={"/"}>
         <Image priority width={40} height={40} src={logo} alt="logo" />
         <h3 className="font-medium hover:underline underline-offset-2">
           Student Corner

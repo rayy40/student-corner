@@ -2,7 +2,7 @@ import React from "react";
 
 import { Format, Questions } from "@/components/quiz-form";
 import Form from "@/components/input-form";
-import { quizes } from "@/helpers/constants";
+import { quizes } from "@/lib/constants";
 import { DocumentProvider } from "@/providers/form-provider";
 import Document from "@/components/Upload/Documents/Documents";
 

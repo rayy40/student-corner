@@ -1,8 +1,8 @@
-import { generateObject } from "ai";
-import { ConvexError, v } from "convex/values";
+import { generateObject, generateText } from "ai";
+import { v } from "convex/values";
+import { createUserPrompt } from "@/lib/utils";
 
-import { createUserPrompt } from "@/helpers/utils";
-import { CreateUserPrompt } from "@/lib/types";
+import type { CreateUserPrompt } from "@/lib/types";
 import { google } from "@ai-sdk/google";
 
 import { internal } from "../_generated/api";
@@ -36,9 +36,8 @@ export const getResponseFromGemini = async (props: CreateUserPrompt) => {
 export const generateQuiz = internalAction({
   args: {
     id: v.id("quiz"),
-    content: v.optional(v.string()),
   },
-  handler: async (ctx, { id, content }) => {
+  handler: async (ctx, { id }) => {
     try {
       const quiz = await ctx.runQuery(
         internal.quizify.quiz.getQuizTemporarily,
@@ -48,7 +47,7 @@ export const generateQuiz = internalAction({
       );
 
       if (!quiz) {
-        throw new ConvexError("No quiz found");
+        throw new Error("No quiz found");
       }
 
       const response = await getResponseFromGemini(quiz);
@@ -70,7 +69,47 @@ export const generateQuiz = internalAction({
       await ctx.runMutation(internal.quizify.quiz.updateQuizStatus, {
         id,
         status: "failed",
-        error: (error as Error).message,
+        error: "Unable to generate the quiz.",
+      });
+    }
+  },
+});
+
+export const summarizePDF = internalAction({
+  args: {
+    id: v.id("quiz"),
+    url: v.string(),
+  },
+  handler: async (ctx, { id, url }) => {
+    try {
+      const content = await fetch(`https://r.jina.ai/${url}`, {
+        method: "GET",
+      })
+        .then((res) => res.text())
+        .catch((err) => {
+          throw new Error(err.message);
+        });
+
+      const { text: summary } = await generateText({
+        model: google("models/gemini-1.5-flash-latest"),
+        system:
+          "You are a text summarizer. You summarize the text provided so that questions can be prepared for the quiz.",
+        prompt: "Summarize the following content: " + content,
+      });
+
+      await ctx.runMutation(internal.quizify.quiz.updateQuizWithSummary, {
+        id,
+        summary,
+      });
+
+      await ctx.scheduler.runAfter(0, internal.ai.gemini.generateQuiz, {
+        id,
+      });
+    } catch (error) {
+      await ctx.runMutation(internal.quizify.quiz.updateQuizStatus, {
+        id,
+        status: "failed",
+        error: "Unable to summarise the PDF for generating the quiz.",
       });
     }
   },

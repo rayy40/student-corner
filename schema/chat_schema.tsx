@@ -1,7 +1,7 @@
 import z from "zod";
 
 import isGithubUrl from "is-github-url";
-import { isDocsUrl, isYoutubeUrl } from "@/helpers/utils";
+import { isDocsUrl, isYoutubeUrl } from "@/lib/utils";
 
 const File = z.custom<FileList>().superRefine((files, ctx) => {
   if (files?.length === 0) {
@@ -38,8 +38,8 @@ export const youtubeSchema = z.object({
     .refine((val) => isYoutubeUrl(val), { message: "Invalid Youtube url." }),
 });
 
-export const codebaseSchema = z.object({
-  codebase: z
+export const githubSchema = z.object({
+  github: z
     .string()
     .url({ message: "Invalid Url" })
     .refine((val) => isGithubUrl(val, { repository: true }), {

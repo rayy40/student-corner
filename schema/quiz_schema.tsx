@@ -1,32 +1,12 @@
 import z from "zod";
 
-const File = z.custom<FileList>().superRefine((files, ctx) => {
-  if (files?.length === 0) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "File must be provided",
-    });
-    return false;
+function checkFileType(file: File) {
+  if (file?.name) {
+    const fileType = file.name.split(".").pop();
+    if (fileType === "docx" || fileType === "pdf") return true;
   }
-
-  if (!["application/pdf"].includes(files?.[0]?.type)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Only pdf type files are supported",
-    });
-    return false;
-  }
-
-  if (files?.[0]?.size > 1024 * 1024 * 5) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "File must be less than 5MB",
-    });
-    return false;
-  }
-
-  return true;
-});
+  return false;
+}
 
 export const topicSchema = z.object({
   topic: z
@@ -57,7 +37,17 @@ export const paragraphSchema = z.object({
 });
 
 export const filesSchema = z.object({
-  files: File,
+  files:
+    typeof window === "undefined"
+      ? z.any()
+      : z
+          .instanceof(FileList)
+          .refine((file) => file?.length !== 0, "File is required")
+          .refine((file) => file?.[0]?.size < 5000000, "Max file size is 5MB.")
+          .refine(
+            (file) => checkFileType(file?.[0]),
+            "Only pdf and docx files are supported."
+          ),
   questions: z
     .number()
     .min(3, { message: "Minimum 3 questions to be generated" })

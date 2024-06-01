@@ -4,11 +4,12 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { FieldError, useFormContext } from "react-hook-form";
 
-import { formats } from "@/helpers/constants";
-import { cn } from "@/helpers/utils";
+import { formats } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 import { FormError } from "./ui/form-error";
 import { Input, TextArea } from "./ui/input";
+import { Label } from "./ui/label";
 
 export const Topic = () => {
   const {
@@ -18,10 +19,9 @@ export const Topic = () => {
 
   return (
     <div className="flex flex-col gap-1">
-      <label className="font-semibold text-[hsl(0_0%_50%)]" htmlFor="Topic">
-        Topic
-      </label>
+      <Label label="topic" />
       <Input
+        className="border-gray-200 bg-input shadow-input"
         isDisabled={isSubmitting}
         itemType="text"
         defaultValue=""
@@ -30,7 +30,10 @@ export const Topic = () => {
         {...register("topic")}
       />
       {!isValid && (
-        <FormError error={(errors as { topic?: FieldError }).topic} />
+        <FormError
+          className="p-[10px] mt-3"
+          error={(errors as { topic?: FieldError }).topic}
+        />
       )}
     </div>
   );
@@ -44,9 +47,7 @@ export const Paragrah = () => {
 
   return (
     <div className="flex flex-col gap-1">
-      <label className="font-semibold text-[hsl(0_0%_50%)]" htmlFor="Paragraph">
-        Paragraph
-      </label>
+      <Label label="paragraph" />
       <TextArea
         isDisabled={isSubmitting}
         rows={8}
@@ -55,7 +56,10 @@ export const Paragrah = () => {
         {...register("paragraph")}
       />
       {!isValid && (
-        <FormError error={(errors as { paragraph?: FieldError }).paragraph} />
+        <FormError
+          className="p-[10px] mt-3"
+          error={(errors as { paragraph?: FieldError }).paragraph}
+        />
       )}
     </div>
   );
@@ -69,10 +73,9 @@ export const Questions = () => {
 
   return (
     <div className="flex flex-col gap-1">
-      <label className="font-semibold text-[hsl(0_0%_50%)]" htmlFor="Questions">
-        Questions
-      </label>
+      <Label label="questions" />
       <Input
+        className="border-gray-200 bg-input shadow-input"
         isDisabled={isSubmitting}
         itemType="number"
         defaultValue={5}
@@ -83,7 +86,10 @@ export const Questions = () => {
         })}
       />
       {!isValid && (
-        <FormError error={(errors as { questions?: FieldError }).questions} />
+        <FormError
+          className="p-[10px] mt-3"
+          error={(errors as { questions?: FieldError }).questions}
+        />
       )}
     </div>
   );
@@ -111,7 +117,9 @@ export const Format = () => {
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="font-semibold text-[hsl(0_0%_50%)]">Format</div>
+      <div className="font-semibold text-sm md:text-[1rem] text-label">
+        Format
+      </div>
       <div className="flex items-center w-full border rounded-md border-border">
         {formats.map((item) => (
           <button
@@ -119,7 +127,7 @@ export const Format = () => {
             key={item}
             onClick={() => handleFormat(item)}
             className={cn(
-              "p-2 capitalize transition-colors text-secondary-foreground first:rounded-l-md last:rounded-r-md hover:bg-secondary-hover shadow-light border-r border-border grow bg-secondary",
+              "p-[10px] capitalize transition-colors text-secondary-foreground first:rounded-l-md last:rounded-r-md hover:bg-secondary-hover shadow-light border-r border-border grow bg-secondary",
               {
                 "bg-secondary-hover": item === format.toLowerCase().trim(),
               }
