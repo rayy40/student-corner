@@ -3,7 +3,7 @@
 import { AuthError } from "next-auth";
 import { z } from "zod";
 
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { loginSchema } from "@/schema/authentication_schema";
 import { redirect } from "next/navigation";
@@ -60,5 +60,16 @@ export const social = async (provider: "google" | "github") => {
     throw error;
   }
 
+  redirect("/");
+};
+
+export const handleSignOut = async () => {
+  try {
+    await signOut();
+  } catch (error) {
+    return {
+      error: "Something went wrong while signing you out, please try again.",
+    };
+  }
   redirect("/");
 };
