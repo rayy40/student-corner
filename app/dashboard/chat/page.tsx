@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import DashboardList from "@/components/DashboardList";
+import { UnAuthenticated } from "@/components/un-authenticated";
 import { Id } from "@/convex/_generated/dataModel";
 import { getChatHistory } from "@/db/chat";
 
@@ -7,9 +8,7 @@ const Page = async () => {
   const session = await auth();
 
   if (!session?.user?.id) {
-    //TODO: handle unauthenticated
-
-    return;
+    return <UnAuthenticated />;
   }
 
   const userId = session.user.id as Id<"users">;
@@ -19,7 +18,7 @@ const Page = async () => {
   return (
     <div className="p-4 mt-16 font-sans ">
       <div className="flex items-center justify-between py-4 border-b border-b-border">
-        <h1 className="text-2xl">Dashboard</h1>
+        <h2 className="pb-2 text-3xl font-medium">Your Chats</h2>
         {/* <form className="border border-border" action="/">
           <input type="search" value={"Enter search..."} />
         </InputForm> */}

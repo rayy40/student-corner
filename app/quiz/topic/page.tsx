@@ -1,13 +1,9 @@
-import React from "react";
-
-import { Format, Questions, Topic } from "@/components/quiz-form";
 import Form from "@/components/input-form";
+import { Format, Questions, Topic } from "@/components/quiz-form";
 import { quizes } from "@/lib/constants";
 import { TopicProvider } from "@/providers/form-provider";
 
-type Props = {};
-
-const TopicPage = ({}: Props) => {
+const TopicPage = () => {
   return (
     <TopicProvider>
       <Form kind="quiz" title="Quizify" schema="topic" types={quizes}>

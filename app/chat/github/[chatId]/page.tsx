@@ -1,9 +1,11 @@
 import { preloadedQueryResult } from "convex/nextjs";
 
+import { auth } from "@/auth";
 import ChatBot from "@/components/chat-bot";
+import CodeViewer from "@/components/code-viewer";
+import { UnAuthenticated } from "@/components/un-authenticated";
 import { Id } from "@/convex/_generated/dataModel";
 import { getPreloadedChat, getPreloadedMessages } from "@/db/chat";
-import CodeViewer from "@/components/code-viewer";
 
 type Props = {
   params: { chatId: string };
@@ -14,6 +16,12 @@ type Props = {
 };
 
 const Page = async ({ params, searchParams }: Props) => {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return <UnAuthenticated />;
+  }
+
   const chatId = params.chatId as Id<"chatbook">;
   const selectedFileIndex = searchParams?.index
     ? parseInt(searchParams.index)

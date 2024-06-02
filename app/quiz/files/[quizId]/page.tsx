@@ -5,14 +5,13 @@ import { Id } from "@/convex/_generated/dataModel";
 import { auth } from "@/auth";
 import { preloadedQueryResult } from "convex/nextjs";
 import { getPreloadedQuiz } from "@/db/quiz";
+import { UnAuthenticated } from "@/components/un-authenticated";
 
 const QuizIdPage = async ({ params }: { params: { quizId: Id<"quiz"> } }) => {
   const session = await auth();
 
   if (!session?.user?.id) {
-    //TODO: handle unauthenticated
-
-    return;
+    return <UnAuthenticated />;
   }
 
   const preloadedQuiz = await getPreloadedQuiz(params.quizId);

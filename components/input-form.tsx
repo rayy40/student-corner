@@ -1,20 +1,21 @@
 "use client";
 import { useSession } from "next-auth/react";
-import React, { useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { FieldValues, useFormContext } from "react-hook-form";
 
+import {
+  documentation,
+  files as chatFiles,
+  github,
+  youtube,
+} from "@/actions/chat";
 import { files as quizFiles, paragraph, topic } from "@/actions/quiz";
 import { FormType } from "@/lib/types";
 
+import { SubmitButton } from "./ui/button";
 import DropDown from "./ui/drop-down";
 import { FormError } from "./ui/form-error";
-import { SubmitButton } from "./ui/button";
-import {
-  youtube,
-  files as chatFiles,
-  github,
-  documentation,
-} from "@/actions/chat";
+import { UnAuthenticated } from "./un-authenticated";
 
 const Form = ({ kind, title, schema, types, children }: FormType) => {
   const { handleSubmit } = useFormContext();
@@ -24,8 +25,7 @@ const Form = ({ kind, title, schema, types, children }: FormType) => {
   const { status, data } = useSession();
 
   if (status === "unauthenticated") {
-    //TOOD: handle unauthentication
-    return;
+    return <UnAuthenticated />;
   }
 
   const onSubmit = (formData: FieldValues) => {

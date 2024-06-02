@@ -14,12 +14,9 @@ export const Result = ({
 }: ResultProps) => {
   return (
     <div className="flex flex-col w-full gap-6 max-w-[1400px] mb-auto pt-20 font-sans">
-      <div className="border-b text-center pb-8 border-b-border">
-        <h2 className="text-3xl justify-center items-center flex gap-3 text-secondary-foreground font-medium">
-          Score:
-          <p className="text-secondary-foreground font-medium">
-            {score} / {numberOfQuestions}
-          </p>
+      <div className="pb-8 border-b border-b-border">
+        <h2 className="gap-3 text-3xl font-medium text-foreground">
+          You scored {score}/{numberOfQuestions}
         </h2>
       </div>
       <div className="flex flex-col items-center justify-center w-full gap-4">

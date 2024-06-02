@@ -10,7 +10,7 @@ export default async function ChatLayout({
 
   return (
     <ConvexClientProvider session={session}>
-      <div className="flex flex-col items-center justify-center h-screen mx-auto font-sans lg:flex-row">
+      <div className="flex flex-col items-center justify-center min-h-screen mx-auto font-sans lg:h-screen lg:flex-row">
         {children}
       </div>
     </ConvexClientProvider>

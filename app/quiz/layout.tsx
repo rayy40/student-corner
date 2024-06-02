@@ -10,7 +10,7 @@ export default async function QuizLayout({
 
   return (
     <ConvexClientProvider session={session}>
-      <div className="flex flex-col font-sans mx-auto h-screen items-center justify-center p-4">
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 mx-auto font-sans lg:h-screen">
         {children}
       </div>
     </ConvexClientProvider>
