@@ -46,7 +46,7 @@ export const Messages = memo(
           )}
           {error && (
             <FormError
-              className="mb-5 w-full rounded-lg px-4"
+              className="w-full px-4 mb-5 rounded-lg"
               error={error.message}
             />
           )}

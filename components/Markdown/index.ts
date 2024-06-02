@@ -12,7 +12,6 @@ import {
 } from "./tags";
 
 const overriddenComponents = {
-  code: CodeBlock,
   p: Paragraph,
   ul: UnorderedList,
   ol: OrderedList,
