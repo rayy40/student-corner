@@ -152,9 +152,9 @@ export const getFilesFromRepo = internalAction({
       //TODO: add private repos support
 
       if (chat) {
-        await ctx.runMutation(internal.chatbook.chat.updateChatStatus, {
+        await ctx.runMutation(internal.chatbook.chat.updateExistingChat, {
           chatId,
-          status: "completed",
+          existingId: chat._id,
         });
         return;
       }

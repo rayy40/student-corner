@@ -72,10 +72,10 @@ export const createChatbook = mutation({
       if (chat) {
         await ctx.scheduler.runAfter(
           0,
-          internal.chatbook.chat.updateChatStatus,
+          internal.chatbook.chat.updateExistingChat,
           {
+            existingId: chat._id,
             chatId,
-            status: "completed",
           }
         );
       } else {
@@ -109,6 +109,81 @@ export const getChat = query({
       return { success: chat, loading: false };
     } else {
       return { error: "No chat found.", loading: false };
+    }
+  },
+});
+
+export const updateExistingChat = internalMutation({
+  args: {
+    existingId: v.id("chatbook"),
+    chatId: v.id("chatbook"),
+  },
+  handler: async (ctx, { chatId, existingId }) => {
+    try {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.chatbook.chat.copyExistingChunksAndEmbeddings,
+        {
+          existingId,
+          chatId,
+        }
+      );
+      await ctx.scheduler.runAfter(0, internal.chatbook.chat.updateChatStatus, {
+        chatId,
+        status: "completed",
+      });
+    } catch (error) {
+      await ctx.scheduler.runAfter(0, internal.chatbook.chat.updateChatStatus, {
+        chatId,
+        status: "failed",
+        error: "Unable to update chat.",
+      });
+    }
+  },
+});
+
+export const copyExistingChunksAndEmbeddings = internalMutation({
+  args: {
+    chatId: v.id("chatbook"),
+    existingId: v.id("chatbook"),
+  },
+  handler: async (ctx, { chatId, existingId }) => {
+    try {
+      const chunks = await ctx.db
+        .query("chunks")
+        .withIndex("byChatId", (q) => q.eq("chatId", existingId))
+        .collect();
+      const embeddings = await ctx.db
+        .query("embeddings")
+        .withIndex("byChatId", (q) => q.eq("chatId", existingId))
+        .collect();
+
+      for (let batchStart = 0; batchStart < chunks.length; batchStart += 200) {
+        const batchEnd = Math.min(batchStart + 200, chunks.length);
+        const batch = chunks.slice(batchStart, batchEnd);
+
+        const promises = batch.flatMap(async ({ content }, index) => {
+          const chunkId = await ctx.db.insert("chunks", {
+            chatId,
+            content,
+          });
+          const embeddingId = await ctx.db.insert("embeddings", {
+            chatId,
+            chunkId,
+            embedding: embeddings[index].embedding,
+          });
+          await ctx.db.patch(chunkId, {
+            embeddingId,
+          });
+        });
+
+        await Promise.all(promises);
+      }
+    } catch (error) {
+      await ctx.db.patch(chatId, {
+        status: "failed",
+        error: "Unable to copy existing chunks.",
+      });
     }
   },
 });

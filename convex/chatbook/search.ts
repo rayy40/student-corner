@@ -5,6 +5,7 @@ import { internal } from "../_generated/api";
 export const fetchResults = internalQuery({
   args: {
     embeddingIds: v.array(v.id("embeddings")),
+    chatId: v.id("chatbook"),
   },
   handler: async (ctx, { embeddingIds }) => {
     const chunks = await Promise.all(
@@ -42,14 +43,9 @@ export const semanticSearch = action({
         filter: (q) => q.eq("chatId", chatId),
       });
 
-      if (results.length === 0) {
-        return {
-          error: "Unable to find any content related to the file provided.",
-        };
-      }
-
       const chunks = await ctx.runQuery(internal.chatbook.search.fetchResults, {
         embeddingIds: results.map((result) => result._id),
+        chatId,
       });
 
       const filteredChunks: string[] = chunks.map(
