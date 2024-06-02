@@ -84,3 +84,23 @@ export const isDocsUrl = (url: string) => {
 
   return docsRegex.test(url);
 };
+
+export const getLastNameInitials = (fullName?: string | null) => {
+  if (!fullName) return "A";
+
+  const nameParts = fullName.split(/\s+/);
+
+  if (nameParts.length === 0) {
+    return "";
+  } else if (nameParts.length === 1) {
+    return nameParts[0].charAt(0).toUpperCase();
+  }
+
+  const firstName = nameParts[0];
+  const firstInitial = firstName.charAt(0).toUpperCase();
+
+  const lastName = nameParts[nameParts.length - 1];
+  const lastInitial = lastName.charAt(0).toUpperCase();
+
+  return firstInitial + lastInitial;
+};
