@@ -1,36 +1,47 @@
 import Link from "next/link";
+import Bg from "@/assets/student-corner-bg.svg";
+import MobileBg from "@/assets/student-corner-bg-mobile.svg";
+import Image from "next/image";
+import { SubmitButton } from "@/components/ui/button";
 
 const Page = () => {
   return (
     <main className="flex items-center justify-center w-full h-screen p-4 font-sans">
-      <div className="flex flex-col w-full lg:flex-row gap-6 items-center lg:justify-between max-w-[1200px] mx-auto">
-        <div className="flex max-w-[500px] border border-border p-4 rounded-md w-full lg:w-[50%] gap-4 lg:gap-2 h-fit lg:h-[200px] flex-col justify-between">
-          <div>
-            <h3 className="pb-2 text-2xl font-medium">Quizify</h3>
-            <p className="text-[#333]">
-              Need help preparing for an exam? Play our quiz by uploading your
-              pdfs, paragraphs or just a topic.
+      <div className="flex relative flex-col w-full gap-6 items-center max-w-[1200px] mx-auto">
+        <div className="relative rounded-lg">
+          <Image
+            src={Bg}
+            className="hidden rounded-lg md:block"
+            alt="student-corner-bg"
+            width={1200}
+            height={600}
+          />
+          <Image
+            src={MobileBg}
+            className="block rounded-lg md:hidden"
+            alt="student-corner-bg"
+            width={1200}
+            height={600}
+          />
+          <div className="z-10 pt-5 space-y-2 md:pt-0 lg:space-y-4 text-foreground md:text-white md:absolute bottom-10 left-10">
+            <h2 className="text-3xl font-medium md:text-4xl lg:text-5xl">
+              Ace Your Exams with Student Corner
+            </h2>
+            <p className="lg:text-lg max-w-[70ch]">
+              Create custom quizes or get help from AI, whether it&#39;s
+              websites, videos or code repositories.
             </p>
           </div>
-          <Link href={"/quiz"}>
-            <button className="flex items-center justify-center w-full gap-2 p-2 mt-2 font-semibold transition-colors rounded-md cursor-pointer enabled:hover:bg-primary-hover bg-primary text-primary-foreground shadow-button disabled:opacity-40 disabled:cursor-not-allowed">
-              Play Quiz
-            </button>
-          </Link>
+          <div className="absolute inset-0 hidden rounded-lg md:block opacity-40 bg-gradient-to-b from-transparent to-black"></div>
         </div>
-        <div className="flex max-w-[500px] border border-border p-4 rounded-md w-full lg:w-[50%] gap-4 lg:gap-2 h-fit lg:h-[200px] flex-col justify-between">
-          <div>
-            <h3 className="pb-2 text-2xl font-medium">Chatbook</h3>
-            <p className="text-[#333]">
-              Want to interact with a website (preferably a documentation) or a
-              github repo, you can do so with ease with the help of AI. You can
-              chat with youtube videos and your files too.
-            </p>
-          </div>
-          <Link href={"/chat"}>
-            <button className="flex items-center justify-center w-full gap-2 p-2 mt-2 font-semibold transition-colors rounded-md cursor-pointer enabled:hover:bg-primary-hover bg-primary text-primary-foreground shadow-button disabled:opacity-40 disabled:cursor-not-allowed">
-              Chat With AI
-            </button>
+        <div className="flex w-full gap-6">
+          <Link className="w-1/2" href={"/quiz/topic"}>
+            <SubmitButton className="p-4 lg:text-lg">Play Quiz</SubmitButton>
+          </Link>
+          <Link className="w-1/2" href={"/chat/youtube"}>
+            <SubmitButton className="p-4 shadow-light border border-border bg-[#f5efe8] enabled:hover:bg-[#f5efe8]/80 text-secondary-foreground lg:text-lg">
+              Chat with AI
+            </SubmitButton>
           </Link>
         </div>
       </div>
