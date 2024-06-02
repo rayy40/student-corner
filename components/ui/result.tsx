@@ -1,19 +1,23 @@
 import { QuizGameQuestionProps } from "@/lib/types";
 import Link from "next/link";
+import { SubmitButton } from "./button";
+import { Id } from "@/convex/_generated/dataModel";
 
 type ResultProps = {
   score?: number;
   numberOfQuestions?: number;
   questions?: QuizGameQuestionProps[];
+  id: Id<"quiz">;
 };
 
 export const Result = ({
   score = 0,
   numberOfQuestions = 5,
   questions = [],
+  id,
 }: ResultProps) => {
   return (
-    <div className="flex flex-col w-full gap-6 max-w-[1400px] mb-auto pt-20 font-sans">
+    <div className="relative flex flex-col w-full gap-6 pt-20 mb-auto font-sans">
       <div className="pb-8 border-b border-b-border">
         <h2 className="gap-3 text-3xl font-medium text-foreground">
           You scored {score}/{numberOfQuestions}
@@ -60,6 +64,11 @@ export const Result = ({
             </tbody>
           </table>
         </div>
+      </div>
+      <div className="fixed bottom-10 right-10">
+        <Link href={`/quiz/${id}`}>
+          <SubmitButton>Try Again</SubmitButton>
+        </Link>
       </div>
     </div>
   );

@@ -18,7 +18,6 @@ const DashboardList = <K extends string>({ data, type }: DashboardType<K>) => {
             <th className="w-2/5 px-6 py-2 font-medium min-w-[160px] text-left">
               Title
             </th>
-            <th className="w-1/5 px-6 py-2 font-medium text-left">Status</th>
             {type === "quiz" ? (
               <th className="w-1/5 px-4 py-2 font-medium text-center">Score</th>
             ) : (
@@ -49,7 +48,6 @@ const DashboardList = <K extends string>({ data, type }: DashboardType<K>) => {
                     : item.title ?? "Untitled"}
                 </Link>
               </td>
-              <td className="w-1/5 px-6 py-4 capitalize">{item.status}</td>
               {isQuizData(item) ? (
                 <td className="w-1/5 px-4 py-4 text-center">
                   {item?.score ?? "-"}
