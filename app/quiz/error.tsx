@@ -22,10 +22,10 @@ export default function Error({
 
   return (
     <div className="flex flex-col items-center justify-center gap-4">
-      <LuAlertTriangle className="text-error text-5xl" />
+      <LuAlertTriangle className="text-5xl text-error" />
       <p className="text-lg text-center text-error">{customError}</p>
       <Link href={goToPath}>
-        <button className="px-4 py-2 transition-colors shadow-light border rounded-md border-red-200 text-foreground/80 bg-red-100 hover:bg-red-50 ">
+        <button className="px-4 py-2 transition-colors border rounded-md border-border shadow-light text-foreground/80 bg-input hover:input/80">
           Go Back
         </button>
       </Link>
