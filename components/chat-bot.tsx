@@ -7,7 +7,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { patchMessages } from "@/db/chat";
 import { ChatMessage } from "@/lib/types";
 
-import ConversationForm from "./ConversationForm";
+import ConversationForm from "./conversation-form";
 import DeleteConversation from "./delete-conversation";
 import { Messages } from "./messages";
 import { Preloaded, usePreloadedQuery } from "convex/react";

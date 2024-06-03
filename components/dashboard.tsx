@@ -3,7 +3,10 @@ import Link from "next/link";
 import { DashboardType, isQuizData } from "@/lib/types";
 import { getDate } from "@/lib/utils";
 
-const DashboardList = <K extends string>({ data, type }: DashboardType<K>) => {
+export const Dashboard = <K extends string>({
+  data,
+  type,
+}: DashboardType<K>) => {
   return (
     <div className="w-full overflow-x-auto no-scrollbar">
       <table className="w-full border-collapse table-auto">
@@ -70,5 +73,3 @@ const DashboardList = <K extends string>({ data, type }: DashboardType<K>) => {
     </div>
   );
 };
-
-export default DashboardList;
