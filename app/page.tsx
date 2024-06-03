@@ -1,7 +1,6 @@
 import Link from "next/link";
-import Bg from "@/assets/student-corner-bg.svg";
-import MobileBg from "@/assets/student-corner-bg-mobile.svg";
-import Image from "next/image";
+
+import { HeroImage } from "@/components/hero-image";
 import { SubmitButton } from "@/components/ui/button";
 
 const Page = () => {
@@ -9,20 +8,7 @@ const Page = () => {
     <main className="flex items-center justify-center w-full h-screen p-4 font-sans">
       <div className="flex relative flex-col w-full gap-6 items-center max-w-[1200px] mx-auto">
         <div className="relative rounded-lg">
-          <Image
-            src={Bg}
-            className="hidden rounded-lg md:block"
-            alt="student-corner-bg"
-            width={1200}
-            height={600}
-          />
-          <Image
-            src={MobileBg}
-            className="block rounded-lg md:hidden"
-            alt="student-corner-bg"
-            width={1200}
-            height={600}
-          />
+          <HeroImage />
           <div className="z-10 pt-5 space-y-2 md:pt-0 lg:space-y-4 text-foreground md:text-white md:absolute bottom-10 left-10">
             <h2 className="text-3xl font-medium md:text-4xl lg:text-5xl">
               Ace Your Exams with Student Corner
