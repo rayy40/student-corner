@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import DashboardList from "@/components/DashboardList";
+import { Dashboard } from "@/components/dashboard";
 import { UnAuthenticated } from "@/components/un-authenticated";
 import { Id } from "@/convex/_generated/dataModel";
 import { getQuizHistory } from "@/db/quiz";
@@ -24,7 +24,7 @@ const Page = async () => {
         </InputForm> */}
       </div>
       <div className="w-full py-4">
-        <DashboardList data={quizHistory} type="quiz" />
+        <Dashboard data={quizHistory} type="quiz" />
       </div>
     </div>
   );

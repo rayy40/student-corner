@@ -1,6 +1,11 @@
 import { auth } from "@/auth";
 import { ConvexClientProvider } from "@/providers/convex-provider";
 
+export const metadata = {
+  title: "Quiz with AI",
+  description: "Play quizzes with AI",
+};
+
 export default async function QuizLayout({
   children,
 }: {

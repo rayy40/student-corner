@@ -2,8 +2,13 @@ import "./globals.css";
 
 import { Roboto } from "next/font/google";
 
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/navbar";
 import { NextTopLoader } from "@/components/next-top-loader";
+
+export const metadata = {
+  title: "Student Corner",
+  description: "A place to prepare for your exams",
+};
 
 const roboto = Roboto({
   subsets: ["latin"],

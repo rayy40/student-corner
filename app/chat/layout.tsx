@@ -1,6 +1,11 @@
 import { auth } from "@/auth";
 import { ConvexClientProvider } from "@/providers/convex-provider";
 
+export const metadata = {
+  title: "Chat with AI",
+  description: "Interact with websites, videos and more",
+};
+
 export default async function ChatLayout({
   children,
 }: {
