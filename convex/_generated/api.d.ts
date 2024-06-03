@@ -16,7 +16,6 @@ import type {
 } from "convex/server";
 import type * as ai_embedding from "../ai/embedding.js";
 import type * as ai_gemini from "../ai/gemini.js";
-import type * as ai_openai from "../ai/openai.js";
 import type * as auth_auth from "../auth/auth.js";
 import type * as auth_users from "../auth/users.js";
 import type * as chatbook_chat from "../chatbook/chat.js";
@@ -45,7 +44,6 @@ import type * as quizify_quiz from "../quizify/quiz.js";
 declare const fullApi: ApiFromModules<{
   "ai/embedding": typeof ai_embedding;
   "ai/gemini": typeof ai_gemini;
-  "ai/openai": typeof ai_openai;
   "auth/auth": typeof auth_auth;
   "auth/users": typeof auth_users;
   "chatbook/chat": typeof chatbook_chat;

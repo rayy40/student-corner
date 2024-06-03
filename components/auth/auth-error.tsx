@@ -1,19 +1,18 @@
 import Link from "next/link";
+import { LuAlertTriangle } from "react-icons/lu";
 
 export const AuthError = () => {
   return (
-    <>
-      <h2 className="text-xl text-center md:text-2xl text-error">
-        Oops! Something went wrong!
-      </h2>
-      <Link
-        className="mt-3 underline text-secondary-foreground underline-offset-2"
-        href={"/auth/login"}
-      >
-        <button className="p-2 px-4 transition-colors border rounded-md hover:bg-secondary-hover bg-secondary border-border">
-          Back to login
+    <div className="flex flex-col items-center justify-center gap-4">
+      <LuAlertTriangle className="text-5xl text-error" />
+      <p className="text-lg text-center text-error">
+        {"Something went wrong."}
+      </p>
+      <Link href={"/auth/login"}>
+        <button className="px-4 py-2 transition-colors border rounded-md border-border shadow-light text-foreground/80 bg-input hover:input/80">
+          Go Back
         </button>
       </Link>
-    </>
+    </div>
   );
 };
