@@ -6,7 +6,11 @@ import { FieldValues } from "react-hook-form";
 import { Id } from "@/convex/_generated/dataModel";
 import { createQuiz, updateUserAnswers } from "@/db/quiz";
 import { generateUploadUrl } from "@/db/utils";
-import { QuizFormat, QuizGameQuestionProps } from "@/lib/types";
+import {
+  QuizFormat,
+  QuizGameQuestionProps,
+  QuizSchemaSelection,
+} from "@/lib/types";
 import { paragraphSchema, topicSchema } from "@/schema/quiz_schema";
 
 export const topic = async (values: FieldValues, userId?: string) => {
@@ -34,7 +38,7 @@ export const topic = async (values: FieldValues, userId?: string) => {
     return { error: "Unable to generate quiz, please try again." };
   }
 
-  redirect(`/quiz/${id}`);
+  redirect(`/quiz/topic/${id}`);
 };
 
 export const paragraph = async (values: FieldValues, userId?: string) => {
@@ -62,7 +66,7 @@ export const paragraph = async (values: FieldValues, userId?: string) => {
     return { error: "Unable to generate quiz, please try again." };
   }
 
-  redirect(`/quiz/${id}`);
+  redirect(`/quiz/paragraph/${id}`);
 };
 
 export const files = async (values: FormData, userId?: string) => {
@@ -112,11 +116,12 @@ export const files = async (values: FormData, userId?: string) => {
     return { error: "Unable to generate quiz, please try again." };
   }
 
-  redirect(`/quiz/${id}`);
+  redirect(`/quiz/files/${id}`);
 };
 
 export const updateAnswers = async (
   userAnswers: QuizGameQuestionProps[],
+  type: QuizSchemaSelection,
   quizId: Id<"quiz">,
   userId: string
 ) => {
@@ -152,5 +157,5 @@ export const updateAnswers = async (
     return { error: res.error };
   }
 
-  redirect(`/quiz/${quizId}/result`);
+  redirect(`/quiz/${type}/${quizId}/result`);
 };

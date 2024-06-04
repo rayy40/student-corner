@@ -34,6 +34,7 @@ const QuizIdPage = async ({ params }: { params: { quizId: Id<"quiz"> } }) => {
         </div>
       </div>
       <QuizGameForm
+        type="topic"
         format={quiz.success?.format}
         userId={session.user.id}
         quizId={params.quizId}

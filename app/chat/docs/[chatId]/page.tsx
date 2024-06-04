@@ -22,7 +22,12 @@ const Page = async ({ params }: Props) => {
   const preloadedChat = await getPreloadedChat(chatId);
   const preloadedInitialMessages = await getPreloadedMessages(chatId);
 
+  const chat = preloadedQueryResult(preloadedChat);
   const messages = preloadedQueryResult(preloadedInitialMessages);
+
+  if (chat.error) {
+    throw new Error(chat.error);
+  }
 
   return (
     <ChatBot

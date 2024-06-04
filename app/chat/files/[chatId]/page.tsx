@@ -25,6 +25,10 @@ const Page = async ({ params }: Props) => {
 
   const chat = preloadedQueryResult(preloadedChat);
 
+  if (chat.error) {
+    throw new Error(chat.error);
+  }
+
   return (
     <>
       <div className="w-full h-full lg:w-[60%] border-r border-r-border">

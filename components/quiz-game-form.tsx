@@ -7,7 +7,11 @@ import {
   MCQOrTrueFalseFormat,
   NameTheFollowingFormat,
 } from "@/components/game-format";
-import { QuizFormat, QuizGameQuestionProps } from "@/lib/types";
+import {
+  QuizFormat,
+  QuizGameQuestionProps,
+  QuizSchemaSelection,
+} from "@/lib/types";
 
 import { NextPrevButton } from "./ui/button";
 import { Id } from "@/convex/_generated/dataModel";
@@ -16,6 +20,7 @@ import { api } from "@/convex/_generated/api";
 import Loading from "@/app/loading";
 
 type Props = {
+  type: QuizSchemaSelection;
   format?: QuizFormat;
   userId?: string;
   quizId: Id<"quiz">;
@@ -23,6 +28,7 @@ type Props = {
 };
 
 export const QuizGameForm = ({
+  type,
   userId,
   quizId,
   format,
@@ -47,7 +53,7 @@ export const QuizGameForm = ({
     setError(undefined);
     // TODO: handle when user answers is empty
     startTransition(() => {
-      updateAnswers(userAnswers, quizId, userId).then((data) => {
+      updateAnswers(userAnswers, type, quizId, userId).then((data) => {
         setError(data?.error);
       });
     });
