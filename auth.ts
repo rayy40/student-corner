@@ -47,7 +47,7 @@ export const {
   adapter: ConvexAdapter,
   pages: {
     signIn: "/login",
-    error: "/error",
+    // error: "/error",
     verifyRequest: "/verify",
   },
   callbacks: {
