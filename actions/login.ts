@@ -67,9 +67,19 @@ export const handleSignOut = async () => {
   try {
     await signOut();
   } catch (error) {
-    return {
-      error: "Something went wrong while signing you out, please try again.",
-    };
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case "SignOutError":
+          return {
+            error: "Unable to sign you out, please try again.",
+          };
+        default:
+          return {
+            error: "Something went wrong.",
+          };
+      }
+    }
+
+    throw error;
   }
-  redirect("/");
 };

@@ -11,7 +11,7 @@ export const SignOut = ({ isSignedIn }: { isSignedIn: boolean }) => {
   const onSubmit = () => {
     setTransition(() => {
       handleSignOut().then((data) => {
-        if (data.error) {
+        if (data?.error) {
           throw new Error(data.error);
         }
         return;
@@ -22,13 +22,19 @@ export const SignOut = ({ isSignedIn }: { isSignedIn: boolean }) => {
   return (
     <div className="flex items-center justify-center p-2 border rounded-md bg-input enabled:hover:bg-input/80 border-border shadow-light">
       {isSignedIn ? (
-        <form action={onSubmit}>
-          <button disabled={isPending} type="submit">
-            {isPending ? <LuLoader2 /> : "Sign Out"}
-          </button>
-        </form>
+        <button className="text-center min-w-[60px]" onClick={onSubmit}>
+          {isPending ? (
+            <div className="flex items-center justify-center animate-spin">
+              <LuLoader2 />
+            </div>
+          ) : (
+            "Sign Out"
+          )}
+        </button>
       ) : (
-        <Link href={"/login"}>Sign In</Link>
+        <Link className="text-center min-w-[60px]" href={"/login"}>
+          Sign In
+        </Link>
       )}
     </div>
   );
