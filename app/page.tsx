@@ -22,10 +22,10 @@ const Page = () => {
         </div>
         <div className="flex w-full gap-6">
           <Link className="w-1/2" href={"/quiz/topic"}>
-            <SubmitButton className="p-4 lg:text-lg">Play Quiz</SubmitButton>
+            <SubmitButton className="p-3 lg:text-lg">Play Quiz</SubmitButton>
           </Link>
           <Link className="w-1/2" href={"/chat/youtube"}>
-            <SubmitButton className="p-4 shadow-light border border-border bg-[#f5efe8] enabled:hover:bg-[#f5efe8]/80 text-secondary-foreground lg:text-lg">
+            <SubmitButton className="p-3 shadow-light border border-border bg-[#f5efe8] enabled:hover:bg-[#f5efe8]/80 text-secondary-foreground lg:text-lg">
               Chat with AI
             </SubmitButton>
           </Link>

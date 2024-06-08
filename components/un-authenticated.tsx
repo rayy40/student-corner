@@ -3,7 +3,7 @@ import Link from "next/link";
 export const UnAuthenticated = () => {
   return (
     <div className="flex flex-col items-center justify-center w-full h-screen gap-6 font-sans">
-      <h1 className="text-6xl text-[#333] text-center font-medium uppercase">
+      <h1 className="text-4xl text-[#333] text-center font-medium capitalize">
         Unauthenticated
       </h1>
       <p className="text-center max-w-[50ch]">
