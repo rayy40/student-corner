@@ -9,8 +9,12 @@ import { social } from "@/actions/login";
 
 import { FormError } from "../ui/form-error";
 import { SubmitButton } from "../ui/button";
+import { useSearchParams } from "next/navigation";
 
 const Social = () => {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
+
   const [isSubmittingGoogle, startTransitionForGoogle] = useTransition();
   const [isSubmittingGithub, startTransitionForGithub] = useTransition();
   const [error, setError] = useState<string | undefined>(undefined);
@@ -18,11 +22,11 @@ const Social = () => {
   const onClick = async (provider: "google" | "github") => {
     if (provider === "google") {
       startTransitionForGoogle(() => {
-        social("google").then((data) => setError(data?.error));
+        social("google", callbackUrl).then((data) => setError(data?.error));
       });
     } else if (provider === "github") {
       startTransitionForGithub(() => {
-        social("github").then((data) => setError(data?.error));
+        social("github", callbackUrl).then((data) => setError(data?.error));
       });
     }
   };

@@ -38,14 +38,17 @@ export const email = async (values: LoginSchema) => {
   redirect("/");
 };
 
-export const social = async (provider: "google" | "github") => {
+export const social = async (
+  provider: "google" | "github",
+  callbackUrl: string | null
+) => {
   if (!provider) {
     return { error: "No provider provided." };
   }
 
   try {
     await signIn(provider, {
-      callbackUrl: DEFAULT_LOGIN_REDIRECT,
+      callbackUrl: callbackUrl || DEFAULT_LOGIN_REDIRECT,
     });
   } catch (error) {
     if (error instanceof AuthError) {
