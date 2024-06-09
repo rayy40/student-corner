@@ -10,29 +10,16 @@ import { ChatMessage } from "@/lib/types";
 import ConversationForm from "./conversation-form";
 import DeleteConversation from "./delete-conversation";
 import { Messages } from "./messages";
-import { Preloaded, usePreloadedQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { cn } from "@/lib/utils";
-import Loading from "@/app/loading";
 
 type Props = {
   className?: string;
   chatId: Id<"chatbook">;
   initialMessages?: ChatMessage[] | null;
-  preloadedChat: Preloaded<typeof api.chatbook.chat.getChat>;
+  title?: string;
 };
 
-const ChatBot = ({
-  className,
-  chatId,
-  initialMessages,
-  preloadedChat,
-}: Props) => {
-  const {
-    success,
-    error: convexError,
-    loading,
-  } = usePreloadedQuery(preloadedChat);
+const ChatBot = ({ className, chatId, initialMessages, title }: Props) => {
   const [hasStreamingStarted, setHasStreamingStarted] = useState(false);
   const formattedMessages = initialMessages?.map((message) => ({
     ...message,
@@ -69,15 +56,6 @@ const ChatBot = ({
     },
   });
 
-  if (loading) {
-    // TODO: add loading
-    return <Loading />;
-  }
-
-  if (convexError) {
-    throw new Error(convexError);
-  }
-
   return (
     <div
       className={cn(
@@ -87,7 +65,7 @@ const ChatBot = ({
     >
       <div className="w-full p-4 flex items-center justify-between border-b border-b-border bg-white shadow-light">
         <h2 className="min-w-[300px] max-w-[80%] whitespace-nowrap overflow-hidden overflow-ellipsis">
-          {success?.title ?? "Untitled"}
+          {title ?? "Untitled"}
         </h2>
         <DeleteConversation chatId={chatId} />
       </div>

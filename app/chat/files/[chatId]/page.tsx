@@ -1,8 +1,7 @@
 import { preloadedQueryResult } from "convex/nextjs";
 
 import { auth } from "@/auth";
-import ChatBot from "@/components/chat-bot";
-import PDFViewer from "@/components/pdf-viewer";
+import { ChatWrapper } from "@/components/chat-wrapper";
 import { UnAuthenticated } from "@/components/un-authenticated";
 import { Id } from "@/convex/_generated/dataModel";
 import { getMessages, getPreloadedChat } from "@/db/chat";
@@ -30,16 +29,12 @@ const Page = async ({ params }: Props) => {
   }
 
   return (
-    <>
-      <div className="w-full h-full lg:w-[60%] border-r border-r-border">
-        <PDFViewer url={chat?.success?.url} />
-      </div>
-      <ChatBot
-        chatId={chatId}
-        initialMessages={initialMessages}
-        preloadedChat={preloadedChat}
-      />
-    </>
+    <ChatWrapper
+      preloadedChat={preloadedChat}
+      chatId={chatId}
+      initialMessages={initialMessages}
+      type="files"
+    />
   );
 };
 
