@@ -101,6 +101,7 @@ export const QuizGameForm = ({
         />
       ) : (
         <MCQOrTrueFalseFormat
+          userAnswers={userAnswers}
           questionNumber={questionNumber}
           item={question?.[questionNumber]}
           setUserAnswers={setUserAnswers}

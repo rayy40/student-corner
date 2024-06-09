@@ -18,6 +18,7 @@ const handleOptionChange = (
 
 export const MCQOrTrueFalseFormat = ({
   item,
+  userAnswers,
   setUserAnswers,
   questionNumber,
 }: QuizGameFormats) => {
@@ -29,9 +30,10 @@ export const MCQOrTrueFalseFormat = ({
           className={cn(
             "flex items-center gap-8 p-2 transition-colors border rounded-md cursor-pointer border-border shadow-light bg-transparent text-secondary-foreground",
             {
-              "bg-muted text-foreground": item.yourAnswer === option,
+              "bg-muted text-foreground":
+                userAnswers?.[questionNumber]?.yourAnswer === option,
               " hover:bg-secondary-hover hover:text-secondary-foreground":
-                item.yourAnswer !== option,
+                userAnswers?.[questionNumber]?.yourAnswer !== option,
             }
           )}
           onClick={() =>
