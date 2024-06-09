@@ -101,7 +101,7 @@ export const getChat = query({
 
     if (chat) {
       if (chat.status === "failed") {
-        return { error: "Unable to get chat.", loading: false };
+        return { error: chat.error || "Unable to get chat.", loading: false };
       }
       if (chat.status === "inProgress") {
         return { loading: true };

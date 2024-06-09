@@ -60,6 +60,9 @@ export const getQuiz = query({
     const quiz = await ctx.db.get(id);
 
     if (quiz) {
+      if (quiz.status === "failed") {
+        return { error: quiz.error || "Unable to get quiz.", loading: false };
+      }
       if (!quiz.response && quiz.status === "inProgress") {
         return { loading: true };
       }
