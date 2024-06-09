@@ -1,11 +1,7 @@
 import { v } from "convex/values";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
-import {
-  internalAction,
-  internalMutation,
-  internalQuery,
-} from "../_generated/server";
+import { internalMutation, internalQuery } from "../_generated/server";
 import { internal } from "../_generated/api";
 
 export const createChunks = internalMutation({

@@ -22,8 +22,8 @@ export const generateEmbeddings = internalAction({
         chatId,
       });
 
-      const batchSize = 200;
-      let embeddings: any[] = [];
+      const batchSize = 50;
+      let successfulEmbeddings: any[] = [];
 
       for (
         let batchStart = 0;
@@ -33,35 +33,53 @@ export const generateEmbeddings = internalAction({
         const batchEnd = Math.min(batchStart + batchSize, chunks.length);
         const batchChunks = chunks.slice(batchStart, batchEnd);
 
-        const batchEmbeddings = await Promise.all(
-          batchChunks
-            .flatMap((chunk, index) =>
-              [...Array(Math.ceil(chunk.content.length / 8000))].map(
-                (_, i) => ({
-                  chunk,
-                  index: index * Math.ceil(chunk.content.length / 8000) + i,
-                  content: chunk.content.slice(i * 8000, (i + 1) * 8000),
-                })
-              )
-            )
-            .map(async ({ chunk, index, content }) => {
-              const { embedding } = await embed({
-                model: openai.embedding("text-embedding-3-small"),
-                value: content,
-              });
-              return { chunk, index, embedding };
-            })
+        const embeddingPromises = batchChunks.map(
+          async ({ content }, index) => {
+            const { embedding } = await embed({
+              model: openai.embedding("text-embedding-3-small"),
+              value: content,
+            });
+            return {
+              chunk: batchChunks[index],
+              index,
+              embedding,
+            };
+          }
         );
 
-        embeddings.push(...batchEmbeddings);
+        const embeddings = await Promise.allSettled(embeddingPromises);
+
+        const batch = embeddings
+          .map((embedding) => {
+            if (embedding.status === "fulfilled") {
+              return embedding.value;
+            } else {
+              return null;
+            }
+          })
+          .filter(Boolean);
+
+        successfulEmbeddings.push(...batch);
       }
 
-      await ctx.runMutation(internal.ai.embedding.addEmbedding, {
-        embeddings,
-        chatId,
-        title,
-      });
+      if (successfulEmbeddings.length === 0) {
+        await ctx.runMutation(internal.chatbook.chat.updateChatStatus, {
+          chatId,
+          status: "failed",
+          error: "No embeddings were generated.",
+        });
+      } else {
+        await ctx.runMutation(internal.ai.embedding.addEmbedding, {
+          embeddings: successfulEmbeddings,
+          chatId,
+          title,
+        });
+        if (successfulEmbeddings.length > 0) {
+          console.warn("Some embeddings were not generated successfully.");
+        }
+      }
     } catch (error) {
+      console.log(error);
       await ctx.runMutation(internal.chatbook.chat.updateChatStatus, {
         chatId,
         status: "failed",
