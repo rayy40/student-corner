@@ -20,6 +20,7 @@ export const extractPathFromUrl = (url: string) => {
 };
 
 export const ignoredExtensions = [
+  // Images
   ".jpg",
   ".jpeg",
   ".png",
@@ -31,7 +32,8 @@ export const ignoredExtensions = [
   ".tiff",
   ".ico",
   ".icns",
-  ".svg",
+
+  // Videos
   ".mp4",
   ".avi",
   ".mov",
@@ -42,4 +44,61 @@ export const ignoredExtensions = [
   ".mpg",
   ".mpeg",
   ".3gp",
+
+  // Audio
+  ".mp3",
+  ".wav",
+  ".flac",
+  ".ogg",
+  ".aac",
+  ".wma",
+
+  // Compressed files
+  ".zip",
+  ".rar",
+  ".7z",
+  ".gz",
+  ".tar",
+
+  // Binary files
+  ".exe",
+  ".dll",
+  ".obj",
+  ".so",
+  ".a",
+  ".lib",
+  ".o",
+
+  // Data files
+  ".csv",
+  ".xlsx",
+  ".xls",
+  ".json",
+  ".xml",
+  ".db",
+  ".sql",
+
+  // Config files
+  ".env",
+  ".ini",
+  ".conf",
+  ".yml",
+  ".yaml",
+  ".toml",
+  ".properties",
+
+  // Node.js
+  ".node",
+  ".npmrc",
+  ".nvmrc",
+
+  // macOS
+  ".DS_Store",
+
+  // Other
+  ".log",
+  ".out",
+  ".bak",
+  ".tmp",
+  ".lock",
 ];
