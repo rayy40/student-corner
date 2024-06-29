@@ -18,6 +18,7 @@ import {
 import { FieldErrors, UseFormRegister } from "react-hook-form";
 import { Preloaded } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Message as Messagetype } from "ai";
 
 export type QuizKind = Infer<typeof QuizKind>;
 export type QuizFormat = Infer<typeof QuizFormat>;
@@ -132,6 +133,17 @@ export type ChatMessage = {
   createdAt: number;
   content: string;
   role: MessageRole;
+};
+
+export type ChatMessageWithDate = Omit<ChatMessage, "createdAt"> & {
+  createdAt: Date;
+};
+
+export type MessageProps = {
+  messages: Messagetype[];
+  hasStreamingStarted: boolean;
+  isLoading: boolean;
+  error?: Error;
 };
 
 export type Node = {
