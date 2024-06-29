@@ -56,14 +56,17 @@ const getFileContent = async ({
   });
 
   if (!Array.isArray(fileData) && fileData.type === "file") {
-    const obj = {
-      name: fileData.name,
-      path: fileData.path,
-      html_url: fileData.html_url ?? undefined,
-      content: atob(fileData.content),
-      download_url: fileData.download_url ?? undefined,
-    };
-    return obj;
+    if (fileData.encoding === "base64") {
+      const content = Buffer.from(fileData.content, "base64").toString("ascii");
+      return {
+        name: fileData.name,
+        path: fileData.path,
+        html_url: fileData.html_url ?? undefined,
+        content,
+        download_url: fileData.download_url ?? undefined,
+      };
+    }
+    return;
   }
 };
 
@@ -203,9 +206,10 @@ export const createChunks = internalAction({
   },
   handler: async (ctx, { chatId, title, content }) => {
     try {
-      const splitter = RecursiveCharacterTextSplitter.fromLanguage("js", {
+      const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: 2000,
         chunkOverlap: 100,
+        separators: ["\n", "\n\n", "\r\n", "\r", " ", ""],
       });
 
       const docs = await splitter.createDocuments(content);

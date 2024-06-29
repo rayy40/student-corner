@@ -27,9 +27,10 @@ export async function POST(req: Request) {
     });
   }
 
-  let system = ragTemplate(content, type);
-
-  if (type === "code") {
+  let system = "";
+  if (type !== "github") {
+    system = ragTemplate(content, type);
+  } else {
     system = codeTemplate(content);
   }
 

@@ -243,6 +243,8 @@ export const getGithubFiles = query({
       .withIndex("byChatId", (q) => q.eq("chatId", chatId))
       .collect();
 
+    if (files.length === 0) return [];
+
     return files;
   },
 });

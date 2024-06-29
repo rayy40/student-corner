@@ -1,21 +1,14 @@
-import { Message } from "ai";
 import Markdown from "markdown-to-jsx";
 import { memo } from "react";
-import { Wrapper } from "./Markdown/wrapper";
+import { Wrapper } from "../Markdown/wrapper";
 
-import overridenComponents from "./Markdown";
-import { MessageWrapper } from "./ui/message-wrapper";
-import { FormError } from "./ui/form-error";
-
-type Props = {
-  messages: Message[];
-  isLoading: boolean;
-  hasStreamingStarted: boolean;
-  error?: Error;
-};
+import overridenComponents from "../Markdown";
+import { MessageWrapper } from "../ui/message-wrapper";
+import { FormError } from "../ui/form-error";
+import { MessageProps } from "@/lib/types";
 
 export const Messages = memo(
-  ({ messages, isLoading, hasStreamingStarted, error }: Props) => {
+  ({ messages, isLoading, hasStreamingStarted, error }: MessageProps) => {
     const markDownToJsxOptions = {
       forceWrapper: true,
       wrapper: ({ children }: { children: JSX.Element[] }) => (
@@ -31,7 +24,7 @@ export const Messages = memo(
             {/* Add assistant message */}
             <p>How can I help you today?</p>
           </MessageWrapper>
-          {messages.map((message, index) => (
+          {messages?.map((message, index) => (
             <MessageWrapper role={message.role} key={index}>
               <Markdown options={markDownToJsxOptions}>
                 {message.content.replaceAll(/```/g, "\n```")}

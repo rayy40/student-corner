@@ -78,6 +78,10 @@ export const getPreloadedChat = (chatId: Id<"chatbook">) => {
   return preloadQuery(api.chatbook.chat.getChat, { chatId });
 };
 
+export const getPreloadedFiles = (chatId: Id<"chatbook">) => {
+  return preloadQuery(api.chatbook.chat.getGithubFiles, { chatId });
+};
+
 export const semanticSearch = (chatId: Id<"chatbook">, query: string) => {
   return fetchAction(api.chatbook.search.semanticSearch, {
     chatId,
@@ -85,8 +89,8 @@ export const semanticSearch = (chatId: Id<"chatbook">, query: string) => {
   });
 };
 
-export const getPreloadedGithubFiles = (chatId: Id<"chatbook">) => {
-  return preloadQuery(api.chatbook.chat.getGithubFiles, { chatId });
+export const getGithubFiles = (chatId: Id<"chatbook">) => {
+  return fetchQuery(api.chatbook.chat.getGithubFiles, { chatId });
 };
 
 export const getChatHistory = (userId: Id<"users">) => {

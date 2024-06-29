@@ -4,7 +4,11 @@ import YouTube from "react-youtube";
 
 import { getYouTubeVideoId } from "@/lib/utils";
 
-const VideoViewer = ({ url }: { url?: string }) => {
+type Props = {
+  url: string;
+};
+
+export const VideoViewer = ({ url }: Props) => {
   const options = {
     playerVars: {
       rel: 0,
@@ -12,8 +16,6 @@ const VideoViewer = ({ url }: { url?: string }) => {
       showInfo: 0,
     },
   };
-
-  if (!url) return;
 
   return (
     <div className="lg:bg-muted border-b border-b-border py-8 lg:py-0 w-full h-full flex items-center justify-center">
@@ -27,5 +29,3 @@ const VideoViewer = ({ url }: { url?: string }) => {
     </div>
   );
 };
-
-export default VideoViewer;

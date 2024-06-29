@@ -1,10 +1,11 @@
 import { preloadedQueryResult } from "convex/nextjs";
 
 import { auth } from "@/auth";
-import { ChatWrapper } from "@/components/chat-wrapper";
 import { UnAuthenticated } from "@/components/un-authenticated";
 import { Id } from "@/convex/_generated/dataModel";
 import { getMessages, getPreloadedChat } from "@/db/chat";
+import { ContentProvider } from "@/providers/content-provider";
+import { ChatBotWrapper } from "@/components/chat-bot/chat-bot-wrapper";
 
 type Props = {
   params: { chatId: string };
@@ -29,12 +30,14 @@ const Page = async ({ params }: Props) => {
   }
 
   return (
-    <ChatWrapper
-      preloadedChat={preloadedChat}
-      chatId={chatId}
-      initialMessages={initialMessages}
-      type="documentation"
-    />
+    <ContentProvider preloadedChat={preloadedChat} type="documentation">
+      <ChatBotWrapper
+        type="documentation"
+        chatId={chatId}
+        initialMessages={initialMessages}
+        title={chat?.success?.title ?? "Untitled"}
+      />
+    </ContentProvider>
   );
 };
 
