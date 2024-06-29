@@ -5,8 +5,8 @@ import { Preloaded, usePreloadedQuery } from "convex/react";
 import React, { createContext, ReactNode, useContext } from "react";
 
 import Loading from "@/app/loading";
-import { PDFViewer } from "@/components/pdf-viewer";
-import { VideoViewer } from "@/components/video-viewer";
+import { PDFViewer } from "@/components/chat-bot/pdf-viewer";
+import { VideoViewer } from "@/components/chat-bot/video-viewer";
 import { api } from "@/convex/_generated/api";
 import { ChatSchemaSelection } from "@/lib/types";
 import { CodeViewer } from "@/components/chat-bot/code-viewer";
